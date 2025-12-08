@@ -8,6 +8,7 @@
         port: parseInt(process.env.POSTGRES_PORT ?? '5432', 10),
         name: process.env.POSTGRES_DB,
         password: process.env.POSTGRES_PASSWORD,
+        url: process.env.POSTGRES_URL ?? '',
       },
       mongo: {
         username: process.env.MONGO_USER,

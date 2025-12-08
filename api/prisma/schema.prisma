@@ -7,8 +7,53 @@
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum Role {
+  CLIENT
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  BANNED
+}
+
+enum Provider {
+  GOOGLE
+  LOCAL
+}
+
+enum PostType {
+  LOST
+  FOUND
+}
+
+enum PostStatus {
+  OPEN
+  CLOSED
+  HIDDEN
+}
+
+model User {
+  id           String     @id @default(uuid()) @db.Uuid
+  email        String     @unique 
+  fullName     String     @map("full_name")
+  avatarUrl    String?    @map("avatar_url")
+  password     String?
+  googleId     String?    @unique @map("google_id")
+  phoneNumber  String?    @map("phone_number")
+  role         Role       @default(CLIENT)
+  provider     Provider   @default(LOCAL)
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  @@map("users")
 }
