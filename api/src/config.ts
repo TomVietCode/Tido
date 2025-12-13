@@ -14,5 +14,9 @@
         username: process.env.MONGO_USER,
         password: process.env.MONGO_PASSWORD,
       }
+    },
+    jwt: {
+      secret: process.env.JWT_SECRET,
+      expiresIn: process.env.JWT_EXPIRES_IN,
     }
   })
