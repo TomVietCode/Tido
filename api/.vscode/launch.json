@@ -10,7 +10,7 @@
       "request": "launch",
       "command": "npm run start:debug",
       "sourceMaps": true,
-      "cwd": "${workspaceFolder}\\api"
+      "cwd": "${workspaceFolder}"
     }
   ]
 }

@@ -6,45 +6,71 @@ import {
 } from '@nestjs/common'
 import { UsersService } from '../users/users.service'
 import { JwtService } from '@nestjs/jwt'
-import { SignUpDto } from '@/modules/auth/dtos'
-import { ApiResponse, JwtPayload } from '@/common/interfaces'
+import { SignUpDto } from '@/modules/auth/auth.dto'
+import { AuthResponse, JwtPayload } from '@/common/interfaces'
 import bcrypt from 'bcrypt'
-import { PrismaService } from '@/prisma/prisma.service'
+import { Role } from '@/common/enums'
+import { User } from '@/common/interfaces/user'
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    private prisma: PrismaService
   ) {}
-
-  async signIn(email: string, pass: string): Promise<any> {
-    const user = await this.usersService.findByEmail(email)
-    if (user?.password !== pass) {
-      throw new UnauthorizedException()
-    }
-    const payload = { sub: user.id, role: user.role }
-    const accessToken = await this.jwtService.signAsync(payload)
-    return { accessToken }
+  
+  async comparePassword(
+    password: string,
+    storePasswordHash: string,
+  ): Promise<boolean> {
+    return await bcrypt.compare(password, storePasswordHash)
   }
 
-  async signUp(dto: SignUpDto): Promise<ApiResponse<string>> {
+  async validateUser(email: string, password: string): Promise<User> {
+    const user = await this.usersService.findOne({ email })
+    const check = await this.comparePassword(password, user!.password!)
+
+    if (!user || !check) {
+      throw new UnauthorizedException("Invalid Credentials")
+    }
+
+    return user
+  }
+
+  async signIn(user: User): Promise<AuthResponse> {
+    const payload: JwtPayload = { sub: user.id, role: user.role }
+    const response = {
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role as Role,
+      },
+      access_token: this.jwtService.sign(payload),
+    }
+
+    return response
+  }
+
+  async signUp(dto: SignUpDto): Promise<AuthResponse> {
     const { fullName, email, password } = dto
-    const existingUser = await this.prisma.user.findUnique({ where: { email } })
+
+    const existingUser = await this.usersService.findOne({ email })
     if (existingUser) {
       throw new BadRequestException('User with this email already exists')
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10)
-    const user = await this.prisma.user.create({ data: { fullName, email, password: hashedPassword } })
+    const user = await this.usersService.createUser({ fullName, email, password })
 
     const payload: JwtPayload = { sub: user.id, role: user.role }
-    const accessToken = await this.jwtService.signAsync(payload)
     return { 
-      statusCode: HttpStatus.CREATED,
-      message: 'Signup successfully',
-      data: accessToken
-     }
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role as Role,
+      },
+      access_token: this.jwtService.sign(payload),
+    }
   }
 }
