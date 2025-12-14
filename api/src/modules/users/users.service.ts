@@ -3,18 +3,18 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { CreateUserDto } from '@/modules/users/dtos';
 import * as bcrypt from 'bcrypt';
 import { Prisma } from 'prisma/generated/prisma/browser';
-import { User } from '@/common/interfaces/user';
+import { User, UserResponse } from '@/common/interfaces/user';
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
   
   async getUsers() {
-    const users = await this.prisma.user.findMany()
+    const users = await this.prisma.user.findMany({ omit: { password: true } })
     if(!users || users.length === 0) {
       throw new NotFoundException('No users found')
     }
-    return users
+    return users as UserResponse[]
   }
 
   async createUser(data: CreateUserDto) {

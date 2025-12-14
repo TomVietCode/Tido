@@ -5,8 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "./generated/prisma"
+  provider     = "prisma-client"
+  output       = "./generated/prisma"
   moduleFormat = "cjs"
 }
 
@@ -41,19 +41,75 @@ enum PostStatus {
 }
 
 model User {
-  id           String     @id @default(uuid()) @db.Uuid
-  email        String     @unique 
-  fullName     String     @map("full_name")
-  avatarUrl    String?    @map("avatar_url")
-  password     String?
-  googleId     String?    @unique @map("google_id")
-  phoneNumber  String?    @map("phone_number")
-  role         Role       @default(CLIENT)
-  provider     Provider   @default(LOCAL)
-  status       UserStatus @default(ACTIVE)
-  createdAt    DateTime   @default(now()) @map("created_at")
-  updatedAt    DateTime   @updatedAt @map("updated_at")
+  id          String      @id @default(uuid()) @db.Uuid
+  email       String      @unique
+  fullName    String      @map("full_name")
+  avatarUrl   String?     @map("avatar_url")
+  password    String?
+  googleId    String?     @unique @map("google_id")
+  phoneNumber String?     @map("phone_number")
+  role        Role        @default(CLIENT)
+  provider    Provider    @default(LOCAL)
+  status      UserStatus  @default(ACTIVE)
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  posts       Post[]
+  savedPosts  SavedPost[]
 
   // Relations
   @@map("users")
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  slug      String   @unique
+  iconCode  String?  @map("icon_code")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  posts     Post[]
+
+  // Relations
+  @@map("categories")
+}
+
+model Post {
+  id               String     @id @default(uuid()) @db.Uuid
+  userId           String     @db.Uuid
+  categoryId       Int        @map("category_id")
+  title            String
+  description      String?
+  images           String[]   @map("images")
+  type             PostType
+  status           PostStatus
+  hasReward        Boolean    @default(false) @map("has_reward")
+  securityQuestion String?    @map("security_question")
+  contactVisible   Boolean    @default(false) @map("contact_visible")
+  happenedAt       DateTime?  @map("happened_at")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  user       User        @relation(fields: [userId], references: [id])
+  category   Category    @relation(fields: [categoryId], references: [id])
+  savedPosts SavedPost[]
+
+  @@map("posts")
+}
+
+model SavedPost {
+  userId    String   @db.Uuid
+  postId    String   @db.Uuid
+
+  savedAt   DateTime @default(now()) @map("saved_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+  post Post @relation(fields: [postId], references: [id])
+
+  @@id([userId, postId])
+
+  @@map("saved_posts")
 }

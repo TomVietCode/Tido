@@ -1,5 +1,7 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { UsersService } from '@/modules/users/users.service';
+import { BackendResponse } from '@/common/interfaces';
+import { UserResponse } from '@/common/interfaces/user';
 
 @Controller('users')
 export class UsersController {
@@ -8,8 +10,13 @@ export class UsersController {
   ) {}
 
   @Get()
-  async getUsers() {
-    return this.usersService.getUsers();
+  async getUsers(): Promise<BackendResponse<UserResponse[]>> {
+    const data = await this.usersService.getUsers();
+    return {
+      statusCode: 200,
+      message: 'Users fetched successfully',
+      data,
+    }
   }
 
   @Get(':email')
