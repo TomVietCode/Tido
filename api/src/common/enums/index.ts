@@ -23,3 +23,8 @@ export enum PostStatus {
   CLOSED = 'CLOSED',
   HIDDEN = 'HIDDEN',
 }
+
+export enum CategoryStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+}

@@ -1,4 +1,4 @@
-import { Role } from "@/common/enums"
+import { CategoryStatus, Role } from "@/common/enums"
 
 export interface BackendResponse<T> {
   statusCode: number
@@ -20,4 +20,15 @@ export interface AuthResponse {
 export interface JwtPayload {
   sub: string,
   role: string
+}
+
+export interface Category {
+  id: number,
+  name: string,
+  slug: string,
+  description?: string,
+  iconCode?: string,
+  status: CategoryStatus,
+  createdAt: Date,
+  updatedAt: Date,
 }

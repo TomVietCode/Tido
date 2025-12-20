@@ -40,6 +40,11 @@ enum PostStatus {
   HIDDEN
 }
 
+enum CategoryStatus {
+  ACTIVE
+  INACTIVE
+}
+
 model User {
   id          String      @id @default(uuid()) @db.Uuid
   email       String      @unique
@@ -61,12 +66,13 @@ model User {
 }
 
 model Category {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  slug      String   @unique
-  iconCode  String?  @map("icon_code")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id        Int            @id @default(autoincrement())
+  name      String         @unique
+  slug      String         @unique
+  status    CategoryStatus @default(ACTIVE)
+  iconCode  String?        @map("icon_code")
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
   posts     Post[]
 
   // Relations
@@ -98,8 +104,8 @@ model Post {
 }
 
 model SavedPost {
-  userId    String   @db.Uuid
-  postId    String   @db.Uuid
+  userId String @db.Uuid
+  postId String @db.Uuid
 
   savedAt   DateTime @default(now()) @map("saved_at")
   createdAt DateTime @default(now()) @map("created_at")
@@ -110,6 +116,5 @@ model SavedPost {
   post Post @relation(fields: [postId], references: [id])
 
   @@id([userId, postId])
-
   @@map("saved_posts")
 }
