@@ -10,6 +10,9 @@ RUN npm install
 COPY prisma ./prisma
 COPY prisma.config.ts ./
 
+# Generate Prisma client
+RUN npx prisma generate
+
 # Copy entrypoint script and set permissions
 COPY docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
