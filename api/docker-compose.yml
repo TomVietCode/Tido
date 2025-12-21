@@ -1,40 +1,36 @@
 services:
-  # api:
-  #   container_name: tido_api
-  #   build:
-  #     context: .         # Trỏ vào thư mục chứa code backend
-  #     dockerfile: Dockerfile
-  #   restart: always
-  #   ports:
-  #     - "${PORT}:${PORT}"    
-  #   volumes:
-  #     - .:/usr/src/app    #  QUAN TRỌNG: Map code thật vào container (Hot Reload)
-  #     - /usr/src/app/node_modules # Giữ node_modules của container, không cho máy thật ghi đè
-  #   environment:
-  #     CHOKIDAR_USEPOLLING: "true"
+  api:
+    container_name: tido_api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "${PORT}:${PORT}"
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      NODE_ENV: ${NODE_ENV}
+      JWT_SECRET: "${JWT_SECRET}"
+      PORT: "${PORT}"
       
-  #     # Cấu hình kết nối DB (Lưu ý: host là tên service, KHÔNG phải localhost)
-  #     POSTGRES_HOST: "postgres"
-  #     POSTGRES_PORT: ${POSTGRES_PORT}
-  #     POSTGRES_USER: ${POSTGRES_USER} 
-  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-  #     POSTGRES_DB: ${POSTGRES_DB}
+      # QUAN TRỌNG: Kết nối đến service "postgres"
+      POSTGRES_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public"
 
-  #     # Cấu hình Mongo
-  #     # MONGO_URI: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongo:27017/admin
-      
-  #     # Các biến khác của App
-  #     NODE_ENV: ${NODE_ENV}
-  #     JWT_SECRET: "${JWT_SECRET}"
-  #     PORT: "${PORT}"
-  #   depends_on:
-  #     - postgres
-  #     # - mongo
-  #   networks:
-  #     - tido_net
+    # Lệnh: Chạy migration xong mới start dev
+    command: >
+      sh -c "npx prisma migrate deploy && npm run dev"
+    
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - tido_net
 
   postgres:
-    image: postgres:16-alpine 
+    image: postgres:16-alpine
     container_name: tido_postgres
     restart: always
     environment:
@@ -42,25 +38,17 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5432:5432" 
+      - "5432:5432"
     volumes:
       - ./docker_data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - tido_net
 
-  # mongo:
-  #   image: mongo:7.0
-  #   container_name: tido_mongo
-  #   restart: always
-  #   environment:
-  #     MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
-  #     MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
-  #   ports:
-  #     - "27017:27017"
-  #   volumes:
-  #     - ./docker_data/mongo:/data/db
-  #   networks:
-  #     - tido_net
 networks:
   tido_net:
     driver: bridge
