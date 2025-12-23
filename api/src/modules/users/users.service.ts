@@ -4,6 +4,7 @@ import { CreateUserDto } from '@/modules/users/dtos';
 import * as bcrypt from 'bcrypt';
 import { Prisma } from 'prisma/generated/prisma/browser';
 import { User, UserResponse } from '@/common/interfaces/user';
+import slugify from 'slugify';
 
 @Injectable()
 export class UsersService {
@@ -26,7 +27,8 @@ export class UsersService {
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
-      const user = await this.prisma.user.create({ data: { ...props, password: hashedPassword } });
+      const avatarUrl= this.generateAvatarUrl(props.fullName);
+      const user = await this.prisma.user.create({ data: { ...props, password: hashedPassword, avatarUrl } });
 
       const { password: pass, ...rest } = user
       return rest;
@@ -40,5 +42,10 @@ export class UsersService {
       where: props,
     });
     return user as User
+  }
+
+  generateAvatarUrl(fullName: string) {
+    const name = slugify(fullName, { strict: true })
+    return `https://ui-avatars.com/api/?name=${name}&background=random&size=100`
   }
 }

@@ -13,6 +13,7 @@ export interface AuthResponse {
     email: string,
     fullName: string,
     role: Role,
+    avatarUrl?: string,
   },
   access_token: string,
 }

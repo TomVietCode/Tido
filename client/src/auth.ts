@@ -1,0 +1,45 @@
+import NextAuth from "next-auth"
+import Credentials from "next-auth/providers/credentials"
+import { sendRequest } from "@/lib/helpers/api"
+import { IUser } from "@/types/next-auth"
+
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  providers: [
+    Credentials({
+      credentials: {
+        email: {},
+        password: {},
+      },
+      authorize: async (credentials): Promise<IUser | null> => {
+        const { email, password } = credentials
+        const res = await sendRequest<IBackendRes<IAuth>>({
+          url: "/auth/signin",
+          method: "POST",
+          body: { email, password },
+        })
+
+        if (res.statusCode === 200) {
+          const user = { ...res.data?.user, access_token: res.data?.access_token }
+          return user as IUser
+        } else {
+          throw new Error("Invalid credentials")
+        }
+      },
+    }),
+  ],
+  callbacks: {
+    jwt({ token, user }) {
+      if (user) {
+        token.user = (user as IUser)
+      }
+      return token
+    },
+    session({ session, token }) {
+      (session.user as IUser) = token.user
+      return session
+    },
+  },
+  session: {
+    strategy: 'jwt'
+  }
+})

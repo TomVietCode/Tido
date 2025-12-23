@@ -4,7 +4,7 @@ export interface User {
   id: string
   email: string
   fullName: string
-  avatarUrl: string | null
+  avatarUrl?: string
   password: string | null
   googleId: string | null
   phoneNumber: string | null

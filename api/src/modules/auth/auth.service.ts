@@ -28,9 +28,11 @@ export class AuthService {
 
   async validateUser(email: string, password: string): Promise<User> {
     const user = await this.usersService.findOne({ email })
+    if (!user) {
+      throw new UnauthorizedException("Invalid Credentials")
+    }
     const check = await this.comparePassword(password, user!.password!)
-
-    if (!user || !check) {
+    if (!check) {
       throw new UnauthorizedException("Invalid Credentials")
     }
 
@@ -45,6 +47,7 @@ export class AuthService {
         email: user.email,
         fullName: user.fullName,
         role: user.role as Role,
+        avatarUrl: user.avatarUrl,
       },
       access_token: this.jwtService.sign(payload),
     }
@@ -69,6 +72,7 @@ export class AuthService {
         email: user.email,
         fullName: user.fullName,
         role: user.role as Role,
+        avatarUrl: user.avatarUrl ?? undefined,
       },
       access_token: this.jwtService.sign(payload),
     }

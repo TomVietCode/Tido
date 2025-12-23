@@ -1,8 +1,13 @@
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import { auth } from "@/auth"
+import UserDropDown from "@/components/auth/UserDropDown"
+import AuthDialog from "@/components/auth/AuthDialog"
 
-export default function Header() {
+
+export default async function Header() {
+  const session = await auth()
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container flex h-14 max-w-screen-2xl items-center p-4">
@@ -26,8 +31,13 @@ export default function Header() {
               Trang chủ
             </Link>
           </nav>
-          <Button variant="ghost">Đăng nhập</Button>
-          <Button>Đăng ký</Button>
+          {session ? (
+            <UserDropDown user={session.user} />
+          ) : (
+            <>
+              <AuthDialog />
+            </>
+          )}
         </div>
       </div>
     </header>
