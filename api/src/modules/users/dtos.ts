@@ -1,6 +1,6 @@
 import { IsEmail, IsNotEmpty } from "class-validator";
 
-export class CreateUserDto {
+export class CreateUserLocalDto {
   @IsEmail({}, { message: "Invalid email" })
   @IsNotEmpty({ message: "Email is required" })
   email: string;
@@ -11,3 +11,4 @@ export class CreateUserDto {
   @IsNotEmpty({ message: "Password is required" })
   password: string;
 }
+

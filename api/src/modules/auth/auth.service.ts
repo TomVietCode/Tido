@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  HttpStatus,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common'
@@ -9,7 +8,7 @@ import { JwtService } from '@nestjs/jwt'
 import { SignUpDto } from '@/modules/auth/auth.dto'
 import { AuthResponse, JwtPayload } from '@/common/interfaces'
 import bcrypt from 'bcrypt'
-import { Role } from '@/common/enums'
+import { Provider, Role } from '@/common/enums'
 import { User } from '@/common/interfaces/user'
 
 @Injectable()
@@ -29,11 +28,11 @@ export class AuthService {
   async validateUser(email: string, password: string): Promise<User> {
     const user = await this.usersService.findOne({ email })
     if (!user) {
-      throw new UnauthorizedException("Invalid Credentials")
+      throw new UnauthorizedException("Email hoặc mật khẩu không đúng")
     }
     const check = await this.comparePassword(password, user!.password!)
     if (!check) {
-      throw new UnauthorizedException("Invalid Credentials")
+      throw new UnauthorizedException("Email hoặc mật khẩu không đúng")
     }
 
     return user
@@ -58,12 +57,12 @@ export class AuthService {
   async signUp(dto: SignUpDto): Promise<AuthResponse> {
     const { fullName, email, password } = dto
 
-    const existingUser = await this.usersService.findOne({ email })
+    const existingUser = await this.usersService.findOne({ email, provider: Provider.LOCAL })
     if (existingUser) {
-      throw new BadRequestException('User with this email already exists')
+      throw new BadRequestException('Tài khoản với email này đã tồn tại')
     }
 
-    const user = await this.usersService.createUser({ fullName, email, password })
+    const user = await this.usersService.createUserFromLocal({ fullName, email, password })
 
     const payload: JwtPayload = { sub: user.id, role: user.role }
     return { 
@@ -73,6 +72,28 @@ export class AuthService {
         fullName: user.fullName,
         role: user.role as Role,
         avatarUrl: user.avatarUrl ?? undefined,
+      },
+      access_token: this.jwtService.sign(payload),
+    }
+  }
+
+  async oAuthSignIn(user) {
+    let existingUser = await this.usersService.findOne({ email: user.email })
+    if (!existingUser) {
+      existingUser = await this.usersService.createUserFromGoogle(user)
+    }
+
+    if (existingUser.provider !== Provider.GOOGLE) {
+      throw new BadRequestException('Email này đã được sử dụng')
+    }
+    const payload: JwtPayload = { sub: existingUser.id, role: existingUser.role }
+    return {
+      user: {
+        id: existingUser.id,
+        email: existingUser.email,
+        fullName: existingUser.fullName,
+        role: existingUser.role as Role,
+        avatarUrl: existingUser.avatarUrl ?? undefined,
       },
       access_token: this.jwtService.sign(payload),
     }

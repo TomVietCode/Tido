@@ -1,6 +1,7 @@
   export default () => ({
     port: parseInt(process.env.PORT ?? '8080', 10),
     environment: process.env.NODE_ENV,
+    clientUrl: process.env.CLIENT_URL,
     database: {
       postgres: {
         host: process.env.POSTGRES_HOST,
@@ -18,5 +19,10 @@
     jwt: {
       secret: process.env.JWT_SECRET,
       expiresIn: process.env.JWT_EXPIRES_IN,
+    },
+    google: {
+      clientId: process.env.CLIENT_ID,
+      clientSecret: process.env.CLIENT_SECRET,
+      callBackUrl: process.env.CALLBACK_URL
     }
   })

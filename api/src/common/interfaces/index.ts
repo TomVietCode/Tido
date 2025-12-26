@@ -27,7 +27,6 @@ export interface Category {
   id: number,
   name: string,
   slug: string,
-  description?: string,
   iconCode?: string,
   status: CategoryStatus,
   createdAt: Date,

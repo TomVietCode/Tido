@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
-import { CreateUserDto } from '@/modules/users/dtos';
+import { CreateUserLocalDto } from '@/modules/users/dtos';
 import * as bcrypt from 'bcrypt';
 import { Prisma } from 'prisma/generated/prisma/browser';
 import { User, UserResponse } from '@/common/interfaces/user';
@@ -18,7 +18,7 @@ export class UsersService {
     return users as UserResponse[]
   }
 
-  async createUser(data: CreateUserDto) {
+  async createUserFromLocal(data: CreateUserLocalDto) {
     try {
       const { password, ...props } = data;
       const existingUser = await this.findOne({ email: props.email });
@@ -35,6 +35,17 @@ export class UsersService {
     } catch (error) {
       throw new BadRequestException(error.message);
     }
+  }
+
+  async createUserFromGoogle(data: any): Promise<User> {
+    const { email, fullName, googleId, provider } = data
+    let avatarUrl = data.avatarUrl
+    if (!avatarUrl) { 
+      avatarUrl = this.generateAvatarUrl(fullName)
+    }
+
+    const user = await this.prisma.user.create({ data: { email, fullName, googleId, provider, avatarUrl } })
+    return user as User
   }
 
   async findOne(props: Prisma.UserWhereUniqueInput): Promise<User | null> {

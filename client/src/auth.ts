@@ -6,6 +6,7 @@ import { IUser } from "@/types/next-auth"
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Credentials({
+      id: "credentials",
       credentials: {
         email: {},
         password: {},
@@ -26,6 +27,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
       },
     }),
+    Credentials({
+      id: "google-oauth",
+      credentials: { token: {}, user: {} },
+      authorize: async (credentials): Promise<IUser | null> => {
+        const token = credentials.token as string
+        const userStr = credentials.user as string
+        if (!token || !userStr) return null
+        const user = JSON.parse(userStr) as IUser
+        return { ...user, access_token: token } as IUser
+      }
+    })
   ],
   callbacks: {
     jwt({ token, user }) {

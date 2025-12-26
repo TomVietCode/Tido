@@ -13,7 +13,7 @@ export default async function Header() {
       <div className="container flex h-14 max-w-screen-2xl items-center p-4">
         <div className="mr-4 flex">
           <Link href="/" className="mr-6 flex items-center space-x-2 font-bold">
-            <Image src="/logo.jpg" alt="Logo" width={100} height={100} />
+            <Image src="/logo.jpg" alt="Logo" width="60" height="60" />
           </Link>
         </div>
         <div className="flex flex-1 items-center justify-end space-x-2">

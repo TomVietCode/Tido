@@ -26,6 +26,6 @@ export class UsersController {
 
   @Post()
   async createUser(@Body() data: any) {
-    return await this.usersService.createUser(data);
+    return await this.usersService.createUserFromLocal(data);
   }
-}
+} 

@@ -7,6 +7,7 @@ import { Role } from '@/common/enums/index';
 import { Roles } from '@/modules/auth/decorators/role.decorator';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { BackendResponse, Category } from '@/common/interfaces';
+import { Public } from '@/modules/auth/decorators/public.decorator';
 
 @Controller('categories')
 @ApiTags('Categories')
@@ -21,28 +22,81 @@ export class CategoriesController {
     const category = await this.categoriesService.create(createCategoryDto);
     return {
       statusCode: 200,
-      message: 'Category created successfully',
+      message: 'Tạo danh mục mới thành công',
       data: category as Category,
     }
   }
 
+  @Public()
   @Get()
-  async findAll() {
-    return this.categoriesService.findAll();
+  async findAll(): Promise<BackendResponse<Category[]>> {
+    try {
+      const categories = await this.categoriesService.findAll();
+      return {
+        statusCode: 200,
+        message: 'Lấy danh sách danh mục thành công',
+        data: categories as Category[],
+      }
+    } catch (error) {
+      return {
+        statusCode: error.status,
+        message: "Có lỗi xảy ra khi lấy danh sách danh mục",
+      }
+    }
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return this.categoriesService.findOne(+id);
+  async findOne(@Param('id') id: string): Promise<BackendResponse<Category>> {
+    try {
+      const category = await this.categoriesService.findOne(+id);
+      return {
+        statusCode: 200,
+        message: 'Lấy danh mục thành công',
+        data: category as Category,
+      }
+    } catch (error) {
+      return {
+        statusCode: error.status,
+        message: error.message,
+      }
+    }
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles(Role.ADMIN)
   async update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
-    return this.categoriesService.update(+id, updateCategoryDto);
+    try {
+      const category = await this.categoriesService.update(+id, updateCategoryDto);
+      return {
+        statusCode: 200,
+        message: 'Cập nhật danh mục thành công',
+        data: category,
+      }
+    } catch (error) {
+      return {
+        statusCode: error.status,
+        message: error.message,
+      }
+    }
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    return this.categoriesService.remove(+id);
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles(Role.ADMIN)
+  async remove(@Param('id') id: string): Promise<BackendResponse<Category>> {
+    try {
+      const category = await this.categoriesService.remove(+id);
+      return {
+        statusCode: 200,
+        message: 'Xóa danh mục thành công',
+        data: category,
+      }
+    } catch (error) {
+      return {
+        statusCode: error.status,
+        message: "Có lỗi xảy ra khi xóa danh mục",
+      }
+    }
   }
 }

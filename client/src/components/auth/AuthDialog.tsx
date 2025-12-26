@@ -70,6 +70,12 @@ export default function AuthDialog() {
       toast.error(res.message ?? "Có lỗi xảy ra, vui lòng thử lại sau.")
     }
   }
+
+  const handleOauth = async (event: any) => {
+    event.preventDefault();
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
+  };
+
   return (
     <Dialog open={authMode !== null} onOpenChange={(open) => !open && closeDialog()}>
       <DialogTrigger asChild>
@@ -84,7 +90,7 @@ export default function AuthDialog() {
       <DialogContent className="sm:max-w-[500px]">
         {authMode === "signUp" ? (
           <>
-            <DialogHeader >
+            <DialogHeader>
               <DialogTitle className="flex justify-center">Đăng ký tài khoản mới</DialogTitle>
             </DialogHeader>
 
@@ -182,6 +188,7 @@ export default function AuthDialog() {
                     type="button"
                     className="w-full"
                     disabled={signUpForm.formState.isSubmitting}
+                    onClick={handleOauth}
                   >
                     <FcGoogle className="mr-2 h-5 w-5" />
                     Đăng ký với Google
@@ -213,7 +220,11 @@ export default function AuthDialog() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="email@example.com" {...field} disabled={signInForm.formState.isSubmitting} />
+                        <Input
+                          placeholder="email@example.com"
+                          {...field}
+                          disabled={signInForm.formState.isSubmitting}
+                        />
                       </FormControl>
                       <div className="h-5 flex items-center">
                         <FormMessage className="text-xs" />
@@ -230,7 +241,12 @@ export default function AuthDialog() {
                     <FormItem>
                       <FormLabel>Mật khẩu</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder="******" {...field} disabled={signInForm.formState.isSubmitting} />
+                        <Input
+                          type="password"
+                          placeholder="******"
+                          {...field}
+                          disabled={signInForm.formState.isSubmitting}
+                        />
                       </FormControl>
                       <div className="h-5 flex items-center">
                         <FormMessage className="text-xs" />
@@ -244,7 +260,13 @@ export default function AuthDialog() {
                     {signInForm.formState.isSubmitting ? <Spinner /> : "Đăng nhập"}
                   </Button>
 
-                  <Button variant="outline" type="button" className="w-full" disabled={signInForm.formState.isSubmitting}>
+                  <Button
+                    variant="outline"
+                    type="button"
+                    className="w-full"
+                    disabled={signInForm.formState.isSubmitting}
+                    onClick={handleOauth}
+                  >
                     <FcGoogle className="mr-2 h-5 w-5" />
                     Đăng nhập với Google
                   </Button>

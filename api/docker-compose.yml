@@ -1,33 +1,33 @@
 services:
-  api:
-    container_name: tido_api
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: always
-    ports:
-      - "${PORT}:${PORT}"
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
-    environment:
-      CHOKIDAR_USEPOLLING: "true"
-      NODE_ENV: ${NODE_ENV}
-      JWT_SECRET: "${JWT_SECRET}"
-      PORT: "${PORT}"
+  # api:
+  #   container_name: tido_api
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   restart: always
+  #   ports:
+  #     - "${PORT}:${PORT}"
+  #   volumes:
+  #     - .:/usr/src/app
+  #     - /usr/src/app/node_modules
+  #   environment:
+  #     CHOKIDAR_USEPOLLING: "true"
+  #     NODE_ENV: ${NODE_ENV}
+  #     JWT_SECRET: "${JWT_SECRET}"
+  #     PORT: "${PORT}"
       
-      # QUAN TRỌNG: Kết nối đến service "postgres"
-      POSTGRES_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public"
+  #     # QUAN TRỌNG: Kết nối đến service "postgres"
+  #     POSTGRES_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public"
 
-    # Lệnh: Chạy migration xong mới start dev
-    command: >
-      sh -c "npx prisma migrate deploy && npm run dev"
+  #   # Lệnh: Chạy migration xong mới start dev
+  #   command: >
+  #     sh -c "npx prisma migrate deploy && npm run dev"
     
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - tido_net
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   networks:
+  #     - tido_net
 
   postgres:
     image: postgres:16-alpine

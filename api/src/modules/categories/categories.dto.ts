@@ -6,11 +6,6 @@ export class CreateCategoryDto {
   @IsString({ message: "Invalid name" })
   name: string
 
-  @IsOptional()
-  @IsString({ message: "Invalid description" })
-  description: string
-
-  @IsOptional()
   iconCode?: string
 
   @IsOptional()
