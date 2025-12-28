@@ -24,5 +24,12 @@
       clientId: process.env.CLIENT_ID,
       clientSecret: process.env.CLIENT_SECRET,
       callBackUrl: process.env.CALLBACK_URL
+    },
+    aws: {
+      doSpaceEnpoint: process.env.DO_SPACE_ENDPOINT,
+      doSpaceAccessKey: process.env.DO_SPACE_ACCESS_KEY,
+      doSpaceSecretKey: process.env.DO_SPACE_SECRET_KEY,
+      doSpaceBucket: process.env.DO_SPACE_BUCKET,
+      doSpaceRegion: process.env.DO_SPACE_REGION,
     }
   })

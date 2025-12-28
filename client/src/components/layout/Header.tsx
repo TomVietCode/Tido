@@ -3,6 +3,7 @@ import Image from "next/image"
 import { auth } from "@/auth"
 import UserDropDown from "@/components/auth/UserDropDown"
 import AuthDialog from "@/components/auth/AuthDialog"
+import { Button } from "../ui/button"
 
 
 export default async function Header() {
@@ -32,7 +33,14 @@ export default async function Header() {
             </Link>
           </nav>
           {session ? (
-            <UserDropDown user={session.user} />
+            <>
+              <Button  >
+                <Link href="/posts/new">
+                  Tạo bài đăng
+                </Link>
+              </Button>
+              <UserDropDown user={session.user} />
+            </>
           ) : (
             <>
               <AuthDialog />

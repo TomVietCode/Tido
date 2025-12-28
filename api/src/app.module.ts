@@ -8,9 +8,10 @@ import { PrismaModule } from '@/prisma/prisma.module'
 import config from '@/config'
 import { APP_GUARD } from '@nestjs/core'
 import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard'
-import { PostsModule } from './modules/posts/posts.module'
-import { CategoriesModule } from './modules/categories/categories.module'
-import { RoleGuard } from './modules/auth/guards/role.guard'
+import { PostsModule } from '@/modules/posts/posts.module'
+import { CategoriesModule } from '@/modules/categories/categories.module'
+import { RoleGuard } from '@/modules/auth/guards/role.guard'
+import { UploadModule } from '@/modules/uploads/upload.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { RoleGuard } from './modules/auth/guards/role.guard'
     PrismaModule,
     PostsModule,
     CategoriesModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [

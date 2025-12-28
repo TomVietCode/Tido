@@ -27,6 +27,7 @@ export class CategoriesController {
     }
   }
 
+  @ApiOperation({ summary: 'Get all categories' })
   @Public()
   @Get()
   async findAll(): Promise<BackendResponse<Category[]>> {
@@ -44,7 +45,9 @@ export class CategoriesController {
       }
     }
   }
-
+  
+  @ApiOperation({ summary: 'Get a category by id' })
+  @Public()
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<BackendResponse<Category>> {
     try {
@@ -62,6 +65,7 @@ export class CategoriesController {
     }
   }
 
+  @ApiOperation({ summary: 'Update a category by id' })
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles(Role.ADMIN)
@@ -81,6 +85,7 @@ export class CategoriesController {
     }
   }
 
+  @ApiOperation({ summary: 'Delete a category by id' })
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles(Role.ADMIN)
