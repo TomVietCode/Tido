@@ -23,16 +23,3 @@ export const getPresignedUrl = async (fileName: string, contentType: string) => 
     uploadUrl: res.data.uploadUrl,
   }
 }
-
-export const uploadFile = async(file: any, uploadUrl: string) => {
-  const uploadRes = await fetch(uploadUrl, {
-    method: "PUT",
-    headers: {
-      "Content-Type": file.type,
-    },
-    body: file,
-  })
-  
-  if (!uploadRes.ok) throw new Error("Upload failed")
-  return uploadRes.url
-}

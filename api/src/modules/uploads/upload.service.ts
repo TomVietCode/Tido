@@ -27,6 +27,7 @@ export class UploadService {
       Bucket: this.bucket,
       Key: key,
       ContentType: contentType,
+      ACL: 'public-read',
      })
 
      const uploadUrl = await getSignedUrl(this.s3Client, command, { expiresIn: 60 * 5 })
