@@ -1,4 +1,4 @@
-import { CategoryStatus, Role } from "@/common/enums"
+import { CategoryStatus, PostStatus, PostType, Role, UserStatus } from "@/common/enums"
 
 export interface BackendResponse<T> {
   statusCode: number
@@ -13,6 +13,7 @@ export interface AuthResponse {
     email: string,
     fullName: string,
     role: Role,
+    status: UserStatus
     avatarUrl?: string,
   },
   access_token: string,
@@ -33,7 +34,25 @@ export interface Category {
   updatedAt: Date,
 }
 
+export interface Post {
+  id: string
+  userId: string
+  categoryId: string | number
+  title: string
+  description: string
+  images: string[]
+  type: PostType
+  status: PostStatus
+  hasReward?: boolean
+  securityQuestion?: string 
+  contactVisible: boolean 
+  happenedAt: Date | string      
+  createdAt: Date | string     
+  updatedAt: Date | string     
+}
+
+
 export interface GetPresignedUrlResponse {
   uploadUrl: string,
-  fileUrl: string,
+  uploadedUrl: string,
 }

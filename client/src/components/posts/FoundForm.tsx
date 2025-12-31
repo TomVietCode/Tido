@@ -1,21 +1,22 @@
 "use client"
 
 import { TabsContent } from "@/components/ui/tabs"
-import { Card, CardContent, CardFooter } from "../ui/card"
-import { Label } from "../ui/label"
-import { Input } from "../ui/input"
-import { Button } from "../ui/button"
-import { Textarea } from "../ui/textarea"
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
-import { Dropzone, DropzoneContent, DropzoneEmptyState } from "../ui/shadcn-io/dropzone"
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dropzone, DropzoneContent, DropzoneEmptyState } from "@/components/ui/shadcn-io/dropzone"
 import { useEffect, useState } from "react"
 import { X } from "lucide-react"
-import { Switch } from "../ui/switch"
+import { Switch } from "@/components/ui/switch"
 import { useForm } from "react-hook-form"
 import { foundFormSchema, FoundFormValues } from "@/lib/schemas/post.schema"
 import { zodResolver } from "@hookform/resolvers/zod"
-import FormErrorMessage from "../ui/form-error-message"
+import FormErrorMessage from "@/components/ui/form-error-message"
 import { Category } from "@/types"
+import { Spinner } from "@/components/ui/spinner"
 
 export default function FoundForm({ categories }: { categories: Category[] }) {
   const [filePreviews, setFilePreviews] = useState<string[]>([])
@@ -37,7 +38,7 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
     const updatedFiles = [...currentFiles, ...newFiles].slice(0, 5)
     setValue("files", updatedFiles, { shouldValidate: true })
   }
-
+  
   useEffect(() => {
     if (files.length === 0) {
       setFilePreviews([])
@@ -186,7 +187,7 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
               disabled={formState.isSubmitting}
               className="w-full bg-chart-2 text-white hover:bg-chart-3 transition-colors duration-300 cursor-pointer "
             >
-              {formState.isSubmitting ? "Đang đăng..." : "Đăng tin ngay"}
+              {formState.isSubmitting ? <><Spinner /> Đang đăng...</> : "Đăng tin ngay"}
             </Button>
           </CardFooter>
         </form>

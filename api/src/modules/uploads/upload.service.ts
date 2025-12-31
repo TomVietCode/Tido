@@ -32,10 +32,10 @@ export class UploadService {
 
      const uploadUrl = await getSignedUrl(this.s3Client, command, { expiresIn: 60 * 5 })
 
-     const endpoint = this.configService.get("aws.doSpaceEnpoint")!
-     const fileUrl = `${endpoint}/${this.bucket}/${key}`
+     const region = this.configService.get("aws.doSpaceRegion")!
+     const uploadedUrl = `https://${this.bucket}.${region}.cdn.digitaloceanspaces.com/${key}`;
 
-     return { uploadUrl, fileUrl }
+     return { uploadUrl, uploadedUrl }
   }
 
   async deleteFile(fileUrl: string): Promise<void> {

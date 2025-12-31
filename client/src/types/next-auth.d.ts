@@ -1,11 +1,13 @@
 import NextAuth, { DefaultSession } from "next-auth"
 import { JWT } from "next-auth/jwt"
+import { UserStatus } from "@/types/enums"
 
 interface IUser {
   id: string
   email: string
   fullName: string
   role: UserRole
+  status: UserStatus
   avatarUrl: string
   access_token: string
 }

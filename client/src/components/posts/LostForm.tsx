@@ -1,26 +1,31 @@
 "use client"
 
 import { TabsContent } from "@/components/ui/tabs"
-import { Card, CardContent, CardFooter } from "../ui/card"
-import { Label } from "../ui/label"
-import { Input } from "../ui/input"
-import { Button } from "../ui/button"
-import { Textarea } from "../ui/textarea"
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
-import { Dropzone, DropzoneContent, DropzoneEmptyState } from "../ui/shadcn-io/dropzone"
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dropzone, DropzoneContent, DropzoneEmptyState } from "@/components/ui/shadcn-io/dropzone"
 import { useEffect, useState } from "react"
 import { X } from "lucide-react"
-import { Switch } from "../ui/switch"
+import { Switch } from "@/components/ui/switch"
 import { useForm } from "react-hook-form"
 import { lostFormSchema, LostFormValues } from "@/lib/schemas/post.schema"
 import { zodResolver } from "@hookform/resolvers/zod"
-import FormErrorMessage from "../ui/form-error-message"
+import FormErrorMessage from "@/components/ui/form-error-message"
 import { Category } from "@/types"
+import { toast } from "sonner"
+import { getPresignedUrl } from "@/lib/actions/upload.action"
+import { createPost } from "@/lib/actions/post.action"
+import { PostType } from "@/types/enums"
+import { showErrorToast } from "@/lib/helpers/handle-errors"
+import { uploadFile } from "@/lib/helpers/client-upload"
 
 export default function LostForm({ categories }: { categories: Category[] }) {
   const [filePreviews, setFilePreviews] = useState<string[]>([])
-
-  const { register, watch, getValues, setValue, formState, handleSubmit } = useForm<LostFormValues>({
+  const { register, watch, getValues, setValue, formState, handleSubmit, reset } = useForm<LostFormValues>({
     resolver: zodResolver(lostFormSchema),
     defaultValues: {
       title: "",
@@ -29,7 +34,7 @@ export default function LostForm({ categories }: { categories: Category[] }) {
       location: "",
       contactVisible: false,
       hasReward: false,
-    },
+    },  
   })
   const files = watch("files")
 
@@ -39,6 +44,12 @@ export default function LostForm({ categories }: { categories: Category[] }) {
     setValue("files", updatedFiles, { shouldValidate: true })
   }
 
+  useEffect(() => {
+    if (categories.length === 0) {
+      toast.error("Không thể lấy danh sách danh mục")
+    }
+  }, [categories])
+  
   useEffect(() => {
     if (files.length === 0) {
       setFilePreviews([])
@@ -55,8 +66,51 @@ export default function LostForm({ categories }: { categories: Category[] }) {
     setValue("files", updatedFiles, { shouldValidate: true })
   }
 
-  const onSubmit = (data: LostFormValues) => {
-    console.log("Dữ liệu gửi lên server:", data)
+  const onSubmit = async (data: LostFormValues) => {
+    const { files, ...props } = data
+  
+    // Upload tất cả ảnh song song và đợi hoàn thành
+    const uploadResults = await Promise.all(
+      files.map(async (file: File) => {
+        try {
+          const { uploadUrl, uploadedUrl } = await getPresignedUrl(file.name, file.type)
+          await uploadFile(file, uploadUrl)
+          return uploadedUrl
+        } catch (error: any) {
+          toast.error(error.message || "Xảy ra lỗi khi upload ảnh")
+          return null
+        }
+      })
+    )
+  
+    const images = uploadResults.filter((url): url is string => url !== null)
+    if (images.length === 0 && files.length > 0) {
+      toast.error("Không thể upload ảnh, vui lòng thử lại")
+      return
+    }
+  
+    const submitData = {
+      ...props,
+      happenedAt: props.happenedAt ?  props.happenedAt : undefined,
+      images: images.length > 0 ? images : [],
+      type: PostType.LOST
+    }
+  
+    const res = await createPost(submitData)
+    if (res.success === false) {
+      showErrorToast(res.message)
+      return
+    }
+  
+    toast.success("Đăng tin thành công")
+    reset({
+      title: "",
+      description: "",
+      files: [],
+      location: "",
+      contactVisible: false,
+      hasReward: false,
+    })
   }
 
   return (

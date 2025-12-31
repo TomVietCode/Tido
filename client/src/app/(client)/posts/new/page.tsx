@@ -4,7 +4,8 @@ import FoundForm from "@/components/posts/FoundForm"
 import { getCategoryAction } from "@/lib/actions/category.action"
 
 export default async function NewPostPage() {
-  const categories = await getCategoryAction()
+  let categories = await getCategoryAction()
+  const data = categories.data || []
   return (
     <div className="flex flex-col justify-center items-center gap-4 mt-5">
       <h1 className="text-3xl font-bold">Đăng Tin Tìm Đồ/Chủ Đồ</h1>
@@ -20,8 +21,8 @@ export default async function NewPostPage() {
             Tin nhặt được đồ
           </TabsTrigger>
         </TabsList>
-        <LostForm categories={categories}/>
-        <FoundForm categories={categories}/>
+        <LostForm categories={data}/>
+        <FoundForm categories={data}/>
       </Tabs>
     </div>
     </div>
