@@ -1,10 +1,10 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
-import { CreateUserLocalDto } from '@/modules/users/dtos';
-import * as bcrypt from 'bcrypt';
-import { Prisma } from 'prisma/generated/prisma/browser';
-import { User, UserResponse } from '@/common/interfaces/user';
-import slugify from 'slugify';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import { PrismaService } from '@src/database/prisma/prisma.service'
+import { CreateUserLocalDto } from '@modules/users/dtos'
+import * as bcrypt from 'bcrypt'
+import { Prisma } from 'prisma/generated/prisma/browser'
+import { User, UserResponse } from '@src/common/interfaces/user'
+import slugify from 'slugify'
 
 @Injectable()
 export class UsersService {
@@ -20,20 +20,20 @@ export class UsersService {
 
   async createUserFromLocal(data: CreateUserLocalDto) {
     try {
-      const { password, ...props } = data;
-      const existingUser = await this.findOne({ email: props.email });
+      const { password, ...props } = data
+      const existingUser = await this.findOne({ email: props.email })
       if(existingUser) {
-        throw new BadRequestException('User with this email already exists');
+        throw new BadRequestException('User with this email already exists')
       }
 
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const avatarUrl= this.generateAvatarUrl(props.fullName);
-      const user = await this.prisma.user.create({ data: { ...props, password: hashedPassword, avatarUrl } });
+      const hashedPassword = await bcrypt.hash(password, 10)
+      const avatarUrl= this.generateAvatarUrl(props.fullName)
+      const user = await this.prisma.user.create({ data: { ...props, password: hashedPassword, avatarUrl } })
 
       const { password: pass, ...rest } = user
-      return rest;
+      return rest
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new BadRequestException(error.message)
     }
   }
 
@@ -51,7 +51,7 @@ export class UsersService {
   async findOne(props: Prisma.UserWhereUniqueInput): Promise<User | null> {
     const user = await this.prisma.user.findUnique({
       where: props,
-    });
+    })
     return user as User
   }
 

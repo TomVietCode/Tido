@@ -2,12 +2,12 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import {
   CreateCategoryDto,
   UpdateCategoryDto,
-} from '@/modules/categories/categories.dto'
+} from '@modules/categories/categories.dto'
 import slugify from 'slugify'
-import { PrismaService } from '@/prisma/prisma.service'
-import { Category } from '@/common/interfaces'
-import { CategoryStatus } from '@/common/enums'
-import { Prisma } from 'prisma/generated/prisma/client'
+import { PrismaService } from '@src/database/prisma/prisma.service'
+import { Category } from '@src/common/interfaces'
+import { CategoryStatus } from '@src/common/enums'
+import { Prisma } from '@prisma/generated/prisma/client'
 
 @Injectable()
 export class CategoriesService {
@@ -62,20 +62,20 @@ export class CategoriesService {
       const updatedCategory = await this.prisma.category.update({
         where: { id },
         data: updateCategoryDto,
-      });
+      })
       
-      return updatedCategory;
+      return updatedCategory
   
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
-          throw new BadRequestException('Tên danh mục đã tồn tại');
+          throw new BadRequestException('Tên danh mục đã tồn tại')
         }
         if (error.code === 'P2025') {
-          throw new NotFoundException('Không tìm thấy danh mục');
+          throw new NotFoundException('Không tìm thấy danh mục')
         }
       }
-      throw error; 
+      throw error 
     }
   }
 
@@ -86,10 +86,10 @@ export class CategoriesService {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
-          throw new NotFoundException('Không tìm thấy danh mục');
+          throw new NotFoundException('Không tìm thấy danh mục')
         }
       }
-      throw error;
+      throw error
     }
   }
 }

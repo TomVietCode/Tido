@@ -14,8 +14,14 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "paths": {
-      "@/*": [
+      "@src/*": [
         "./src/*"
+      ],
+      "@prisma/*": [
+        "./prisma/*"
+      ],
+      "@modules/*": [
+        "./src/modules/*"
       ]
     },
     "incremental": true,

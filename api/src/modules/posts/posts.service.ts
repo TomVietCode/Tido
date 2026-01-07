@@ -1,7 +1,7 @@
-import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException } from '@nestjs/common';
-import { PrismaService } from '@/prisma/prisma.service';
-import { CreatePostDto } from '@/modules/posts/post.dto';
-import { PostStatus, UserStatus } from '@/common/enums';
+import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException } from '@nestjs/common'
+import { PrismaService } from '@src/database/prisma/prisma.service'
+import { CreatePostDto } from '@src/modules/posts/post.dto'
+import { PostStatus, UserStatus } from '@src/common/enums'
 
 @Injectable()
 export class PostsService {

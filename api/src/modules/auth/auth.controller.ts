@@ -1,12 +1,12 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Request, Res, UseGuards } from '@nestjs/common';
-import { AuthService } from '@/modules/auth/auth.service';
-import { SignInDto, SignUpDto } from '@/modules/auth/auth.dto';
-import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { BackendResponse, AuthResponse } from '@/common/interfaces';
-import { LocalAuthGuard } from '@/modules/auth/guards/local-auth.guard';
-import { Public } from '@/modules/auth/decorators/public.decorator';
-import { GoogleOauthGuard } from '@/modules/auth/guards/google-oauth.guard';
-import { ConfigService } from '@nestjs/config';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Request, Res, UseGuards } from '@nestjs/common'
+import { AuthService } from '@modules/auth/auth.service'
+import { SignInDto, SignUpDto } from '@modules/auth/auth.dto'
+import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { BackendResponse, AuthResponse } from '@src/common/interfaces'
+import { LocalAuthGuard } from '@modules/auth/guards/local-auth.guard'
+import { Public } from '@modules/auth/decorators/public.decorator'
+import { GoogleOauthGuard } from '@modules/auth/guards/google-oauth.guard'
+import { ConfigService } from '@nestjs/config'
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -23,7 +23,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Sign In' })
   @ApiBody({ type: SignInDto })
   async signIn(@Request() req): Promise<BackendResponse<AuthResponse>> {
-    const data = await this.authService.signIn(req.user);
+    const data = await this.authService.signIn(req.user)
     return {
       statusCode: 200,
       message: 'Sign in successfully',
@@ -36,7 +36,7 @@ export class AuthController {
   @Public()
   @ApiOperation({ summary: 'Sign Up' })
   async signUp(@Body() signUpDto: SignUpDto): Promise<BackendResponse<AuthResponse>> {
-    const data = await this.authService.signUp(signUpDto);
+    const data = await this.authService.signUp(signUpDto)
     return {
       statusCode: 201,
       message: 'Sign up successfully',
@@ -55,7 +55,7 @@ export class AuthController {
   async googleAuthCallback(@Req() req, @Res() res) {
     const clientUrl = this.configService.get('clientUrl')
     try {
-      const data = await this.authService.oAuthSignIn(req.user);
+      const data = await this.authService.oAuthSignIn(req.user)
       const userB64 = Buffer.from(JSON.stringify(data.user)).toString('base64')
       const redirectUrl = `${clientUrl}/auth/google/callback?user=${userB64}&token=${data.access_token}`
       return res.redirect(redirectUrl)

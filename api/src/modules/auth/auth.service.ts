@@ -5,11 +5,11 @@ import {
 } from '@nestjs/common'
 import { UsersService } from '../users/users.service'
 import { JwtService } from '@nestjs/jwt'
-import { SignUpDto } from '@/modules/auth/auth.dto'
-import { AuthResponse, JwtPayload } from '@/common/interfaces'
+import { SignUpDto } from '@modules/auth/auth.dto'
+import { AuthResponse, JwtPayload } from '@src/common/interfaces'
 import bcrypt from 'bcrypt'
-import { Provider, Role, UserStatus } from '@/common/enums'
-import { User } from '@/common/interfaces/user'
+import { Provider, Role, UserStatus } from '@src/common/enums'
+import { User } from '@src/common/interfaces/user'
 
 @Injectable()
 export class AuthService {

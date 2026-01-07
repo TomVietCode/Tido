@@ -1,4 +1,4 @@
-import { CategoryStatus, PostStatus, PostType, Role, UserStatus } from "@/common/enums"
+import { CategoryStatus, PostStatus, PostType, Role, UserStatus } from "@src/common/enums"
 
 export interface BackendResponse<T> {
   statusCode: number
