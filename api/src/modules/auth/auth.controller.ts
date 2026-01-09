@@ -2,7 +2,7 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Request, Res, U
 import { AuthService } from '@modules/auth/auth.service'
 import { SignInDto, SignUpDto } from '@modules/auth/auth.dto'
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger'
-import { BackendResponse, AuthResponse } from '@src/common/interfaces'
+import { AuthResponse } from '@common/interfaces'
 import { LocalAuthGuard } from '@modules/auth/guards/local-auth.guard'
 import { Public } from '@modules/auth/decorators/public.decorator'
 import { GoogleOauthGuard } from '@modules/auth/guards/google-oauth.guard'
@@ -12,8 +12,8 @@ import { ConfigService } from '@nestjs/config'
 @Controller('auth')
 export class AuthController {
   constructor(
-    private authService: AuthService,
-    private configService: ConfigService,
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
   ) {}
 
   @HttpCode(HttpStatus.OK)
@@ -22,26 +22,18 @@ export class AuthController {
   @Post('signin')
   @ApiOperation({ summary: 'Sign In' })
   @ApiBody({ type: SignInDto })
-  async signIn(@Request() req): Promise<BackendResponse<AuthResponse>> {
+  async signIn(@Request() req): Promise<AuthResponse> {
     const data = await this.authService.signIn(req.user)
-    return {
-      statusCode: 200,
-      message: 'Sign in successfully',
-      data,
-    }
+    return data
   }
 
   @HttpCode(HttpStatus.CREATED)
   @Post("signup")
   @Public()
   @ApiOperation({ summary: 'Sign Up' })
-  async signUp(@Body() signUpDto: SignUpDto): Promise<BackendResponse<AuthResponse>> {
+  async signUp(@Body() signUpDto: SignUpDto): Promise<AuthResponse> {
     const data = await this.authService.signUp(signUpDto)
-    return {
-      statusCode: 201,
-      message: 'Sign up successfully',
-      data,
-    }
+    return data
   }
   
   @Public()

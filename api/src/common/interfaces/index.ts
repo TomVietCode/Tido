@@ -1,4 +1,4 @@
-import { CategoryStatus, PostStatus, PostType, Role, UserStatus } from "@src/common/enums"
+import { CategoryStatus, Role, UserStatus } from "@common/enums"
 
 export interface BackendResponse<T> {
   statusCode: number
@@ -24,6 +24,11 @@ export interface JwtPayload {
   role: string
 }
 
+export interface IUserPayload {
+  id: string
+  role: Role
+}
+
 export interface Category {
   id: number,
   name: string,
@@ -33,24 +38,6 @@ export interface Category {
   createdAt: Date,
   updatedAt: Date,
 }
-
-export interface Post {
-  id: string
-  userId: string
-  categoryId: string | number
-  title: string
-  description: string
-  images: string[]
-  type: PostType
-  status: PostStatus
-  hasReward?: boolean
-  securityQuestion?: string 
-  contactVisible: boolean 
-  happenedAt: Date | string      
-  createdAt: Date | string     
-  updatedAt: Date | string     
-}
-
 
 export interface GetPresignedUrlResponse {
   uploadUrl: string,

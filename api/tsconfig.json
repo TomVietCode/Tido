@@ -22,6 +22,9 @@
       ],
       "@modules/*": [
         "./src/modules/*"
+      ],
+      "@common/*": [
+        "./src/common/*"
       ]
     },
     "incremental": true,

@@ -13,7 +13,7 @@ export class UsersService {
   async getUsers() {
     const users = await this.prisma.user.findMany({ omit: { password: true } })
     if(!users || users.length === 0) {
-      throw new NotFoundException('No users found')
+      throw new NotFoundException('Không tìm thấy tài khoản nào')
     }
     return users as UserResponse[]
   }
@@ -23,7 +23,7 @@ export class UsersService {
       const { password, ...props } = data
       const existingUser = await this.findOne({ email: props.email })
       if(existingUser) {
-        throw new BadRequestException('User with this email already exists')
+        throw new BadRequestException('Tài khoản với email này đã tồn tại')
       }
 
       const hashedPassword = await bcrypt.hash(password, 10)

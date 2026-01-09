@@ -28,3 +28,8 @@ export enum CategoryStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
 }
+
+export enum SortOrder {
+  ASC = 'asc',
+  DESC = 'desc',
+}
