@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { AlertTriangle, HandHeart } from "lucide-react";
-import FilterBar from "./FilterBar";
+
 
 export default function HeroSection() {
   return (
@@ -36,7 +36,7 @@ export default function HeroSection() {
           </Button>
         </div>
       </div>
-      <FilterBar />
+      {/* <FilterBar /> */}
     </main>
   );
 }

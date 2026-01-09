@@ -17,7 +17,7 @@ export default function FilterBar() {
         <div className="flex flex-1 items-center justify-end space-x-2">
             <Button className="ml-6 mr-6"> Tất cả </Button>
         </div>
-       
+        
     </div>
   );
 }

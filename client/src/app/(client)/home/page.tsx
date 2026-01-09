@@ -1,5 +1,6 @@
 // app/page.tsx
 import HeroSection from "@/components/home/HeroSection";
+import ItemGrid from "@/components/home/ItemGrid";
 import { Be_Vietnam_Pro } from "next/font/google"
 
 const beVietnam = Be_Vietnam_Pro({
@@ -12,6 +13,10 @@ export default function HomePage() {
     <div className={`${beVietnam.className}`}>
       {/* Content Container */}
       <HeroSection />
+      
+      {/* Content Container */}
+      <ItemGrid />
+
     </div>
   );
 }
