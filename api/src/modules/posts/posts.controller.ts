@@ -8,10 +8,8 @@ import {
   Post,
   Query,
   Req,
-  UseGuards,
 } from '@nestjs/common'
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger'
-import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard'
+import { ApiTags } from '@nestjs/swagger'
 import {
   CreatePostDto,
   GetMyPostsQueryDto,
@@ -25,7 +23,7 @@ import { Public } from '@modules/auth/decorators/public.decorator'
 import { IPost, IPostsPaginatedResponse } from '@modules/posts/post.interface'
 import { CurrentUser } from '@modules/auth/decorators/user.decorator'
 import { IUserPayload } from '@common/interfaces'
-import { ApiPaginatedResponse, ApiWrappedResponse } from '@src/common/decorators'
+import { ApiAuth, DocsInfo } from '@common/decorators'
 import { PostListResponseDto, PostResponseDto } from '@modules/posts/dtos'
 
 @Controller('posts')
@@ -37,10 +35,8 @@ export class PostsController {
   ) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('token')
-  @ApiOperation({ summary: 'Create a new post' })
-  @ApiWrappedResponse({ type: PostResponseDto })
+  @ApiAuth()
+  @DocsInfo({ summary: 'Create a new post', type: PostResponseDto })
   async create(
     @Body() dto: CreatePostDto,
     @Req() req: Request,
@@ -52,28 +48,23 @@ export class PostsController {
 
   @Get()
   @Public()
-  @ApiOperation({ summary: 'Get all posts' })
-  @ApiPaginatedResponse({ type: PostListResponseDto })
+  @DocsInfo({ summary: 'Get all posts', type: PostListResponseDto, paginated: true })
   async findAll(@Query() query: GetPostsQueryDto): Promise<IPostsPaginatedResponse> {
     const data = await this.postsService.findAll(query)
     return data as IPostsPaginatedResponse
   }
 
   @Get('me')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('token')
-  @ApiOperation({ summary: 'Get all my posts' })
-  @ApiPaginatedResponse({ type: PostListResponseDto })
+  @ApiAuth()
+  @DocsInfo({ summary: 'Get all my posts', type: PostListResponseDto, paginated: true })
   async findMyPosts(@Query() query: GetMyPostsQueryDto, @CurrentUser() user: IUserPayload): Promise<IPostsPaginatedResponse> {
     const result = await this.postsService.findMyPosts(query, user)
     return result as IPostsPaginatedResponse
   }
 
   @Get('saved')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('token')
-  @ApiOperation({ summary: 'Get my saved posts' })
-  @ApiPaginatedResponse({ type: PostListResponseDto })
+  @ApiAuth()
+  @DocsInfo({ summary: 'Get my saved posts', type: PostListResponseDto, paginated: true })
   async findSavedPosts(@CurrentUser() user: IUserPayload) {
     const result = await this.savedPostsService.findAll(user)
     return result
@@ -81,8 +72,7 @@ export class PostsController {
 
   @Get(':id')
   @Public()
-  @ApiOperation({ summary: 'Get a post by id' })
-  @ApiWrappedResponse({ type: PostResponseDto })
+  @DocsInfo({ summary: 'Get a post by id', type: PostResponseDto })
   async findOne(
     @Param('id') id: string,
     @CurrentUser() user: IUserPayload,
@@ -92,10 +82,8 @@ export class PostsController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('token')
-  @ApiWrappedResponse({ type: PostResponseDto })
-  @ApiOperation({ summary: 'Update my post by id' })
+  @ApiAuth()
+  @DocsInfo({ summary: 'Update my post by id', type: PostResponseDto })
   async update(
     @Param('id') id: string,
     @Body() dto: UpdatePostDto,
@@ -106,10 +94,8 @@ export class PostsController {
   }
 
   @Patch(':id/status')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('token')
-  @ApiWrappedResponse({ type: PostResponseDto })
-  @ApiOperation({ summary: 'Update the status of my post by id' })
+  @ApiAuth()
+  @DocsInfo({ summary: 'Update the status of my post by id', type: PostResponseDto })
   async updateStatus(
     @Param('id') id: string,
     @Body() dto: UpdatePostDto,
@@ -124,20 +110,16 @@ export class PostsController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('token')
-  @ApiWrappedResponse({ type: Boolean })
-  @ApiOperation({ summary: 'Delete my post by id' })
+  @ApiAuth()
+  @DocsInfo({ summary: 'Delete my post by id', type: Boolean })
   async delete(@Param('id') id: string, @CurrentUser() user: IUserPayload): Promise<boolean> {
     const result = await this.postsService.delete(id, user)
     return result
   }
 
   @Post(':id/save')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('token')
-  @ApiWrappedResponse({ type: Boolean })
-  @ApiOperation({ summary: 'Toggle save post' })
+  @ApiAuth()
+  @DocsInfo({ summary: 'Toggle save post', type: Boolean })
   async toggleSave(@Param('id') id: string, @CurrentUser() user: IUserPayload): Promise<boolean> {
     const result = await this.savedPostsService.toggleSave(id, user)
     return result
