@@ -6,8 +6,20 @@ import { PostStatus } from '@src/common/enums';
 @Injectable()
 export class SavedPostsService {
   constructor(private readonly prisma: PrismaService) {}
-  create(createSavedPostDto: any) {
-    return 'This action adds a new savedPost';
+  async toggleSave(postId: string, user: IUserPayload) {
+    const where = { userId_postId: { userId: user.id, postId } } 
+    const savedPost = await this.prisma.savedPost.findUnique({ where })
+    if (savedPost) {
+      await this.prisma.savedPost.delete({ where })
+    } else {
+      await this.prisma.savedPost.create({
+        data: {
+          userId: user.id,
+          postId
+        }
+      })
+    }
+    return true
   }
 
   async findAll(user: IUserPayload) {
@@ -17,40 +29,9 @@ export class SavedPostsService {
         status: { not: PostStatus.HIDDEN }
       }
     }
-    const [savedPosts, total] = await Promise.all([
-      this.prisma.savedPost.findMany({
-        where,
-        include: {
-          post: {
-            include: {
-              category: { select: { name: true, slug: true } },
-              user: { select: { fullName: true, avatarUrl: true } },
-            },
-          },
-        },
-      }),
-      this.prisma.savedPost.count({
-        where,
-      }),
-    ])
-
-    return {
-      meta: {
-        total,
-      },
-      data: savedPosts
-    }
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} savedPost`;
-  }
-
-  update(id: number, updateSavedPostDto: any) {
-    return `This action updates a #${id} savedPost`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} savedPost`;
+    const savedPosts = await this.prisma.savedPost.findMany({
+      where
+    })
+    return savedPosts
   }
 }

@@ -18,19 +18,32 @@ export interface IPost {
   user?: {
     fullName: string
     avatarUrl: string
-  },
+  }
   category?: {
     name: string
     slug: string
   }
 }
 
-export interface IPostResponse {
+export interface IPostList
+  extends Pick<
+    IPost,
+    | 'id'
+    | 'userId'
+    | 'title'
+    | 'images'
+    | 'type'
+    | 'status'
+    | 'hasReward'
+    | 'createdAt'
+  > {}
+
+export interface IPostsPaginatedResponse {
   meta: {
     total: number
     page?: number
     limit?: number
     totalPages?: number
   }
-  data: IPost[]
+  data: IPostList[]
 }

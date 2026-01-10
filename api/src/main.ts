@@ -16,12 +16,25 @@ async function bootstrap() {
       whitelist: true,
     }),
   )
-  
+
   app.useGlobalInterceptors(new TransformInterceptor())
   app.useGlobalFilters(new HttpExceptionFilter())
-  
+
   // Swagger
-  const config = new DocumentBuilder().setTitle('TIDO API DOCUMENT').build()
+  const config = new DocumentBuilder()
+    .setTitle('TIDO API DOCUMENT')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter your JWT token here',
+        in: 'header',
+      },
+      'token',
+    )
+    .build()
   const documentFactory = () => SwaggerModule.createDocument(app, config)
   SwaggerModule.setup('api/docs', app, documentFactory)
 

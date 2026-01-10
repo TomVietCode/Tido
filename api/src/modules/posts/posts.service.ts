@@ -6,13 +6,22 @@ import {
   NotFoundException,
 } from '@nestjs/common'
 import { PrismaService } from '@src/database/prisma/prisma.service'
-import { CreatePostDto, GetMyPostsQueryDto, GetPostsQueryDto, UpdatePostDto } from '@modules/posts/post.dto'
+import {
+  CreatePostDto,
+  GetMyPostsQueryDto,
+  GetPostsQueryDto,
+  UpdatePostDto,
+} from '@src/modules/posts/dtos/post.dto'
 import { PostStatus, SortOrder, UserStatus } from '@common/enums'
 import { IUserPayload } from '@common/interfaces'
+import { SavedPostsService } from '@modules/saved-posts/saved-posts.service'
 
 @Injectable()
 export class PostsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly savedPost: SavedPostsService,
+  ) {}
 
   async create(dto: CreatePostDto, user: any) {
     const { location, ...rest } = dto
@@ -73,12 +82,18 @@ export class PostsService {
         skip,
         take: limit,
         orderBy: { [sortBy]: sortOrder },
-        include: {
-          category: true,
-          user: { select: { fullName: true, avatarUrl: true } },
+        select: {
+          id: true,
+          userId: true,
+          title: true,
+          images: true,
+          type: true,
+          status: true,
+          hasReward: true,
+          createdAt: true,
         },
       }),
-      this.prisma.post.count({ where })
+      this.prisma.post.count({ where }),
     ])
 
     return {
@@ -88,7 +103,7 @@ export class PostsService {
         limit,
         totalPages: Math.ceil(total / limit),
       },
-      data
+      data,
     }
   }
 
@@ -118,7 +133,7 @@ export class PostsService {
         take: limit,
         orderBy: { [sortBy]: sortOrder },
       }),
-      this.prisma.post.count({ where })
+      this.prisma.post.count({ where }),
     ])
 
     return {
@@ -128,7 +143,24 @@ export class PostsService {
         limit,
         totalPages: Math.ceil(total / limit),
       },
-      data
+      data,
+    }
+  }
+
+  async findSavedPosts(user: IUserPayload) {
+    const savedPosts = await this.savedPost.findAll(user)
+    const savedPostIds = savedPosts.map((savedPost) => savedPost.postId)
+    const where = {
+      id: { in: savedPostIds },
+      status: { not: PostStatus.HIDDEN },
+    }
+    const [result, total] = await Promise.all([
+      this.prisma.post.findMany({ where }),
+      this.prisma.post.count({ where }),
+    ])
+    return {
+      meta: { total },
+      data: result,
     }
   }
 
@@ -137,11 +169,11 @@ export class PostsService {
       where: { id },
       include: {
         category: true,
-        user: { select: { fullName: true, avatarUrl: true} }
-      }
+        user: { select: { fullName: true, avatarUrl: true } },
+      },
     })
     if (!post) throw new NotFoundException('Bài viết không tồn tại')
-    
+
     if (post.status === PostStatus.HIDDEN && post.userId !== requesterId) {
       throw new NotFoundException('Bài viết không tồn tại')
     }
@@ -154,23 +186,25 @@ export class PostsService {
       where: { id },
     })
     if (!post) throw new NotFoundException('Bài viết không tồn tại')
-    if (post.userId !== user.id) throw new ForbiddenException('Bạn không có quyền cập nhật bài viết này')
-    
+    if (post.userId !== user.id)
+      throw new ForbiddenException('Bạn không có quyền cập nhật bài viết này')
+
     const updatedPost = await this.prisma.post.update({
       where: { id },
-      data: dto
+      data: dto,
     })
 
     return updatedPost
   }
 
   async delete(id: string, user: IUserPayload): Promise<boolean> {
-    const post = await this.prisma.post.findUnique({ where: { id }})
-    if (!post) throw new NotFoundException("Không tìm thấy bài viết")
-    if (post.userId !== user.id) throw new ForbiddenException("Bạn không có quyền xóa bài viết này")
-    
-    await this.prisma.post.delete({ where: { id }})
-    
+    const post = await this.prisma.post.findUnique({ where: { id } })
+    if (!post) throw new NotFoundException('Không tìm thấy bài viết')
+    if (post.userId !== user.id)
+      throw new ForbiddenException('Bạn không có quyền xóa bài viết này')
+
+    await this.prisma.post.delete({ where: { id } })
+
     return true
   }
 }
