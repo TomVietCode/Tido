@@ -50,6 +50,7 @@ model User {
   email       String      @unique
   fullName    String      @map("full_name")
   avatarUrl   String?     @map("avatar_url")
+  facebookUrl String?     @map("facebook_url")
   password    String?
   googleId    String?     @unique @map("google_id")
   phoneNumber String?     @map("phone_number")

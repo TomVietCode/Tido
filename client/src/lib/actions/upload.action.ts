@@ -3,7 +3,7 @@ import { auth } from "@/auth"
 import { sendRequest } from "@/lib/helpers/api"
 import { UploadPresignedUrlResponse } from "@/types"
 
-export const getPresignedUrl = async (fileName: string, contentType: string) => {
+export const getPresignedUrl = async (fileName: string, contentType: string, folder: string = 'uploads') => {
   const session = await auth()
   if (!session) throw new Error("Unauthorized")
   const res = await sendRequest<IBackendRes<UploadPresignedUrlResponse>>({
@@ -15,6 +15,7 @@ export const getPresignedUrl = async (fileName: string, contentType: string) => 
     body: {
       fileName,
       contentType,
+      folder,
     },
   })
 
