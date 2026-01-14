@@ -1,7 +1,7 @@
-import { DeleteObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { DeleteObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class UploadService {
@@ -27,14 +27,15 @@ export class UploadService {
       Bucket: this.bucket,
       Key: key,
       ContentType: contentType,
+      ACL: 'public-read',
      })
 
      const uploadUrl = await getSignedUrl(this.s3Client, command, { expiresIn: 60 * 5 })
 
-     const endpoint = this.configService.get("aws.doSpaceEnpoint")!
-     const fileUrl = `${endpoint}/${this.bucket}/${key}`
+     const region = this.configService.get("aws.doSpaceRegion")!
+     const uploadedUrl = `https://${this.bucket}.${region}.cdn.digitaloceanspaces.com/${key}`
 
-     return { uploadUrl, fileUrl }
+     return { uploadUrl, uploadedUrl }
   }
 
   async deleteFile(fileUrl: string): Promise<void> {

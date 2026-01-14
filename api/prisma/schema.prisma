@@ -96,8 +96,8 @@ model Post {
   updatedAt        DateTime   @updatedAt @map("updated_at")
 
   // Relations
-  user       User        @relation(fields: [userId], references: [id])
-  category   Category    @relation(fields: [categoryId], references: [id])
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   savedPosts SavedPost[]
 
   @@map("posts")
@@ -108,12 +108,10 @@ model SavedPost {
   postId String @db.Uuid
 
   savedAt   DateTime @default(now()) @map("saved_at")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  user User @relation(fields: [userId], references: [id])
-  post Post @relation(fields: [postId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@id([userId, postId])
   @@map("saved_posts")

@@ -36,6 +36,7 @@ declare global {
       email: string
       fullName: string
       role: UserRole
+      status: UserStatus
       avatarUrl: string
     }
     access_token: string

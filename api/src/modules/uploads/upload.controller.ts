@@ -1,10 +1,9 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common'
-import { UploadService } from '@/modules/uploads/upload.service'
-import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard'
-import { GetPresignedUrlDto } from '@/modules/uploads/uploads.dto'
+import { Body, Controller, Post } from '@nestjs/common'
+import { UploadService } from '@modules/uploads/upload.service'
+import { GetPresignedUrlDto } from '@modules/uploads/uploads.dto'
 import { ApiOperation } from '@nestjs/swagger'
-import { BackendResponse, GetPresignedUrlResponse } from '@/common/interfaces'
-import { Public } from '../auth/decorators/public.decorator'
+import { BackendResponse, GetPresignedUrlResponse } from '@src/common/interfaces'
+import { Public } from '@modules/auth/decorators/public.decorator'
 
 @Controller('uploads')
 export class UploadController {
