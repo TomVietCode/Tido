@@ -69,7 +69,7 @@ export default async function Header() {
           </nav>
           {session ? (
             <>
-              <Button className="ml-4 mr-6">
+              <Button className="ml-6 mr-6">
                 <FolderUp />
                 <Link href="/posts/new">Đăng Tin</Link>
               </Button>

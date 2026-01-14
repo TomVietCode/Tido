@@ -4,7 +4,14 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Clock, MessageCircle, ArrowRight, Bookmark } from "lucide-react";
+import {
+  MapPin,
+  Clock,
+  MessageCircle,
+  ArrowRight,
+  Bookmark,
+  Gift,
+} from "lucide-react";
 
 interface LostItemCardProps {
   title: string;
@@ -15,7 +22,7 @@ interface LostItemCardProps {
   reward?: boolean;
 }
 
-export default function LostItemCard({
+function LostItemCard({
   title = "Ví da màu đen",
   location = "Thư viện",
   time = "Khoảng 10:00 sáng",
@@ -24,10 +31,10 @@ export default function LostItemCard({
   reward = false,
 }: LostItemCardProps) {
   return (
-    <Card className="w-[320px] rounded-2xl py-0">
-      <CardContent className="p-4">
+    <Card className="w-[320px] rounded-2xl py-0 h-auto min-h-[350px] flex flex-col">
+      <CardContent className="p-4 flex flex-col flex-1">
         {/* Image */}
-        <div className="relative">
+        <div className="relative flex-shrink-0">
           <Image
             src={imageUrl}
             alt={title}
@@ -37,7 +44,7 @@ export default function LostItemCard({
           />
 
           <Badge
-            className={`absolute left-3 top-3 ${
+            className={`absolute left-3 top-3 select-none ${
               status === "lost" ? "bg-red-500" : "bg-emerald-500"
             }`}
           >
@@ -47,17 +54,20 @@ export default function LostItemCard({
           <Button
             size="icon"
             variant="secondary"
-            className="absolute right-3 top-3 h-8 w-8 rounded-full"
+            className="absolute right-3 top-3 h-8 w-8 rounded-full cursor-pointer"
           >
             <Bookmark className="h-4 w-4" />
           </Button>
         </div>
 
         {/* Info */}
-        <div className="mt-3 space-y-2">
+        <div className="mt-3 space-y-2 flex-1 ">
           {reward && (
-            <Badge variant="secondary" className="w-fit">
-              🎁 Có hậu tạ
+            <Badge
+              variant="secondary"
+              className="w-fit flex items-center gap-1 select-none"
+            >
+              <Gift className="h-3.5 w-3.5" /> Có hậu tạ
             </Badge>
           )}
 
@@ -76,17 +86,46 @@ export default function LostItemCard({
         </div>
 
         {/* Actions */}
-        <div className="mt-4 flex gap-3">
-          <Button className="flex-1 gap-2">
+        <div className="mt-4 flex gap-3 flex-shrink-0">
+          <Button className="flex-1 gap-2 cursor-pointer">
             <MessageCircle className="h-4 w-4" />
             Liên hệ
           </Button>
-          <Button variant="outline" className="flex-1 gap-2">
+          <Button variant="outline" className="flex-1 gap-2 cursor-pointer">
             Chi tiết
             <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+export default function ItemGrid() {
+  const items: LostItemCardProps[] = [
+    {
+      title: "Ví da màu đen",
+      location: "Thư viện",
+      time: "Hôm nay 10:00 sáng",
+      imageUrl: "/placeholder.png",
+      status: "lost",
+      reward: true,
+    },
+    {
+      title: "Điện thoại Samsung",
+      location: "Quán cà phê",
+      time: "Hôm qua 15:30",
+      imageUrl: "/placeholder.png",
+      status: "found",
+      reward: false,
+    },
+  ];
+
+  return (
+    <div className="flex gap-4 flex-wrap justify-center p-6">
+      {items.map((item, index) => (
+        <LostItemCard key={index} {...item} />
+      ))}
+    </div>
   );
 }
