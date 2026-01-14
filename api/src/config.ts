@@ -14,6 +14,8 @@
       mongo: {
         username: process.env.MONGO_USER,
         password: process.env.MONGO_PASSWORD,
+        uri: process.env.MONGO_URI,
+        dbName: process.env.MONGO_DB,
       }
     },
     jwt: {

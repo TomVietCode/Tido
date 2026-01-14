@@ -1,34 +1,32 @@
 services:
-  # api:
-  #   container_name: tido_api
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   restart: always
-  #   ports:
-  #     - "${PORT}:${PORT}"
-  #   volumes:
-  #     - .:/usr/src/app
-  #     - /usr/src/app/node_modules
-  #   environment:
-  #     CHOKIDAR_USEPOLLING: "true"
-  #     NODE_ENV: ${NODE_ENV}
-  #     JWT_SECRET: "${JWT_SECRET}"
-  #     PORT: "${PORT}"
+  mongodb:
+    image: mongo:7.0
+    container_name: tido_mongodb
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./docker_data/mongodb:/data/db
+    networks: 
+      - tido_net
+  mongo-express:
+    image: mongo-express
+    container_name: tido_mongo_express
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_USER}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_PASSWORD}
+      - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/
+    depends_on:
+      - mongodb
+    networks:
+      - tido_net
       
-  #     # QUAN TRỌNG: Kết nối đến service "postgres"
-  #     POSTGRES_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public"
-
-  #   # Lệnh: Chạy migration xong mới start dev
-  #   command: >
-  #     sh -c "npx prisma migrate deploy && npm run dev"
-    
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   networks:
-  #     - tido_net
-
   postgres:
     image: postgres:16-alpine
     container_name: tido_postgres
