@@ -41,13 +41,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody('conversationId') conversationId: string,
     @ConnectedSocket() client: Socket,
   ) {
-    const userId = client['user'].id
+    const userId = client['user'].sub
     const canAccess = await this.chatService.checkRoomAccess(conversationId, userId)
     if (!canAccess) {
       throw new WsException("Bạn không có quyền truy cập đoạn chat này")
     }
     client.join(conversationId)
-    console.log(`User ${client['user'].id} joined room: ${conversationId}`)
+    console.log(`User ${client['user'].sub} joined room: ${conversationId}`)
   }
 
   @UseGuards(WsJwtGuard)
@@ -58,11 +58,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const user = client['user']
     const message = {
-      senderId: user.id,
+      senderId: user.sub,
       content: data.content,
       createdAt: new Date(),
     }
-    console.log(message)
+    console.log(user, message)
+    await this.chatService.saveMessage(data.conversationId, user.sub, data.content)
     this.server.to(data.conversationId).emit('new_message', message)
   }
 }

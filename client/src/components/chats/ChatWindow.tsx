@@ -2,7 +2,7 @@
 import { useSocket } from "@/lib/contexts/SocketContext"
 import { useEffect, useState } from "react"
 
-export default function ChatBox({ conversationId }: { conversationId: string }) {
+export default function ChatWindow({ conversationId }: { conversationId: string }) {
   const { socket } = useSocket()
   const [messages, setMessages] = useState<any[]>([])
   const [input, setInput] = useState("")
@@ -28,7 +28,7 @@ export default function ChatBox({ conversationId }: { conversationId: string }) 
   }
 
   return (
-    <div className="flex flex-col h-[500px] border p-4">
+    <div className="flex h-full items-center gap-3 p-4 border-b">
       <div className="flex-1 overflow-y-auto">
         {messages.map((m, i) => (
           <div key={i} className="mb-2 p-2 bg-slate-100 rounded">

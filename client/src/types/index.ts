@@ -33,3 +33,18 @@ export interface UploadPresignedUrlResponse {
   uploadedUrl: string
 }
 
+export interface Conversation {
+  id: string
+  participants: string[]
+  postId?: string
+  lastMessage?: {
+    content: string
+    senderId: string
+    createdAt: Date
+  }
+  recipient: {
+    id: string
+    fullName: string
+    avatarUrl: string
+  }
+}
