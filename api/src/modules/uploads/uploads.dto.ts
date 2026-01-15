@@ -1,11 +1,11 @@
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsString } from "class-validator"
 
 export class GetPresignedUrlDto {
   @IsString()
   @IsNotEmpty()
-  fileName: string;
+  fileName: string
 
   @IsString()
   @IsNotEmpty()
-  contentType: string;
+  contentType: string
 }

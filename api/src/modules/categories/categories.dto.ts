@@ -1,6 +1,6 @@
-import { CategoryStatus } from "@/common/enums";
-import { PartialType } from "@nestjs/swagger";
-import { IsEnum, IsOptional, IsString } from "class-validator";
+import { CategoryStatus } from "@src/common/enums"
+import { PartialType } from "@nestjs/swagger"
+import { IsEnum, IsOptional, IsString } from "class-validator"
 
 export class CreateCategoryDto {
   @IsString({ message: "Invalid name" })

@@ -1,4 +1,4 @@
-import { Provider, Role, UserStatus } from "@/common/enums"
+import { Provider, Role, UserStatus } from "@src/common/enums"
 
 export interface User {
   id: string

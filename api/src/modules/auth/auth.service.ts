@@ -5,11 +5,11 @@ import {
 } from '@nestjs/common'
 import { UsersService } from '../users/users.service'
 import { JwtService } from '@nestjs/jwt'
-import { SignUpDto } from '@/modules/auth/auth.dto'
-import { AuthResponse, JwtPayload } from '@/common/interfaces'
+import { SignUpDto } from '@modules/auth/auth.dto'
+import { AuthResponse, JwtPayload } from '@src/common/interfaces'
 import bcrypt from 'bcrypt'
-import { Provider, Role } from '@/common/enums'
-import { User } from '@/common/interfaces/user'
+import { Provider, Role, UserStatus } from '@src/common/enums'
+import { User } from '@src/common/interfaces/user'
 
 @Injectable()
 export class AuthService {
@@ -46,6 +46,7 @@ export class AuthService {
         email: user.email,
         fullName: user.fullName,
         role: user.role as Role,
+        status: user.status,
         avatarUrl: user.avatarUrl,
       },
       access_token: this.jwtService.sign(payload),
@@ -71,6 +72,7 @@ export class AuthService {
         email: user.email,
         fullName: user.fullName,
         role: user.role as Role,
+        status: user.status as UserStatus,
         avatarUrl: user.avatarUrl ?? undefined,
       },
       access_token: this.jwtService.sign(payload),
@@ -93,6 +95,7 @@ export class AuthService {
         email: existingUser.email,
         fullName: existingUser.fullName,
         role: existingUser.role as Role,
+        status: existingUser.status,
         avatarUrl: existingUser.avatarUrl ?? undefined,
       },
       access_token: this.jwtService.sign(payload),
