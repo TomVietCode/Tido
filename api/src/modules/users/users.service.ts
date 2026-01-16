@@ -4,10 +4,10 @@ import {
   NotFoundException,
 } from '@nestjs/common'
 import { PrismaService } from '@src/database/prisma/prisma.service'
-import { CreateUserLocalDto } from '@modules/users/dtos'
+import { CreateUserLocalDto, UpdateUserProfileDto } from '@modules/users/dtos'
 import * as bcrypt from 'bcrypt'
 import { Prisma } from 'prisma/generated/prisma/browser'
-import { User, UserResponse } from '@src/common/interfaces/user'
+import { User, UserResponse } from '@common/interfaces/user'
 import slugify from 'slugify'
 
 @Injectable()
@@ -55,14 +55,29 @@ export class UsersService {
     })
     return user as User
   }
-
-  async findOne(props: Prisma.UserWhereUniqueInput): Promise<User | null> {
+ 
+  async findOne(props: Prisma.UserWhereUniqueInput): Promise<User> {
     const user = await this.prisma.user.findUnique({
       where: props,
     })
+
+    if(!user) {
+      throw new NotFoundException('Không tìm thấy tài khoản')
+    }
+
     return user as User
   }
 
+  async updateProfile(dto: UpdateUserProfileDto, id: string) {
+    await this.findOne({ id })
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data: { ...dto }
+    })
+
+    const { password, ...userData } = updatedUser
+    return userData
+  }
   generateAvatarUrl(fullName: string) {
     const name = slugify(fullName, { strict: true })
     return `https://ui-avatars.com/api/?name=${name}&background=random&size=100`

@@ -1,6 +1,6 @@
 "use server"
 
-import { SignInValues, SignUpValues } from "../../../schemas/auth.schema"
+import { SignInValues, SignUpValues } from "@/lib/schemas/auth.schema"
 import { sendRequest } from "@/lib/helpers/api"
 import { signIn } from "@/auth"
 
