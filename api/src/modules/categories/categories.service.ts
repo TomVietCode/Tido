@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
 import {
   CreateCategoryDto,
   UpdateCategoryDto,
@@ -63,9 +67,8 @@ export class CategoriesService {
         where: { id },
         data: updateCategoryDto,
       })
-      
+
       return updatedCategory
-  
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
@@ -75,7 +78,7 @@ export class CategoriesService {
           throw new NotFoundException('Không tìm thấy danh mục')
         }
       }
-      throw error 
+      throw error
     }
   }
 

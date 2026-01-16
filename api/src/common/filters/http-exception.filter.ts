@@ -1,6 +1,12 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from "@nestjs/common";
-import { BackendResponse } from "@src/common/interfaces";
-import { Response } from "express";
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common'
+import { BackendResponse } from '@src/common/interfaces'
+import { Response } from 'express'
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -9,7 +15,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>()
 
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR
-    let message = "Có lỗi không xác định xảy ra"
+    let message = 'Có lỗi không xác định xảy ra'
     let error = 'Unknown error'
 
     if (exception instanceof HttpException) {

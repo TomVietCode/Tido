@@ -1,15 +1,28 @@
-import { PartialType } from "@nestjs/swagger"
-import { PostStatus, PostType, SortOrder } from "@src/common/enums"
-import { Transform, Type } from "class-transformer"
-import { IsDate, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, MaxDate, Min } from "class-validator"
+import { PartialType } from '@nestjs/swagger'
+import { PostStatus, PostType, SortOrder } from '@src/common/enums'
+import { Transform, Type } from 'class-transformer'
+import {
+  IsDate,
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  MaxDate,
+  Min,
+} from 'class-validator'
 
 export class CreatePostDto {
-  @IsNotEmpty({ message: "Tiêu đề không hợp lệ" })
-  @IsString({ message: "Tiêu đề không hợp lệ" })
+  @IsNotEmpty({ message: 'Tiêu đề không hợp lệ' })
+  @IsString({ message: 'Tiêu đề không hợp lệ' })
   title: string
 
-  @IsNotEmpty({ message: "Danh mục không hợp lệ" })
-  @IsNumber({ allowNaN: false, allowInfinity: false }, { message: "Danh mục không hợp lệ" })
+  @IsNotEmpty({ message: 'Danh mục không hợp lệ' })
+  @IsNumber(
+    { allowNaN: false, allowInfinity: false },
+    { message: 'Danh mục không hợp lệ' },
+  )
   categoryId: number
 
   @IsOptional()
@@ -22,20 +35,22 @@ export class CreatePostDto {
   })
   images: string[] = []
 
-  @IsEnum(PostType, { message: "Loại bài đăng không hợp lệ" })
+  @IsEnum(PostType, { message: 'Loại bài đăng không hợp lệ' })
   type: PostType
 
   // Check date not in future
   @IsOptional()
-  @IsDate({ message: "Thời gian không hợp lệ" })
+  @IsDate({ message: 'Thời gian không hợp lệ' })
   @Type(() => Date)
-  @MaxDate(new Date(), { message: "Thời gian không thể xảy ra trong tương lai" })
+  @MaxDate(new Date(), {
+    message: 'Thời gian không thể xảy ra trong tương lai',
+  })
   happenedAt?: Date
 
   location?: string | undefined
 
   contactVisible?: boolean | undefined
-  
+
   hasReward?: boolean | undefined
 }
 
@@ -66,7 +81,7 @@ export class GetPostsQueryDto {
   catId?: number
 
   @IsOptional()
-  @IsEnum(PostType, { message: "Loại bài đăng không hợp lệ" })
+  @IsEnum(PostType, { message: 'Loại bài đăng không hợp lệ' })
   type?: PostType
 
   @IsOptional()
@@ -80,12 +95,12 @@ export class GetPostsQueryDto {
 
 export class GetMyPostsQueryDto extends GetPostsQueryDto {
   @IsOptional()
-  @IsEnum(PostStatus, { message: "Trạng thái không hợp lệ" })
+  @IsEnum(PostStatus, { message: 'Trạng thái không hợp lệ' })
   status?: PostStatus
 }
 
 export class UpdatePostDto extends PartialType(CreatePostDto) {
   @IsOptional()
-  @IsEnum(PostStatus, { message: "Trạng thái không hợp lệ" })
+  @IsEnum(PostStatus, { message: 'Trạng thái không hợp lệ' })
   status?: PostStatus
 }

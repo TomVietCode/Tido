@@ -21,10 +21,10 @@ import { GoogleStrategy } from './strategies/google-oauth.strategy'
       }),
       inject: [ConfigService],
       global: true,
-    })
+    }),
   ],
   controllers: [AuthController],
   providers: [AuthService, LocalStrategy, JwtStrategy, GoogleStrategy],
-  exports: [AuthService]
+  exports: [AuthService],
 })
 export class AuthModule {}

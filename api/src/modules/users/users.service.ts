@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
 import { PrismaService } from '@src/database/prisma/prisma.service'
 import { CreateUserLocalDto, UpdateUserProfileDto } from '@modules/users/dtos'
 import * as bcrypt from 'bcrypt'
@@ -9,10 +13,10 @@ import slugify from 'slugify'
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
-  
+
   async getUsers() {
     const users = await this.prisma.user.findMany({ omit: { password: true } })
-    if(!users || users.length === 0) {
+    if (!users || users.length === 0) {
       throw new NotFoundException('Không tìm thấy tài khoản nào')
     }
     return users as UserResponse[]
@@ -22,13 +26,15 @@ export class UsersService {
     try {
       const { password, ...props } = data
       const existingUser = await this.findOne({ email: props.email })
-      if(existingUser) {
+      if (existingUser) {
         throw new BadRequestException('Tài khoản với email này đã tồn tại')
       }
 
       const hashedPassword = await bcrypt.hash(password, 10)
-      const avatarUrl= this.generateAvatarUrl(props.fullName)
-      const user = await this.prisma.user.create({ data: { ...props, password: hashedPassword, avatarUrl } })
+      const avatarUrl = this.generateAvatarUrl(props.fullName)
+      const user = await this.prisma.user.create({
+        data: { ...props, password: hashedPassword, avatarUrl },
+      })
 
       const { password: pass, ...rest } = user
       return rest
@@ -40,11 +46,13 @@ export class UsersService {
   async createUserFromGoogle(data: any): Promise<User> {
     const { email, fullName, googleId, provider } = data
     let avatarUrl = data.avatarUrl
-    if (!avatarUrl) { 
+    if (!avatarUrl) {
       avatarUrl = this.generateAvatarUrl(fullName)
     }
 
-    const user = await this.prisma.user.create({ data: { email, fullName, googleId, provider, avatarUrl } })
+    const user = await this.prisma.user.create({
+      data: { email, fullName, googleId, provider, avatarUrl },
+    })
     return user as User
   }
  

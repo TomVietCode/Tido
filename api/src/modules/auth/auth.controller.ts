@@ -1,4 +1,15 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Request, Res, UseGuards } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+  Request,
+  Res,
+  UseGuards,
+} from '@nestjs/common'
 import { AuthService } from '@modules/auth/auth.service'
 import { SignInDto, SignUpDto } from '@modules/auth/auth.dto'
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger'
@@ -28,19 +39,19 @@ export class AuthController {
   }
 
   @HttpCode(HttpStatus.CREATED)
-  @Post("signup")
+  @Post('signup')
   @Public()
   @ApiOperation({ summary: 'Sign Up' })
   async signUp(@Body() signUpDto: SignUpDto): Promise<AuthResponse> {
     const data = await this.authService.signUp(signUpDto)
     return data
   }
-  
+
   @Public()
   @Get('google')
   @UseGuards(GoogleOauthGuard)
   async googleAuth(@Req() _req) {}
-  
+
   @Public()
   @Get('google/callback')
   @UseGuards(GoogleOauthGuard)
@@ -52,7 +63,9 @@ export class AuthController {
       const redirectUrl = `${clientUrl}/auth/google/callback?user=${userB64}&token=${data.access_token}`
       return res.redirect(redirectUrl)
     } catch (error) {
-      return res.redirect(`${clientUrl}/auth/google/callback?error=${error.message}`)
+      return res.redirect(
+        `${clientUrl}/auth/google/callback?error=${error.message}`,
+      )
     }
   }
 }

@@ -1,4 +1,8 @@
-import { DeleteObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import {
+  DeleteObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
@@ -10,32 +14,38 @@ export class UploadService {
 
   constructor(private configService: ConfigService) {
     this.s3Client = new S3Client({
-      endpoint: this.configService.get("aws.doSpaceEnpoint"),
-      region: this.configService.get("aws.doSpaceRegion"),
+      endpoint: this.configService.get('aws.doSpaceEnpoint'),
+      region: this.configService.get('aws.doSpaceRegion'),
       credentials: {
-        accessKeyId: this.configService.get("aws.doSpaceAccessKey")!,
-        secretAccessKey: this.configService.get("aws.doSpaceSecretKey")!,
-      }
+        accessKeyId: this.configService.get('aws.doSpaceAccessKey')!,
+        secretAccessKey: this.configService.get('aws.doSpaceSecretKey')!,
+      },
     })
-    this.bucket = this.configService.get("aws.doSpaceBucket")!
+    this.bucket = this.configService.get('aws.doSpaceBucket')!
   }
 
-  async getPresignedUrl(fileName: string, contentType: string, folder: string = 'uploads') {
-     const key = `${folder}/${fileName}`
+  async getPresignedUrl(
+    fileName: string,
+    contentType: string,
+    folder: string = 'uploads',
+  ) {
+    const key = `${folder}/${fileName}`
 
-     const command = new PutObjectCommand({
+    const command = new PutObjectCommand({
       Bucket: this.bucket,
       Key: key,
       ContentType: contentType,
       ACL: 'public-read',
-     })
+    })
 
-     const uploadUrl = await getSignedUrl(this.s3Client, command, { expiresIn: 60 * 5 })
+    const uploadUrl = await getSignedUrl(this.s3Client, command, {
+      expiresIn: 60 * 5,
+    })
 
-     const region = this.configService.get("aws.doSpaceRegion")!
-     const uploadedUrl = `https://${this.bucket}.${region}.cdn.digitaloceanspaces.com/${key}`
+    const region = this.configService.get('aws.doSpaceRegion')!
+    const uploadedUrl = `https://${this.bucket}.${region}.cdn.digitaloceanspaces.com/${key}`
 
-     return { uploadUrl, uploadedUrl }
+    return { uploadUrl, uploadedUrl }
   }
 
   async deleteFile(fileUrl: string): Promise<void> {

@@ -1,9 +1,9 @@
 export default function Footer() {
   return (
-    <footer className="border-t py-6 md:py-0">
-      <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
-        <div className="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
-          <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
+    <footer className="border-t bg-primary py-6 md:py-0 text-white ">
+      <div className="px-10 md:px-20 md:flex items-center justify-between gap-4 md:h-12 md:flex-row ">
+        <div className="flex flex-col items-center gap-4 md:flex-row md:gap-2 md:px-0">
+          <p className="text-center text-sm leading-loose md:text-left ">
             Built by{" "}
             <a
               href="#"
@@ -13,15 +13,15 @@ export default function Footer() {
             >
               Aetd. {"   "}
             </a>
-              All rights reserved.
+            All rights reserved.
           </p>
         </div>
-        
+
         {/* Link phụ ở footer */}
-        <div className="flex gap-4 text-sm text-muted-foreground">
+        <div className="pl-8 mt-3 flex gap-2 text-sm">
           Hỗ trợ: <a href="mailto:hanflorist.shop@gmail.com">hanflorist.shop@gmail.com</a>
         </div>
       </div>
     </footer>
-  )
+  );
 }
