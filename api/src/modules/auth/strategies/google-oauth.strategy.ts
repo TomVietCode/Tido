@@ -1,7 +1,7 @@
 import { Provider } from '@src/common/enums'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { PassportStrategy } from '@nestjs/passport'  
+import { PassportStrategy } from '@nestjs/passport'
 import { Strategy, VerifyCallback } from 'passport-google-oauth2'
 
 @Injectable()

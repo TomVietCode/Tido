@@ -1,13 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import { IUserPayload } from '@common/interfaces';
-import { PrismaService } from '@src/database/prisma/prisma.service';
-import { PostStatus } from '@src/common/enums';
+import { Injectable } from '@nestjs/common'
+import { IUserPayload } from '@common/interfaces'
+import { PrismaService } from '@src/database/prisma/prisma.service'
+import { PostStatus } from '@src/common/enums'
 
 @Injectable()
 export class SavedPostsService {
   constructor(private readonly prisma: PrismaService) {}
   async toggleSave(postId: string, user: IUserPayload) {
-    const where = { userId_postId: { userId: user.id, postId } } 
+    const where = { userId_postId: { userId: user.id, postId } }
     const savedPost = await this.prisma.savedPost.findUnique({ where })
     if (savedPost) {
       await this.prisma.savedPost.delete({ where })
@@ -15,8 +15,8 @@ export class SavedPostsService {
       await this.prisma.savedPost.create({
         data: {
           userId: user.id,
-          postId
-        }
+          postId,
+        },
       })
     }
     return true
@@ -26,11 +26,11 @@ export class SavedPostsService {
     const where = {
       userId: user.id,
       post: {
-        status: { not: PostStatus.HIDDEN }
-      }
+        status: { not: PostStatus.HIDDEN },
+      },
     }
     const savedPosts = await this.prisma.savedPost.findMany({
-      where
+      where,
     })
     return savedPosts
   }

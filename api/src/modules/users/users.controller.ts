@@ -5,9 +5,7 @@ import { UserResponse } from '@src/common/interfaces/user'
 
 @Controller('users')
 export class UsersController {
-  constructor(
-    private readonly  usersService: UsersService
-  ) {}
+  constructor(private readonly usersService: UsersService) {}
 
   @Get()
   async getUsers(): Promise<BackendResponse<UserResponse[]>> {
@@ -28,4 +26,4 @@ export class UsersController {
   async createUser(@Body() data: any) {
     return await this.usersService.createUserFromLocal(data)
   }
-} 
+}

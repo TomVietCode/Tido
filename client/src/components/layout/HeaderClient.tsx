@@ -92,7 +92,19 @@ export default function HeaderClient({ session }: HeaderClientProps) {
               <UserDropDown user={session.user} />
             </>
           ) : (
-            <AuthDialog />
+            <>
+              <nav className="hidden md:flex items-center gap-6 text-xs font-medium mr-3">
+                <Link
+                  href="/posts"
+                  className="flex flex-col items-center gap-1 text-foreground/60 transition-colors hover:text-foreground/80"
+                >
+                  <FileText className="h-5 w-5" />
+                  <span>Bài đăng</span>
+                </Link>
+              </nav>
+
+              <AuthDialog />
+            </>
           )}
         </div>
 
@@ -179,9 +191,21 @@ export default function HeaderClient({ session }: HeaderClientProps) {
                 </div>
               </>
             ) : (
-              <div className="pt-2">
-                <AuthDialog />
-              </div>
+              <>
+                <div className="flex items-center gap-4 text-sm font-medium ml-2">
+                  <Link
+                    href="/posts"
+                    className="flex items-center gap-2 text-foreground/60 transition-colors hover:text-foreground/80"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <FileText className="h-5 w-5" />
+                    <span>Bài đăng</span>
+                  </Link>
+                </div>
+                <div className="pt-2">
+                  <AuthDialog />
+                </div>
+              </>
             )}
           </nav>
         </div>

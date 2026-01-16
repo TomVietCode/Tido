@@ -11,8 +11,8 @@ import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard'
 import { PostsModule } from '@modules/posts/posts.module'
 import { CategoriesModule } from '@modules/categories/categories.module'
 import { RoleGuard } from '@modules/auth/guards/role.guard'
-import { UploadModule } from '@modules/uploads/upload.module';
-import { SavedPostsModule } from './modules/saved-posts/saved-posts.module';
+import { UploadModule } from '@modules/uploads/upload.module'
+import { SavedPostsModule } from './modules/saved-posts/saved-posts.module'
 
 @Module({
   imports: [

@@ -1,26 +1,26 @@
-import { CategoryStatus, Role, UserStatus } from "@common/enums"
+import { CategoryStatus, Role, UserStatus } from '@common/enums'
 
 export interface BackendResponse<T> {
   statusCode: number
-  message: string 
+  message: string
   data?: T
   error?: string
 }
 
 export interface AuthResponse {
   user: {
-    id: string,
-    email: string,
-    fullName: string,
-    role: Role,
+    id: string
+    email: string
+    fullName: string
+    role: Role
     status: UserStatus
-    avatarUrl?: string,
-  },
-  access_token: string,
+    avatarUrl?: string
+  }
+  access_token: string
 }
 
 export interface JwtPayload {
-  sub: string,
+  sub: string
   role: string
 }
 
@@ -30,16 +30,16 @@ export interface IUserPayload {
 }
 
 export interface Category {
-  id: number,
-  name: string,
-  slug: string,
-  iconCode?: string,
-  status: CategoryStatus,
-  createdAt: Date,
-  updatedAt: Date,
+  id: number
+  name: string
+  slug: string
+  iconCode?: string
+  status: CategoryStatus
+  createdAt: Date
+  updatedAt: Date
 }
 
 export interface GetPresignedUrlResponse {
-  uploadUrl: string,
-  uploadedUrl: string,
+  uploadUrl: string
+  uploadedUrl: string
 }

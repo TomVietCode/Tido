@@ -14,10 +14,16 @@ export default function ClientLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className={`min-h-screen w-full flex flex-col ${beVietnam.className}`}>
-      <Header />
-      <main className="flex-1 overflow-auto pt-14">{children}</main>
-      <Footer />
+    <div
+      className={`min-h-screen w-full flex flex-col overflow-hidden ${beVietnam.className}`}
+    >
+      <div className="sticky top-0 z-50 shrink-0">
+        <Header />
+      </div>
+      <main className="flex-1 pt-14">{children}</main>
+      <div className="shrink-0 z-50">
+        <Footer />
+      </div>
     </div>
   );
 }
