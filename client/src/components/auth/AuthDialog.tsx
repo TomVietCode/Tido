@@ -80,10 +80,10 @@ export default function AuthDialog() {
     <Dialog open={authMode !== null} onOpenChange={(open) => !open && closeDialog()}>
       <DialogTrigger asChild>
         <div className="flex gap-2">
-          <Button onClick={OpenSignUp} variant="outline">
+          <Button className="cursor-pointer" onClick={OpenSignUp} variant="outline">
             Đăng ký
           </Button>
-          <Button onClick={OpenSignIn}>Đăng nhập</Button>
+          <Button className="cursor-pointer" onClick={OpenSignIn}>Đăng nhập</Button>
         </div>
       </DialogTrigger>
 

@@ -2,7 +2,10 @@ import { Body, Controller, Post } from '@nestjs/common'
 import { UploadService } from '@modules/uploads/upload.service'
 import { GetPresignedUrlDto } from '@modules/uploads/uploads.dto'
 import { ApiOperation } from '@nestjs/swagger'
-import { BackendResponse, GetPresignedUrlResponse } from '@src/common/interfaces'
+import {
+  BackendResponse,
+  GetPresignedUrlResponse,
+} from '@src/common/interfaces'
 import { Public } from '@modules/auth/decorators/public.decorator'
 
 @Controller('uploads')

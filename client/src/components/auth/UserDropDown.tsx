@@ -17,7 +17,7 @@ export default function UserDropDown({ user }: { user: IUser }) {
   return (
     <DropdownMenu>
     <DropdownMenuTrigger asChild>
-      <Avatar>
+      <Avatar className="w-13 h-13 md:w-11 md:h-11 cursor-pointer">
         <AvatarImage src={user?.avatarUrl} />
         <AvatarFallback>{user?.fullName?.charAt(0)}</AvatarFallback>
       </Avatar>

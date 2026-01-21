@@ -1,6 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common'
 import { CategoriesService } from '@modules/categories/categories.service'
-import { CreateCategoryDto, UpdateCategoryDto } from '@modules/categories/categories.dto'
+import {
+  CreateCategoryDto,
+  UpdateCategoryDto,
+} from '@modules/categories/categories.dto'
 import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard'
 import { RoleGuard } from '@modules/auth/guards/role.guard'
 import { Role } from '@common/enums'
@@ -18,7 +30,9 @@ export class CategoriesController {
   @Post()
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles(Role.ADMIN)
-  async create(@Body() createCategoryDto: CreateCategoryDto): Promise<Category> {
+  async create(
+    @Body() createCategoryDto: CreateCategoryDto,
+  ): Promise<Category> {
     const category = await this.categoriesService.create(createCategoryDto)
     return category as Category
   }
@@ -30,7 +44,7 @@ export class CategoriesController {
     const categories = await this.categoriesService.findAll()
     return categories
   }
-  
+
   @ApiOperation({ summary: 'Get a category by id' })
   @Public()
   @Get(':id')
@@ -43,7 +57,10 @@ export class CategoriesController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RoleGuard)
   @Roles(Role.ADMIN)
-  async update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateCategoryDto: UpdateCategoryDto,
+  ) {
     const category = await this.categoriesService.update(+id, updateCategoryDto)
     return category as Category
   }

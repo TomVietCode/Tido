@@ -17,7 +17,7 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
   ) {}
-  
+
   async comparePassword(
     password: string,
     storePasswordHash: string,
@@ -28,11 +28,11 @@ export class AuthService {
   async validateUser(email: string, password: string): Promise<User> {
     const user = await this.usersService.findOne({ email })
     if (!user) {
-      throw new UnauthorizedException("Email hoặc mật khẩu không đúng")
+      throw new UnauthorizedException('Email hoặc mật khẩu không đúng')
     }
     const check = await this.comparePassword(password, user!.password!)
     if (!check) {
-      throw new UnauthorizedException("Email hoặc mật khẩu không đúng")
+      throw new UnauthorizedException('Email hoặc mật khẩu không đúng')
     }
 
     return user
@@ -58,15 +58,22 @@ export class AuthService {
   async signUp(dto: SignUpDto): Promise<AuthResponse> {
     const { fullName, email, password } = dto
 
-    const existingUser = await this.usersService.findOne({ email, provider: Provider.LOCAL })
+    const existingUser = await this.usersService.findOne({
+      email,
+      provider: Provider.LOCAL,
+    })
     if (existingUser) {
       throw new BadRequestException('Tài khoản với email này đã tồn tại')
     }
 
-    const user = await this.usersService.createUserFromLocal({ fullName, email, password })
+    const user = await this.usersService.createUserFromLocal({
+      fullName,
+      email,
+      password,
+    })
 
     const payload: JwtPayload = { sub: user.id, role: user.role }
-    return { 
+    return {
       user: {
         id: user.id,
         email: user.email,
@@ -88,7 +95,10 @@ export class AuthService {
     if (existingUser.provider !== Provider.GOOGLE) {
       throw new BadRequestException('Email này đã được sử dụng')
     }
-    const payload: JwtPayload = { sub: existingUser.id, role: existingUser.role }
+    const payload: JwtPayload = {
+      sub: existingUser.id,
+      role: existingUser.role,
+    }
     return {
       user: {
         id: existingUser.id,

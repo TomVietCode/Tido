@@ -48,23 +48,40 @@ export class PostsController {
 
   @Get()
   @Public()
-  @DocsInfo({ summary: 'Get all posts', type: PostListResponseDto, paginated: true })
-  async findAll(@Query() query: GetPostsQueryDto): Promise<IPostsPaginatedResponse> {
+  @DocsInfo({
+    summary: 'Get all posts',
+    type: PostListResponseDto,
+    paginated: true,
+  })
+  async findAll(
+    @Query() query: GetPostsQueryDto,
+  ): Promise<IPostsPaginatedResponse> {
     const data = await this.postsService.findAll(query)
     return data as IPostsPaginatedResponse
   }
 
   @Get('me')
   @ApiAuth()
-  @DocsInfo({ summary: 'Get all my posts', type: PostListResponseDto, paginated: true })
-  async findMyPosts(@Query() query: GetMyPostsQueryDto, @CurrentUser() user: IUserPayload): Promise<IPostsPaginatedResponse> {
+  @DocsInfo({
+    summary: 'Get all my posts',
+    type: PostListResponseDto,
+    paginated: true,
+  })
+  async findMyPosts(
+    @Query() query: GetMyPostsQueryDto,
+    @CurrentUser() user: IUserPayload,
+  ): Promise<IPostsPaginatedResponse> {
     const result = await this.postsService.findMyPosts(query, user)
     return result as IPostsPaginatedResponse
   }
 
   @Get('saved')
   @ApiAuth()
-  @DocsInfo({ summary: 'Get my saved posts', type: PostListResponseDto, paginated: true })
+  @DocsInfo({
+    summary: 'Get my saved posts',
+    type: PostListResponseDto,
+    paginated: true,
+  })
   async findSavedPosts(@CurrentUser() user: IUserPayload) {
     const result = await this.savedPostsService.findAll(user)
     return result
@@ -95,7 +112,10 @@ export class PostsController {
 
   @Patch(':id/status')
   @ApiAuth()
-  @DocsInfo({ summary: 'Update the status of my post by id', type: PostResponseDto })
+  @DocsInfo({
+    summary: 'Update the status of my post by id',
+    type: PostResponseDto,
+  })
   async updateStatus(
     @Param('id') id: string,
     @Body() dto: UpdatePostDto,
@@ -112,7 +132,10 @@ export class PostsController {
   @Delete(':id')
   @ApiAuth()
   @DocsInfo({ summary: 'Delete my post by id', type: Boolean })
-  async delete(@Param('id') id: string, @CurrentUser() user: IUserPayload): Promise<boolean> {
+  async delete(
+    @Param('id') id: string,
+    @CurrentUser() user: IUserPayload,
+  ): Promise<boolean> {
     const result = await this.postsService.delete(id, user)
     return result
   }
@@ -120,7 +143,10 @@ export class PostsController {
   @Post(':id/save')
   @ApiAuth()
   @DocsInfo({ summary: 'Toggle save post', type: Boolean })
-  async toggleSave(@Param('id') id: string, @CurrentUser() user: IUserPayload): Promise<boolean> {
+  async toggleSave(
+    @Param('id') id: string,
+    @CurrentUser() user: IUserPayload,
+  ): Promise<boolean> {
     const result = await this.savedPostsService.toggleSave(id, user)
     return result
   }

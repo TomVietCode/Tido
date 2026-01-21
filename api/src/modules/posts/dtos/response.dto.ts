@@ -1,5 +1,5 @@
-import { ApiProperty, ApiPropertyOptional, PickType } from "@nestjs/swagger"
-import { PostStatus, PostType } from "@common/enums"
+import { ApiProperty, ApiPropertyOptional, PickType } from '@nestjs/swagger'
+import { PostStatus, PostType } from '@common/enums'
 
 export class PostResponseDto {
   @ApiProperty({ example: 'clx1234567890abcdef' })
@@ -68,7 +68,7 @@ export class PostResponseDto {
     nullable: true,
   })
   user?: {
-    fullName: string,
+    fullName: string
     avatarUrl: string
   }
 
@@ -80,7 +80,7 @@ export class PostResponseDto {
     nullable: true,
   })
   category?: {
-    name: string,
+    name: string
     slug: string
   }
 

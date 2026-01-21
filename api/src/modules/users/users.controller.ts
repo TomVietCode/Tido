@@ -8,9 +8,7 @@ import { UpdateUserProfileDto } from '@modules/users/dtos'
 
 @Controller('users')
 export class UsersController {
-  constructor(
-    private readonly usersService: UsersService
-  ) {}
+  constructor(private readonly usersService: UsersService) {}
 
   @Get()
   @DocsInfo({ summary: 'Get all users' })
@@ -35,4 +33,4 @@ export class UsersController {
     const data = await this.usersService.updateProfile(dto, user.id)
     return data as UserResponse
   }
-} 
+}
