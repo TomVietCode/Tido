@@ -10,6 +10,7 @@ export const SocketProvider = ({ children, token }: { children: React.ReactNode,
   useEffect(() => {
     const newSocket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:8000', {
       auth: { token },
+      transports: ['websocket', 'polling']
     });
 
     setSocket(newSocket);

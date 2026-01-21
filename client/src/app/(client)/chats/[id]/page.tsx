@@ -1,7 +1,8 @@
-export default function ChatPage({ params }: { params: { id: string } }) {
+import ChatWindow from "@/components/chats/ChatWindow";
+
+export default async function ChatPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   return (
-    <div>
-      <h1>Chat Page</h1>
-    </div>
+    <ChatWindow conversationId={id} />
   )
 }
