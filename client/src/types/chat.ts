@@ -15,8 +15,11 @@ export interface Conversation {
 }
 
 export interface IMessage {
+  id: string
   conversationId: string
-  message: string
   senderId: string
-  createdAt: string
+  content: string
+  isRead?: boolean
+  createdAt?: string
+  updatedAt?: string
 }

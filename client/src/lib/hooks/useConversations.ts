@@ -27,7 +27,7 @@ export function useConversations() {
 
     const handleNewMessage = (data: IMessage) => {
       // Update conversations list when new message arrives
-      mutate((current: Conversation[]) => {
+      mutate((current: any) => {
         if (!current) return current
 
         return current.map((conv: Conversation) => {
@@ -35,7 +35,7 @@ export function useConversations() {
             return {
               ...conv,
               lastMessage: {
-                content: data.message,
+                content: data.content,
                 senderId: data.senderId,
                 createdAt: data.createdAt
               },

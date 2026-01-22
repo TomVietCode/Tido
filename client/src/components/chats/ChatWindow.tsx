@@ -3,15 +3,26 @@ import { Input } from "@/components/ui/input"
 import { useSocket } from "@/lib/contexts/SocketContext"
 import { useConversations } from "@/lib/hooks/useConversations"
 import { IMessage } from "@/types"
+import { Session } from "next-auth"
 import { useCallback, useEffect, useRef, useState } from "react"
 
-export default function ChatWindow({ conversationId }: { conversationId: string }) {
+interface IChatWindowProps {
+  conversationId: string
+  initialMessages: IMessage[]
+  session: Session
+}
+export default function ChatWindow({ conversationId, initialMessages, session }: IChatWindowProps) {
+  const currentUserId = session?.user?.id
   const { socket } = useSocket()
   const { mutate: mutateConversations } = useConversations()
-  const [messages, setMessages] = useState<any[]>([])
+  const [messages, setMessages] = useState<IMessage[]>(initialMessages)
   const [input, setInput] = useState("")
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
+  const isOwn = useCallback(
+    (senderId?: string) => senderId && currentUserId && senderId === currentUserId,
+    [currentUserId]
+  )
   // Scroll to bottom when messages update
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -45,18 +56,21 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
 
     socket.emit("send_message", {
       conversationId,
-      content: input.trim()
+      content: input.trim(),
     })
 
     setInput("")
   }, [input, socket, conversationId])
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      sendMessage()
-    }
-  }, [sendMessage])
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault()
+        sendMessage()
+      }
+    },
+    [sendMessage]
+  )
   return (
     <div className="flex flex-col h-full">
       {/* Message area */}
@@ -64,11 +78,20 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
         {messages.length === 0 ? (
           <p className="text-center text-gray-500">Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!</p>
         ) : (
-          messages.map((msg, i) => (
-            <div key={msg.id || i} className="p-2 bg-slate-100 rounded-lg max-w-[70%]">
-              {msg.message}
-            </div>
-          ))
+          messages.map((msg, i) => {
+            const mine = isOwn(msg.senderId)
+            return (
+              <div key={msg.id || i} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                <div
+                  className={`px-3 py-2 rounded-lg max-w-[70%] wrap-break-word ${
+                    mine ? "bg-primary text-white rounded-br-none" : "bg-white text-slate-900 border rounded-bl-none"
+                  }`}
+                >
+                  {msg.content}
+                </div>
+              </div>
+            )
+          })
         )}
         <div ref={messagesEndRef} />
       </div>
@@ -76,7 +99,7 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
       {/* Input area */}
       <div className="border-t p-4">
         <div className="flex gap-2">
-          <Input 
+          <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}

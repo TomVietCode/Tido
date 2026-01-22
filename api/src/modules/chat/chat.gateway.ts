@@ -57,14 +57,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: { conversationId: string; content: string },
   ) {
     const user = client['user']
+
+    const result = await this.chatService.saveMessage(data.conversationId, user.sub, data.content)
     const message = {
+      id: result._id.toString(),
       conversationId: data.conversationId,
       senderId: user.sub,
-      message: data.content,
+      content: data.content,
+      isRead: result.isRead,
       createdAt: new Date(),
     }
-    console.log(message)
-    await this.chatService.saveMessage(data.conversationId, user.sub, data.content)
     this.server.to(data.conversationId).emit('new_message', message)
   }
 }

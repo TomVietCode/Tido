@@ -6,6 +6,7 @@ import { Model } from 'mongoose'
 import { CreateConversationDto } from '@modules/chat/dtos'
 import { UsersService } from '@modules/users/users.service'
 import { IConversationResponse } from '@modules/chat/chat.interface'
+import { IMessage } from '@common/interfaces/chat'
 
 @Injectable()
 export class ChatService {
@@ -14,13 +15,13 @@ export class ChatService {
     @InjectModel(Conversation.name)
     private conversationModel: Model<Conversation>,
     private usersService: UsersService,
-  ) {}
+  ) { }
 
   async getConversations(userId: string) {
     const conversations = await this.conversationModel
       .find({ participants: { $in: [userId] } })
       .sort({ updatedAt: -1 })
-      .lean() 
+      .lean()
     if (conversations.length === 0) return []
 
     const otherUserIds = conversations.map(conv => conv.participants.find(pId => pId !== userId))
@@ -83,16 +84,22 @@ export class ChatService {
     return newMessage
   }
 
-  async getMessage(
-    conversationId: string,
-    limit: number = 10,
-    skip: number = 0,
-  ) {
+  async getMessages(conversationId: string, limit: number = 10, skip: number = 0): Promise<IMessage[]> {
     const messages = await this.messageModel
       .find({ conversationId })
       .sort({ createdAt: -1 })
+      .select('_id conversationId senderId content isRead createdAt updatedAt')
       .skip(skip)
       .limit(limit)
-    return messages
+      .lean()
+
+    const result = messages.map((msg) => {
+      const { _id, ...rest } = msg
+      return {
+        id: _id.toString(),
+        ...rest,
+      }
+    })
+    return result as unknown as IMessage[]
   }
 }
