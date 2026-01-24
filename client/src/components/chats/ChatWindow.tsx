@@ -17,16 +17,35 @@ export default function ChatWindow({ conversationId, initialMessages, session }:
   const { mutate: mutateConversations } = useConversations()
   const [messages, setMessages] = useState<IMessage[]>(initialMessages)
   const [input, setInput] = useState("")
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const isInitialLoadRef = useRef(true)
 
   const isOwn = useCallback(
     (senderId?: string) => senderId && currentUserId && senderId === currentUserId,
     [currentUserId]
   )
+
+  const scrollToBottom = useCallback((smooth = false) => {
+    const container = messagesContainerRef.current
+    const endMarker = messagesEndRef.current
+    if(!container || !endMarker) return
+
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: smooth ? "smooth" : "auto"
+    })
+  }, [])
+
   // Scroll to bottom when messages update
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+    if(isInitialLoadRef.current) {
+      scrollToBottom(false)
+      isInitialLoadRef.current = false
+      return
+    }
+    scrollToBottom(true)
+  }, [messages.length, scrollToBottom])
 
   // handle socket events
   useEffect(() => {
@@ -74,7 +93,7 @@ export default function ChatWindow({ conversationId, initialMessages, session }:
   return (
     <div className="flex flex-col h-full">
       {/* Message area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-2">
+      <div ref={messagesContainerRef} className="flex-1 min-h-0 p-4 space-y-2 overflow-y-auto bg-gray-50">
         {messages.length === 0 ? (
           <p className="text-center text-gray-500">Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!</p>
         ) : (
@@ -83,7 +102,7 @@ export default function ChatWindow({ conversationId, initialMessages, session }:
             return (
               <div key={msg.id || i} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                 <div
-                  className={`px-3 py-2 rounded-lg max-w-[70%] wrap-break-word ${
+                  className={`px-3 py-2 rounded-lg max-w-[60%] wrap-break-word ${
                     mine ? "bg-primary text-white rounded-br-none" : "bg-white text-slate-900 border rounded-bl-none"
                   }`}
                 >
@@ -93,12 +112,12 @@ export default function ChatWindow({ conversationId, initialMessages, session }:
             )
           })
         )}
-        <div ref={messagesEndRef} />
+        <div ref={messagesEndRef}/>
       </div>
 
       {/* Input area */}
-      <div className="border-t p-4">
-        <div className="flex gap-2">
+      <div className="border-t p-4 bg-white ">
+        <div className="flex gap-2 ">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}

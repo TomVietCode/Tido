@@ -87,7 +87,7 @@ export class ChatService {
   async getMessages(conversationId: string, limit: number = 10, skip: number = 0): Promise<IMessage[]> {
     const messages = await this.messageModel
       .find({ conversationId })
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: 1 })
       .select('_id conversationId senderId content isRead createdAt updatedAt')
       .skip(skip)
       .limit(limit)

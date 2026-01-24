@@ -15,12 +15,12 @@ export default function ClientLayout({
 }>) {
   return (
     <div
-      className={`min-h-screen h-full w-full flex flex-col overflow-hidden ${beVietnam.className}`}
+      className={`min-h-full w-full flex flex-col overflow-hidden ${beVietnam.className}`}
     >
       <div className="sticky top-0 z-50 shrink-0">
         <Header />
       </div>
-      <main className="flex-1 pt-14">{children}</main>
+      <main className="flex flex-1 pt-14">{children}</main>
       <div className="shrink-0 z-50">
         <Footer />
       </div>

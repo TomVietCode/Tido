@@ -9,6 +9,13 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
   if (!session) {
     return NotFound()
   }
+  if (!id) {
+    return (
+      <div className="flex h-full items-center justify-center gap-3 p-4 border-b">
+        <h1>Mở một cuộc hội thoại để bắt đầu</h1>
+      </div>
+    )
+  }
   const res = await getMessages(id, 50, 0)
   if (!res.success) {
     return <div>Error: {res.message}</div>

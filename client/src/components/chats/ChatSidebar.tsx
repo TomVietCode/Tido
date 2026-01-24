@@ -6,7 +6,10 @@ import { Conversation } from "@/types"
 import { usePathname } from "next/navigation"
 import { useMemo } from "react"
 
-export default function ChatSidebar() {
+interface IChatSidebarProps {
+  currentUserId: string
+}
+export default function ChatSidebar({ currentUserId }: IChatSidebarProps) {
   const { conversations } = useConversations()
   const pathname = usePathname()
   const activeId = useMemo(() => {
@@ -32,6 +35,7 @@ export default function ChatSidebar() {
               key={conversation.id}
               conversation={conversation}
               isActive={activeId === conversation.id}
+              currentUserId={currentUserId}
             />
           ))
         )}

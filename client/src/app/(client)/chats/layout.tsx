@@ -12,13 +12,13 @@ export default async function ChatLayout({ children }: { children: React.ReactNo
   
   return (
     <SocketProvider token={token}>
-      <div className="flex flex-1 h-full w-full overflow-hidden bg-white">
+      <div className="flex h-[calc(100dvh-3.6rem-3rem)] w-full bg-white overflow-hidden">
         <aside className={`block w-80 md:w-[350px] border-r`}>
-          <ChatSidebar/>
+          <ChatSidebar currentUserId={session.user.id}/>
         </aside>
-        <main className="block flex-1">
+        <div className="block flex-1">
           {children}
-        </main>
+        </div>
       </div>
     </SocketProvider>
   )
