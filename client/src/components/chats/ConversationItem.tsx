@@ -18,6 +18,7 @@ export const ConversationItem = memo(function ConversationItem({ conversation, i
     const senderLabel = isMine ? "Bạn" : recipientShortName
     return `${senderLabel}: ${lastMessage.content}`
   }, [lastMessage, currentUserId, conversation.recipient.fullName])
+  
   return (
     <Link href={`/chats/${conversation.id}`} key={conversation.id}>
       <div className={`flex items-center gap-2 p-4 border cursor-pointer transition-colors ${isActive ? 'bg-blue-50 border-blue-200' : 'hover:bg-gray-50'}`}>

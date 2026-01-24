@@ -16,11 +16,12 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
       </div>
     )
   }
-  const res = await getMessages(id, 50, 0)
+  const idString = id[0]
+  const res = await getMessages(idString, 50, 0)
   if (!res.success) {
     return <div>Error: {res.message}</div>
   }
   return (
-    <ChatWindow conversationId={id} initialMessages={res.data} session={session} />
+    <ChatWindow conversationId={idString} initialMessages={res.data} session={session} />
   )
 }

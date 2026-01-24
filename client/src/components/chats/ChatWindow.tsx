@@ -68,7 +68,7 @@ export default function ChatWindow({ conversationId, initialMessages, session }:
       socket.off("new_message", handleNewMessage)
       // socket.emit("leave_room", { conversationId })
     }
-  }, [socket, conversationId, mutateConversations])
+  }, [socket, conversationId])
 
   const sendMessage = useCallback(() => {
     if (!input.trim() || !socket) return
@@ -127,7 +127,7 @@ export default function ChatWindow({ conversationId, initialMessages, session }:
           />
           <button
             onClick={sendMessage}
-            className="bg-primary text-white px-6 py-2 rounded-md hover:bg-blue-600 trainsition-colors"
+            className="bg-primary text-white px-6 rounded-md hover:bg-primary-600 transition-colors"
           >
             Gửi
           </button>
