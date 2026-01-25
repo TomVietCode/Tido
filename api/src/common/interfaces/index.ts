@@ -1,6 +1,8 @@
 import { CategoryStatus, Role, UserStatus } from '@common/enums'
 
 export * from './chat'
+export * from './user'
+
 export interface BackendResponse<T> {
   statusCode: number
   message: string

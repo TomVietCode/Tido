@@ -25,7 +25,11 @@ export class ChatService {
     if (conversations.length === 0) return []
 
     const otherUserIds = conversations.map(conv => conv.participants.find(pId => pId !== userId))
-    const users = await this.usersService.findManyByIds(otherUserIds)
+    const findUserOptions = {
+      where: { id: { in: otherUserIds } },
+      select: { id: true, fullName: true, avatarUrl: true }
+    }
+    const users = await this.usersService.findMany(findUserOptions)
     const userMap = users.reduce((acc, user) => {
       acc[user.id] = user
       return acc
@@ -55,7 +59,12 @@ export class ChatService {
       participants,
       postId,
     })
-    return conversation
+
+    const { _id, ...rest } = conversation.toObject()
+    return {
+      id: _id.toString(),
+      ...rest,
+    }
   }
 
   async checkRoomAccess(conversationId: string, userId: string) {
@@ -101,5 +110,17 @@ export class ChatService {
       }
     })
     return result as unknown as IMessage[]
+  }
+
+  async searchUser(userId: string, query: string) {
+    const findUserOptions = {
+      where: { 
+        id: { not: userId },
+        fullName: { contains: query, mode: 'insensitive' } 
+      },
+      select: { id: true, fullName: true, avatarUrl: true },
+    }
+    const result = await this.usersService.findMany(findUserOptions)
+    return result
   }
 }

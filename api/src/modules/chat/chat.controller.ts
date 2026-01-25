@@ -1,14 +1,21 @@
-import { Body, Controller, ForbiddenException, Get, Param, Post, Query } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common'
 import { ChatService } from '@modules/chat/chat.service'
 import { ApiAuth } from '@common/decorators'
 import { CreateConversationDto } from '@modules/chat/dtos'
 import { IUserPayload } from '@common/interfaces'
 import { CurrentUser } from '@modules/auth/decorators/user.decorator'
-import { IMessage } from '@common/interfaces/chat'
-
+import { IMessage, SearchUserResponse } from '@common/interfaces'
 @Controller('chats')
 export class ChatController {
-  constructor(private readonly chatService: ChatService) { }
+  constructor(private readonly chatService: ChatService) {}
 
   @Post()
   @ApiAuth()
@@ -40,8 +47,28 @@ export class ChatController {
       conversationId,
       user.id,
     )
-    if(!canAccess) throw new ForbiddenException("Bạn không có quyền truy cập đoạn chat này")
+    if (!canAccess)
+      throw new ForbiddenException('Bạn không có quyền truy cập đoạn chat này')
 
-    return this.chatService.getMessages(conversationId, Number(limit), Number(skip))
+    return this.chatService.getMessages(
+      conversationId,
+      Number(limit),
+      Number(skip),
+    )
+  }
+
+  @Get('search')
+  @ApiAuth()
+  async searchUser(
+    @CurrentUser() user: IUserPayload,
+    @Query('query') query: string,
+  ): Promise<SearchUserResponse[]> {
+    if(!query || query.trim().length < 2) {
+      return []
+    }
+    const decodedQuery = decodeURIComponent(query.trim())
+    const result = await this.chatService.searchUser(user.id, decodedQuery)
+
+    return result
   }
 }

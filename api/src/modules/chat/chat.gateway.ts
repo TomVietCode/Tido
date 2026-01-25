@@ -51,6 +51,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @UseGuards(WsJwtGuard)
+  @SubscribeMessage('leave_room')
+  async handleLeaveRoom(
+    @MessageBody('conversationId') conversationId: string,
+    @ConnectedSocket() client: Socket,
+  ) {
+    client.leave(conversationId)
+    console.log(`User ${client['user'].sub} left room: ${conversationId}`)
+  }
+
+  @UseGuards(WsJwtGuard)
   @SubscribeMessage('send_message')
   async handleMessage(
     @ConnectedSocket() client: Socket,

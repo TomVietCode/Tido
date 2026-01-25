@@ -1,4 +1,4 @@
-export interface Conversation {
+export interface IConversation {
   id: string
   participants: string[]
   postId?: string

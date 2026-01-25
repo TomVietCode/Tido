@@ -21,8 +21,8 @@ export const ConversationItem = memo(function ConversationItem({ conversation, i
   
   return (
     <Link href={`/chats/${conversation.id}`} key={conversation.id}>
-      <div className={`flex items-center gap-2 p-4 border cursor-pointer transition-colors ${isActive ? 'bg-blue-50 border-blue-200' : 'hover:bg-gray-50'}`}>
-        <Avatar>
+      <div className={`flex items-center gap-2 p-4 mx-2 rounded-md cursor-pointer transition-colors ${isActive ? 'bg-blue-100 border-blue-200' : 'hover:bg-gray-100'}`}>
+        <Avatar className="size-10">
           <AvatarImage src={conversation.recipient.avatarUrl} />
         </Avatar>
         <div className="flex flex-1 flex-col overflow-hidden">

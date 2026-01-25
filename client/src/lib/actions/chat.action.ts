@@ -1,14 +1,14 @@
 "use server"
 import { auth } from "@/auth"
 import { sendRequest } from "@/lib/helpers/api"
-import { Conversation } from "@/types"
+import { IConversation, IMessage, SearchUserResponse } from "@/types"
 
 export const getConversations = async () => {
   try {
     const session = await auth()
     if (!session) throw new Error("Unauthorized")
 
-    const res = await sendRequest<IBackendRes<Conversation[]>>({
+    const res = await sendRequest<IBackendRes<IConversation[]>>({
       url: "/chats/conversations",
       method: "GET",
       headers: {
@@ -30,12 +30,33 @@ export const getConversations = async () => {
   }
 }
 
+export const createConversation = async (recipientId: string) => {
+  try {
+    const session = await auth()
+    if (!session) throw new Error("Unauthorized")
+
+    const res = await sendRequest<IBackendRes<IConversation>>({
+      url: "/chats",
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.user.access_token}`,
+      },
+      body: {
+        participants: [session.user.id, recipientId],
+      },
+    })
+    return { success: true, data: res.data }
+  } catch (error: any) {
+    return { success: false, message: error.message }
+  }
+}
+
 export const getMessages = async (conversationId: string, limit = 50, skip = 0) => {
   try {
     const session = await auth()
     if (!session) throw new Error("Unauthorized")
 
-    const res = await sendRequest<IBackendRes<any>>({
+    const res = await sendRequest<IBackendRes<IMessage[]>>({
       url: `/chats/conversation/${conversationId}/messages`,
       method: "GET",
       headers: {
@@ -58,6 +79,29 @@ export const getMessages = async (conversationId: string, limit = 50, skip = 0) 
       success: false,
       message: error.message,
       statusCode: error.status || 500
+    }
+  }
+}
+
+export const searchUsers = async (query: string) => {
+  try {
+    const session = await auth()
+    if (!session) throw new Error("Unauthorized")
+
+    const res = await sendRequest<IBackendRes<SearchUserResponse[]>>({
+      method: "GET",
+      url: `/chats/search?query=${encodeURIComponent(query)}`,
+      headers: {
+        Authorization: `Bearer ${session.user.access_token}`,
+      },
+    })
+
+    return { success: true, data: res.data }
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message,
+      data: []
     }
   }
 }

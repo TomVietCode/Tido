@@ -22,12 +22,14 @@ export class UsersService {
     return users as UserResponse[]
   }
 
-  async findManyByIds(ids: any[]) {
+  async findMany(options: any) {
     const users = await this.prisma.user.findMany({
-      where: { id: { in: ids } },
-      select: { id: true, fullName: true, avatarUrl: true },
+      where: options.where,
+      select: options.select,
+      skip: options.skip,
+      take: options.take,
     })
-    return users as UserResponse[]
+    return users as unknown as UserResponse[]
   }
 
   async createUserFromLocal(data: CreateUserLocalDto) {
