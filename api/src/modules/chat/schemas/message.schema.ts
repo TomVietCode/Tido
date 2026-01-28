@@ -17,3 +17,5 @@ export class Message extends Document {
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message)
+
+MessageSchema.index({ conversationId: 1, createdAt: -1 })

@@ -15,19 +15,25 @@ export class ChatService {
     @InjectModel(Conversation.name)
     private conversationModel: Model<Conversation>,
     private usersService: UsersService,
-  ) { }
+  ) {}
 
   async getConversations(userId: string) {
-    const conversations = await this.conversationModel
-      .find({ participants: { $in: [userId] } })
-      .sort({ updatedAt: -1 })
-      .lean()
+    const [conversations, unreadCounts] = await Promise.all([
+      this.conversationModel
+        .find({ participants: { $in: [userId] } })
+        .sort({ updatedAt: -1 })
+        .lean(),
+      this.getUnreadCounts(userId),
+    ])
+
     if (conversations.length === 0) return []
 
-    const otherUserIds = conversations.map(conv => conv.participants.find(pId => pId !== userId))
+    const otherUserIds = conversations.map((conv) =>
+      conv.participants.find((pId) => pId !== userId),
+    )
     const findUserOptions = {
       where: { id: { in: otherUserIds } },
-      select: { id: true, fullName: true, avatarUrl: true }
+      select: { id: true, fullName: true, avatarUrl: true },
     }
     const users = await this.usersService.findMany(findUserOptions)
     const userMap = users.reduce((acc, user) => {
@@ -36,12 +42,13 @@ export class ChatService {
     }, {})
 
     const result = conversations.map((conv) => {
-      const otherId = conv.participants.find(pId => pId !== userId)
+      const otherId = conv.participants.find((pId) => pId !== userId)
       const { _id, ...rest } = conv
       return {
         ...rest,
         id: _id.toString(),
-        recipient: userMap[otherId!]
+        recipient: userMap[otherId!],
+        unreadCount: unreadCounts[_id.toString()] || 0,
       }
     })
     return result as IConversationResponse[]
@@ -61,6 +68,20 @@ export class ChatService {
     })
 
     const { _id, ...rest } = conversation.toObject()
+    return {
+      id: _id.toString(),
+      ...rest,
+    }
+  }
+
+  async getConversation(conversationId: string) {
+    const conversation = await this.conversationModel
+      .findById(conversationId)
+      .lean()
+    if (!conversation) return null
+
+    const { _id, ...rest } = conversation
+
     return {
       id: _id.toString(),
       ...rest,
@@ -87,20 +108,25 @@ export class ChatService {
         content: newMessage.content,
         senderId: newMessage.senderId,
         createdAt: new Date(),
+        isRead: false,
       },
     })
 
     return newMessage
   }
 
-  async getMessages(conversationId: string, limit: number = 10, skip: number = 0): Promise<IMessage[]> {
+  async getMessages(
+    conversationId: string,
+    limit: number = 10,
+    skip: number = 0,
+  ): Promise<IMessage[]> {
     const messages = await this.messageModel
       .find({ conversationId })
-      .sort({ createdAt: 1 })
+      .sort({ createdAt: -1 })
       .select('_id conversationId senderId content isRead createdAt updatedAt')
-      .skip(skip)
       .limit(limit)
       .lean()
+    messages.reverse()
 
     const result = messages.map((msg) => {
       const { _id, ...rest } = msg
@@ -114,13 +140,61 @@ export class ChatService {
 
   async searchUser(userId: string, query: string) {
     const findUserOptions = {
-      where: { 
+      where: {
         id: { not: userId },
-        fullName: { contains: query, mode: 'insensitive' } 
+        fullName: { contains: query, mode: 'insensitive' },
       },
       select: { id: true, fullName: true, avatarUrl: true },
     }
     const result = await this.usersService.findMany(findUserOptions)
     return result
+  }
+
+  async markAsRead(conversationId: string, userId: string): Promise<number> {
+    const result = await this.messageModel.updateMany(
+      {
+        conversationId,
+        senderId: { $ne: userId },
+        isRead: false,
+      },
+      { $set: { isRead: true } },
+    )
+
+    // update conversation last message
+    const lastMsg = await this.messageModel
+      .findOne({ conversationId })
+      .sort({ createdAt: -1 })
+      .lean()
+
+    if (lastMsg && lastMsg.senderId !== userId) {
+      await this.conversationModel.findByIdAndUpdate(conversationId, {
+        'lastMessage.isRead': true,
+      })
+    }
+
+    // return number of messages marked as read
+    return result.modifiedCount
+  }
+
+  async getUnreadCounts(userId: string): Promise<Record<string, number>> {
+    const result = await this.messageModel.aggregate([
+      {
+        $match: {
+          senderId: { $ne: userId },
+          isRead: false,
+        },
+      },
+      {
+        $group: {
+          _id: '$conversationId',
+          count: { $sum: 1 },
+        },
+      },
+    ])
+
+    return result.reduce((acc, item) => {
+      acc[item._id.toString()] = item.count
+      return acc
+    }, {})
   }
 }

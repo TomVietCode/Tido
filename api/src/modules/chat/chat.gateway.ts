@@ -9,9 +9,9 @@ import {
   WsException,
 } from '@nestjs/websockets'
 import { Server, Socket } from 'socket.io'
+import { ChatService } from '@modules/chat/chat.service'
 import { UseGuards } from '@nestjs/common'
 import { WsJwtGuard } from '@modules/chat/guards/ws-jwt.guard'
-import { ChatService } from '@modules/chat/chat.service'
 
 @WebSocketGateway({
   cors: {
@@ -36,15 +36,26 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @UseGuards(WsJwtGuard)
+  @SubscribeMessage('authenticate')
+  async handleAuthenticate(@ConnectedSocket() client: Socket) {
+    const userId = client['user'].sub
+    client.join(userId)
+    console.log(`User ${userId} authenticated`)
+  }
+
+  @UseGuards(WsJwtGuard)
   @SubscribeMessage('join_room')
   async handleJoinRoom(
     @MessageBody('conversationId') conversationId: string,
     @ConnectedSocket() client: Socket,
   ) {
     const userId = client['user'].sub
-    const canAccess = await this.chatService.checkRoomAccess(conversationId, userId)
+    const canAccess = await this.chatService.checkRoomAccess(
+      conversationId,
+      userId,
+    )
     if (!canAccess) {
-      throw new WsException("Bạn không có quyền truy cập đoạn chat này")
+      throw new WsException('Bạn không có quyền truy cập đoạn chat này')
     }
     client.join(conversationId)
     console.log(`User ${client['user'].sub} joined room: ${conversationId}`)
@@ -68,7 +79,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const user = client['user']
 
-    const result = await this.chatService.saveMessage(data.conversationId, user.sub, data.content)
+    const result = await this.chatService.saveMessage(
+      data.conversationId,
+      user.sub,
+      data.content,
+    )
+
+    const conv = await this.chatService.getConversation(data.conversationId)
+
     const message = {
       id: result._id.toString(),
       conversationId: data.conversationId,
@@ -78,5 +96,27 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       createdAt: new Date(),
     }
     this.server.to(data.conversationId).emit('new_message', message)
+
+    const recipientId = conv?.participants.find(pId => pId !== user.sub)
+    if (recipientId) {
+      this.server.to(recipientId).emit('conversation_updated', message)
+    }
+  }
+
+  @UseGuards(WsJwtGuard)
+  @SubscribeMessage('mark_as_read')
+  async handleMarkAsRead(
+    @ConnectedSocket() client: Socket,
+    @MessageBody('conversationId') conversationId: string,
+  ) {
+    const userId = client['user'].sub
+
+    const count = await this.chatService.markAsRead(conversationId, userId)
+
+    if (count > 0) {
+      this.server.to(conversationId).emit('messages_read', {
+        conversationId,
+      })
+    }
   }
 }

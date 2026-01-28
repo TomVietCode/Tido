@@ -14,6 +14,7 @@ export class Conversation extends Document {
     content: string
     senderId: string
     createdAt: Date
+    isRead: boolean
   }
 }
   

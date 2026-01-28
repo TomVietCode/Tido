@@ -6,6 +6,7 @@ export interface IConversation {
     content: string
     senderId: string
     createdAt: Date
+    isRead: boolean
   }
 }
 
@@ -17,10 +18,12 @@ export interface IConversationResponse {
     content: string
     senderId: string
     createdAt: Date
+    isRead: boolean
   }
   recipient: {
     id: string
     fullName: string
     avatarUrl: string
   }
+  unreadCount: number
 }

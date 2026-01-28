@@ -13,6 +13,9 @@ export const SocketProvider = ({ children, token }: { children: React.ReactNode,
       transports: ['websocket', 'polling']
     });
 
+    newSocket.on('connect', () => {
+      newSocket.emit('authenticate')
+    })
     setSocket(newSocket);
 
     return () => { newSocket.close(); };

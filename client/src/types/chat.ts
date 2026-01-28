@@ -6,12 +6,14 @@ export interface IConversation {
     content: string
     senderId: string
     createdAt: string
+    isRead?: boolean
   }
   recipient: {
     id: string
     fullName: string
     avatarUrl: string
-  }
+  },
+  unreadCount?: number
 }
 
 export interface IMessage {
