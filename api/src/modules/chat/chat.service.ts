@@ -117,15 +117,30 @@ export class ChatService {
 
   async getMessages(
     conversationId: string,
-    limit: number = 10,
-    skip: number = 0,
-  ): Promise<IMessage[]> {
+    limit: number = 50,
+    cursor?: string,
+  ): Promise<{
+    messages: IMessage[]
+    nextCursor: string | null
+    hasMore: boolean
+  }> {
+    const filter: any = { conversationId }
+
+    if (cursor) {
+      filter.createdAt = { $lt: new Date(cursor) }
+    }
+
     const messages = await this.messageModel
-      .find({ conversationId })
+      .find(filter)
       .sort({ createdAt: -1 })
       .select('_id conversationId senderId content isRead createdAt updatedAt')
-      .limit(limit)
+      .limit(limit + 1)
       .lean()
+
+    const hasMore = messages.length > limit
+    if (hasMore) {
+      messages.pop()
+    }
     messages.reverse()
 
     const result = messages.map((msg) => {
@@ -135,7 +150,17 @@ export class ChatService {
         ...rest,
       }
     })
-    return result as unknown as IMessage[]
+
+    // calculate next cursor
+    const nextCursor = hasMore && messages.length > 0
+      ? (result[0] as any).createdAt.toISOString()
+      : null
+
+    return {
+      messages: result as unknown as IMessage[],
+      nextCursor,
+      hasMore
+    }
   }
 
   async searchUser(userId: string, query: string) {

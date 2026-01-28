@@ -38,11 +38,11 @@ export class ChatController {
   @Get('conversation/:id/messages')
   @ApiAuth()
   async getMessages(
+    @CurrentUser() user: IUserPayload,
     @Param('id') conversationId: string,
     @Query('limit') limit = 50,
-    @Query('skip') skip = 0,
-    @CurrentUser() user: IUserPayload,
-  ): Promise<IMessage[]> {
+    @Query('cursor') cursor?: string,
+  ) {
     const canAccess = await this.chatService.checkRoomAccess(
       conversationId,
       user.id,
@@ -50,11 +50,12 @@ export class ChatController {
     if (!canAccess)
       throw new ForbiddenException('Bạn không có quyền truy cập đoạn chat này')
 
-    return this.chatService.getMessages(
-      conversationId,
+    const result = await this.chatService.getMessages(
+      conversationId, 
       Number(limit),
-      Number(skip),
+      cursor
     )
+    return result
   }
 
   @Get('search')

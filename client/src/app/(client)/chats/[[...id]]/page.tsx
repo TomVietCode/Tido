@@ -1,7 +1,7 @@
-import NotFound from "@/app/(client)/not-found";
-import { auth } from "@/auth";
-import ChatWindow from "@/components/chats/ChatWindow";
-import { getMessages } from "@/lib/actions/chat.action";
+import NotFound from "@/app/(client)/not-found"
+import { auth } from "@/auth"
+import ChatWindow from "@/components/chats/ChatWindow"
+import { getMessages } from "@/lib/actions/chat.action"
 
 export default async function ChatPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -16,12 +16,25 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
       </div>
     )
   }
-  const idString = id[0]
-  const res = await getMessages(idString, 50, 0)
-  if (!res.success) {
-    return <div>Error: {res.message}</div>
+  const convId = id[0]
+
+  let initialMessages: any[] = []
+  let initialCursor: string | null = null
+  let initialHasMore: boolean = true
+
+  const res = await getMessages(convId, 50)
+  if (res.success && res.data) {
+    initialMessages = res.data.messages
+    initialCursor = res.data.nextCursor
+    initialHasMore = res.data.hasMore
   }
   return (
-    <ChatWindow conversationId={idString} initialMessages={res.data || []} session={session} />
+    <ChatWindow
+      conversationId={convId}
+      initialMessages={initialMessages}
+      initialCursor={initialCursor}
+      initialHasMore={initialHasMore}
+      session={session}
+    />
   )
 }

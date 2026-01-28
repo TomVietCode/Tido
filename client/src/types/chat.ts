@@ -25,3 +25,9 @@ export interface IMessage {
   createdAt?: string
   updatedAt?: string
 }
+
+export interface IGetMessagesResponse {
+  messages: IMessage[]
+  nextCursor: string | null
+  hasMore: boolean
+}

@@ -10,7 +10,7 @@ export class Message extends Document {
   senderId: string
 
   @Prop({ required: true })
-  content: string 
+  content: string
 
   @Prop({ default: false })
   isRead: boolean
@@ -18,4 +18,7 @@ export class Message extends Document {
 
 export const MessageSchema = SchemaFactory.createForClass(Message)
 
-MessageSchema.index({ conversationId: 1, createdAt: -1 })
+MessageSchema.index(
+  { conversationId: 1, createdAt: -1 },
+  { name: 'cursor_pagination_index' },
+)

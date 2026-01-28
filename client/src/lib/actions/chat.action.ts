@@ -1,7 +1,7 @@
 "use server"
 import { auth } from "@/auth"
 import { sendRequest } from "@/lib/helpers/api"
-import { IConversation, IMessage, SearchUserResponse } from "@/types"
+import { IConversation, IGetMessagesResponse, SearchUserResponse } from "@/types"
 
 export const getConversations = async () => {
   try {
@@ -51,12 +51,12 @@ export const createConversation = async (recipientId: string) => {
   }
 }
 
-export const getMessages = async (conversationId: string, limit = 50, skip = 0) => {
+export const getMessages = async (conversationId: string, limit = 50, cursor?: string) => {
   try {
     const session = await auth()
     if (!session) throw new Error("Unauthorized")
 
-    const res = await sendRequest<IBackendRes<IMessage[]>>({
+    const res = await sendRequest<IBackendRes<IGetMessagesResponse>>({
       url: `/chats/conversation/${conversationId}/messages`,
       method: "GET",
       headers: {
@@ -64,7 +64,7 @@ export const getMessages = async (conversationId: string, limit = 50, skip = 0) 
       },
       queryParams: {
         limit, 
-        skip
+        cursor
       }
     })
 

@@ -1,29 +1,52 @@
 "use client"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
+import { Spinner } from "@/components/ui/spinner"
 import { useSocket } from "@/lib/contexts/SocketContext"
 import { useConversations } from "@/lib/hooks/useConversations"
+import { useInfiniteMessages } from "@/lib/hooks/useInfiniteMessages"
 import { IMessage } from "@/types"
 import { Session } from "next-auth"
 import Link from "next/link"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 
 interface IChatWindowProps {
   conversationId: string
   initialMessages: IMessage[]
+  initialCursor: string | null
+  initialHasMore: boolean
   session: Session
 }
-export default function ChatWindow({ conversationId, initialMessages, session }: IChatWindowProps) {
+export default function ChatWindow({
+  conversationId,
+  initialMessages,
+  initialCursor,
+  initialHasMore,
+  session,
+}: IChatWindowProps) {
   const currentUserId = session?.user?.id
   const { socket } = useSocket()
   const { conversations, mutate: mutateConversations } = useConversations(conversationId)
   const conversation = conversations?.find((conv) => conv.id === conversationId)
 
-  const [messages, setMessages] = useState<IMessage[]>(initialMessages)
-  const [input, setInput] = useState("")
+  // Hook for infinite scroll
+  const { messages, isLoadingMore, hasMore, sentinelRef, addNewMessage, updateMessages } = useInfiniteMessages({
+    conversationId,
+    initialMessages,
+    initialCursor,
+    initialHasMore,
+  })
+
+  // ref for scroll management
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const isInitialLoadRef = useRef(true)
+
+  // ref to track previous scroll height for scroll jump prevention
+  const prevScrollHeightRef = useRef(0)
+  const prevMessagesLengthRef = useRef(messages.length)
+
+  const [input, setInput] = useState("")
 
   const isOwn = useCallback(
     (senderId?: string) => senderId && currentUserId && senderId === currentUserId,
@@ -41,15 +64,34 @@ export default function ChatWindow({ conversationId, initialMessages, session }:
     })
   }, [])
 
+  // handle scroll jump when prepending messages
+  useLayoutEffect(() => {
+    const container = messagesContainerRef.current
+    if (!container) return
+
+    const currentMessagesLength = messages.length
+    const prevMessagesLength = prevMessagesLengthRef.current
+
+    //cal how many messages were prepended
+    const prependedCount = currentMessagesLength - prevMessagesLength
+    if (prependedCount > 0 && prevScrollHeightRef.current > 0) {
+      const newScrollHeight = container.scrollHeight
+      const heightDiff = newScrollHeight - prevScrollHeightRef.current
+
+      container.scrollTop += heightDiff
+    }
+
+    prevScrollHeightRef.current = container.scrollHeight
+    prevMessagesLengthRef.current = currentMessagesLength
+  }, [messages.length])
+
   // Scroll to bottom when messages update
   useEffect(() => {
     if (isInitialLoadRef.current) {
       scrollToBottom(false)
       isInitialLoadRef.current = false
-      return
     }
-    scrollToBottom(true)
-  }, [messages.length, scrollToBottom])
+  }, [scrollToBottom])
 
   // handle socket events
   useEffect(() => {
@@ -60,7 +102,7 @@ export default function ChatWindow({ conversationId, initialMessages, session }:
 
     const handleNewMessage = (msg: IMessage) => {
       if (msg.conversationId === conversationId) {
-        setMessages((prev) => [...prev, msg])
+        addNewMessage(msg)
 
         if (msg.senderId !== currentUserId) {
           socket.emit("mark_as_read", { conversationId })
@@ -75,7 +117,7 @@ export default function ChatWindow({ conversationId, initialMessages, session }:
     }
 
     const handleMessagesRead = () => {
-      setMessages((prev) => prev.map((msg) => (msg.senderId === currentUserId ? { ...msg, isRead: true } : msg)))
+      updateMessages((prev) => prev.map((msg) => (msg.senderId === currentUserId ? { ...msg, isRead: true } : msg)))
     }
 
     document.addEventListener("visibilitychange", handleVisibilityChange)
@@ -128,7 +170,16 @@ export default function ChatWindow({ conversationId, initialMessages, session }:
       </div>
 
       {/* Message area */}
-      <div ref={messagesContainerRef} className="flex-1 min-h-0 p-4 space-y-2 overflow-y-auto bg-gray-50">
+      <div
+        ref={messagesContainerRef}
+        className="flex-1 min-h-0 p-4 space-y-2 overflow-y-auto bg-gray-50"
+        style={{ overflowAnchor: "none" }}
+      >
+        {hasMore && (
+          <div ref={sentinelRef} className="flex justify-center py-2">
+            {isLoadingMore && <Spinner className="size-6 text-primary" />}
+          </div>
+        )}
         {messages.length === 0 ? (
           <p className="text-center items-center text-gray-500">Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!</p>
         ) : (
