@@ -172,7 +172,7 @@ export default function ChatWindow({
       {/* Message area */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 min-h-0 p-4 space-y-2 overflow-y-auto bg-gray-50"
+        className="flex-1 min-h-0 max-w-full p-4 space-y-2 overflow-y-auto bg-gray-50"
         style={{ overflowAnchor: "none" }}
       >
         {hasMore && (
@@ -190,7 +190,7 @@ export default function ChatWindow({
               <div key={msg.id || i} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                 <div className="max-w-[60%] flex flex-col">
                   <div
-                    className={`px-3 py-2 rounded-lg wrap-break-word ${
+                    className={`px-3 py-2 rounded-lg wrap-anywhere break-normal ${
                       mine ? "bg-primary text-white rounded-br-none" : "bg-white text-slate-900 border rounded-bl-none"
                     }`}
                   >
