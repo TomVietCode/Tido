@@ -119,4 +119,24 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       })
     }
   }
+
+  @UseGuards(WsJwtGuard) 
+  @SubscribeMessage('start_typing')
+  async handleStartTyping(@ConnectedSocket() client: Socket, @MessageBody('conversationId') conversationId: string) {
+    console.log("start_typing")
+    this.server.to(conversationId).emit('user_typing', {
+      userId: client['user'].sub,
+      conversationId,
+    })
+  }
+
+  @UseGuards(WsJwtGuard) 
+  @SubscribeMessage('stop_typing')
+  async handleStopTyping(@ConnectedSocket() client: Socket, @MessageBody('conversationId') conversationId: string) {
+    console.log("stop_typing")
+    this.server.to(conversationId).emit('user_stopped_typing', {
+      userId: client['user'].sub,
+      conversationId,
+    })
+  }
 }

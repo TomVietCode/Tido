@@ -1,14 +1,13 @@
 "use client"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import ChatHeader from "@/components/chats/ChatHeader"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { useSocket } from "@/lib/contexts/SocketContext"
-import { useConversations } from "@/lib/hooks/useConversations"
-import { useInfiniteMessages } from "@/lib/hooks/useInfiniteMessages"
+import { useChatScroll, useConversations, useInfiniteMessages } from "@/lib/hooks"
+import { useChatSocket } from "@/lib/hooks/useChatSocket"
 import { IMessage } from "@/types"
 import { Session } from "next-auth"
-import Link from "next/link"
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 interface IChatWindowProps {
   conversationId: string
@@ -26,64 +25,26 @@ export default function ChatWindow({
 }: IChatWindowProps) {
   const currentUserId = session?.user?.id
   const { socket } = useSocket()
-  const { conversations, mutate: mutateConversations } = useConversations(conversationId)
-  const conversation = conversations?.find((conv) => conv.id === conversationId)
+  const { currentConversation } = useConversations(conversationId)
+
+  // States
+  const [input, setInput] = useState("")
+  const [isRecipientTyping, setIsRecipientTyping] = useState(false)
+  const isOwn = useCallback((senderId?: string) => senderId && currentUserId && senderId === currentUserId, [])
 
   // Hook for infinite scroll
-  const { messages, isLoadingMore, hasMore, sentinelRef, addNewMessage, updateMessages } = useInfiniteMessages({
+  const { messages, isLoadingMore, hasMore, sentinelRef, addNewMessage, updateMessages } = useInfiniteMessages(
     conversationId,
     initialMessages,
     initialCursor,
-    initialHasMore,
-  })
+    initialHasMore
+  )
 
   // ref for scroll management
   const messagesContainerRef = useRef<HTMLDivElement>(null)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement | null>(null)
   const isInitialLoadRef = useRef(true)
-
-  // ref to track previous scroll height for scroll jump prevention
-  const prevScrollHeightRef = useRef(0)
-  const prevMessagesLengthRef = useRef(messages.length)
-
-  const [input, setInput] = useState("")
-
-  const isOwn = useCallback(
-    (senderId?: string) => senderId && currentUserId && senderId === currentUserId,
-    [currentUserId]
-  )
-
-  const scrollToBottom = useCallback((smooth = false) => {
-    const container = messagesContainerRef.current
-    const endMarker = messagesEndRef.current
-    if (!container || !endMarker) return
-
-    container.scrollTo({
-      top: container.scrollHeight,
-      behavior: smooth ? "smooth" : "auto",
-    })
-  }, [])
-
-  // handle scroll jump when prepending messages
-  useLayoutEffect(() => {
-    const container = messagesContainerRef.current
-    if (!container) return
-
-    const currentMessagesLength = messages.length
-    const prevMessagesLength = prevMessagesLengthRef.current
-
-    //cal how many messages were prepended
-    const prependedCount = currentMessagesLength - prevMessagesLength
-    if (prependedCount > 0 && prevScrollHeightRef.current > 0) {
-      const newScrollHeight = container.scrollHeight
-      const heightDiff = newScrollHeight - prevScrollHeightRef.current
-
-      container.scrollTop += heightDiff
-    }
-
-    prevScrollHeightRef.current = container.scrollHeight
-    prevMessagesLengthRef.current = currentMessagesLength
-  }, [messages.length])
+  const { scrollToBottom } = useChatScroll(messages, messagesContainerRef)
 
   // Scroll to bottom when messages update
   useEffect(() => {
@@ -93,47 +54,30 @@ export default function ChatWindow({
     }
   }, [scrollToBottom])
 
-  // handle socket events
-  useEffect(() => {
-    if (!socket || !conversationId) return
+  // socket events
+  const handleNewMessage = (msg: IMessage) => {
+    if (msg.conversationId === conversationId) {
+      addNewMessage(msg)
 
-    socket.emit("join_room", { conversationId })
-    socket.emit("mark_as_read", { conversationId })
-
-    const handleNewMessage = (msg: IMessage) => {
-      if (msg.conversationId === conversationId) {
-        addNewMessage(msg)
-
-        if (msg.senderId !== currentUserId) {
-          socket.emit("mark_as_read", { conversationId })
-        }
+      if (msg.senderId !== currentUserId) {
+        socket?.emit("mark_as_read", { conversationId })
       }
     }
+  }
+  const handleMessagesRead = () => {
+    updateMessages((prev) => prev.map((msg) => (msg.senderId === currentUserId ? { ...msg, isRead: true } : msg)))
+  }
+  useChatSocket(socket, conversationId, {
+    onNewMessage: handleNewMessage,
+    onMessagesRead: handleMessagesRead,
+  })
 
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        socket.emit("mark_as_read", { conversationId })
-      }
-    }
-
-    const handleMessagesRead = () => {
-      updateMessages((prev) => prev.map((msg) => (msg.senderId === currentUserId ? { ...msg, isRead: true } : msg)))
-    }
-
-    document.addEventListener("visibilitychange", handleVisibilityChange)
-    socket.on("new_message", handleNewMessage)
-    socket.on("messages_read", handleMessagesRead)
-
-    return () => {
-      socket.off("new_message", handleNewMessage)
-      socket.off("messages_read", handleMessagesRead)
-      socket.emit("leave_room", { conversationId })
-      document.removeEventListener("visibilitychange", handleVisibilityChange)
-    }
-  }, [socket, conversationId, mutateConversations])
-
-  const sendMessage = useCallback(() => {
+  const sendMessage = () => {
     if (!input.trim() || !socket) return
+
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+    socket.emit("stop_typing", { conversationId })
+    isTypingRef.current = false
 
     socket.emit("send_message", {
       conversationId,
@@ -141,33 +85,73 @@ export default function ChatWindow({
     })
 
     setInput("")
-  }, [input, socket, conversationId])
+  }
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault()
-        sendMessage()
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      sendMessage()
+    }
+  }
+
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const isTypingRef = useRef(false)
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value)
+    if (!socket || !conversationId) return
+
+    if (!isTypingRef.current) {
+      isTypingRef.current = true
+      socket.emit("start_typing", { conversationId })
+    }
+
+    if (e.target.value.trim() === "") {
+      socket.emit("stop_typing", { conversationId })
+      isTypingRef.current = false
+      return
+    }
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current)
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit("stop_typing", { conversationId })
+      isTypingRef.current = false
+    }, 1500)
+  }
+
+  useEffect(() => {
+    if (!socket || !conversationId) return
+    const handleStartTyping = (data: { userId: string; conversationId: string }) => {
+      if (data.userId !== currentUserId && data.conversationId === conversationId) {
+        setIsRecipientTyping(true)
       }
-    },
-    [sendMessage]
-  )
+    }
+
+    const handleStopTyping = (data: { userId: string; conversationId: string }) => {
+      if (data.userId !== currentUserId && data.conversationId === conversationId) {
+        setIsRecipientTyping(false)
+      }
+    }
+    socket.on("user_typing", handleStartTyping)
+    socket.on("user_stopped_typing", handleStopTyping)
+    return () => {
+      socket.off("user_typing", handleStartTyping)
+      socket.off("user_stopped_typing", handleStopTyping)
+    }
+  }, [socket])
+
+  useEffect(() => {
+    if (isRecipientTyping) {
+      scrollToBottom(true)
+    }
+  }, [isRecipientTyping, scrollToBottom])
 
   return (
     <div className="flex flex-col h-full">
       {/* Chat Header */}
-      <div className="flex items-center justify-between border-b p-2 shadow-b shadow-md">
-        <Link
-          href={`/users/${conversation?.recipient.id}`}
-          className="flex items-center gap-2 hover:bg-gray-100 p-2 rounded-md transition-colors"
-        >
-          <Avatar className="size-10">
-            <AvatarImage src={conversation?.recipient.avatarUrl} />
-            <AvatarFallback>{conversation?.recipient.fullName.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <span className="text-sm font-semibold truncate">{conversation?.recipient.fullName}</span>
-        </Link>
-      </div>
+      <ChatHeader conversation={currentConversation} />
 
       {/* Message area */}
       <div
@@ -205,6 +189,17 @@ export default function ChatWindow({
             )
           })
         )}
+        {isRecipientTyping && (
+          <div className="flex justify-start">
+            <div className="bg-gray-200 px-4 py-3 rounded-lg rounded-bl-none">
+              <div className="flex gap-1 items-center">
+                <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+              </div>
+            </div>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 
@@ -213,7 +208,7 @@ export default function ChatWindow({
         <div className="flex gap-2 ">
           <Input
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder="Nhập tin nhắn..."
             className="flex-1 "

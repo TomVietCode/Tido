@@ -2,14 +2,6 @@ import { getMessages } from "@/lib/actions/chat.action"
 import { IMessage } from "@/types"
 import { useCallback, useRef, useState, useTransition } from "react"
 
-interface UseInfiniteMessagesProps {
-  conversationId: string
-  initialMessages: IMessage[]
-  initialCursor: string | null
-  initialHasMore: boolean
-  limit?: number
-}
-
 interface UseInfiniteMessagesReturn {
   messages: IMessage[]
   isLoadingMore: boolean
@@ -20,13 +12,13 @@ interface UseInfiniteMessagesReturn {
   updateMessages: (updater: (prev: IMessage[]) => IMessage[]) => void
 }
 
-export function useInfiniteMessages({ 
-  conversationId,
-  initialMessages,
-  initialCursor,
-  initialHasMore,
-  limit = 50,
-}: UseInfiniteMessagesProps): UseInfiniteMessagesReturn {
+export function useInfiniteMessages(
+  conversationId: string,
+  initialMessages: IMessage[],
+  initialCursor: string | null,
+  initialHasMore: boolean,
+  limit: number = 50
+): UseInfiniteMessagesReturn {
   // state
   const [messages, setMessages] = useState<IMessage[]>(initialMessages)
   const [cursor, setCursor] = useState<string | null>(initialCursor)
@@ -46,7 +38,7 @@ export function useInfiniteMessages({
 
     try {
       const result = await getMessages(conversationId, limit, cursor)
-      
+
       if (!result.success || !result.data) return
 
       const { messages: newMessages, nextCursor, hasMore: moreAvailable } = result.data
@@ -68,33 +60,36 @@ export function useInfiniteMessages({
     setMessages((prev) => [...prev, msg])
   }, [])
 
-  const sentinelRef = useCallback((node: HTMLDivElement | null) => {
-    if (observerRef.current) {
-      observerRef.current.disconnect()
-    }
-    if (!node) return
-
-    // create new observer
-    observerRef.current = new IntersectionObserver((entries) => {
-      const [entry] = entries
-      if (entry.isIntersecting && !isLoadingRef.current && hasMore) {
-        loadMoreMessages()
+  const sentinelRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (observerRef.current) {
+        observerRef.current.disconnect()
       }
-    }, {
-      // trigger when sentinel is 100px from viewport
-      rootMargin: "100px 0px 0px 0px",
-      threshold: 0,
-    })
+      if (!node) return
 
-    observerRef.current.observe(node)
-  }, [hasMore, loadMoreMessages])
+      // create new observer
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          const [entry] = entries
+          if (entry.isIntersecting && !isLoadingRef.current && hasMore) {
+            loadMoreMessages()
+          }
+        },
+        {
+          // trigger when sentinel is 100px from viewport
+          rootMargin: "100px 0px 0px 0px",
+          threshold: 0,
+        }
+      )
 
-  const updateMessages = useCallback(
-    (updater: (prev: IMessage[]) => IMessage[]) => {
-      setMessages(updater)
+      observerRef.current.observe(node)
     },
-    []
+    [hasMore, loadMoreMessages]
   )
+
+  const updateMessages = useCallback((updater: (prev: IMessage[]) => IMessage[]) => {
+    setMessages(updater)
+  }, [])
 
   return {
     messages,
@@ -106,4 +101,3 @@ export function useInfiniteMessages({
     updateMessages,
   }
 }
-

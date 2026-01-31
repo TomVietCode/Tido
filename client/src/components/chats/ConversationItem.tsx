@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { getTimeAgo } from "@/lib/helpers/date"
+import { getChatTimeAgo } from "@/lib/helpers/date"
 import { IConversation } from "@/types"
 import Link from "next/link"
 import { memo, useMemo } from "react"
@@ -41,7 +41,7 @@ export const ConversationItem = memo(function ConversationItem({
             <h4 className={`text-sm font-medium truncate`}>{conversation.recipient.fullName}</h4>
             {lastMessage && (
               <span className="text-[10px] text-slate-500 whitespace-nowrap ml-2">
-                {getTimeAgo(lastMessage.createdAt)}
+                {getChatTimeAgo(lastMessage.createdAt)}
               </span>
             )}
           </div>

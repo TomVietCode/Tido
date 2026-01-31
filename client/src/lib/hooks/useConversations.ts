@@ -81,6 +81,7 @@ export function useConversations(currentConversationId?: string) {
 
   return {
     conversations: conversations || [],
+    currentConversation: conversations?.find((conv) => conv.id === currentConversationId),
     mutate,
   }
 }
