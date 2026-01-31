@@ -17,12 +17,12 @@ export class UploadController {
   @Post('presigned-url')
   async getPresignedUrl(
     @Body() body: GetPresignedUrlDto,
-  ): Promise<BackendResponse<GetPresignedUrlResponse>> {
+  ): Promise<GetPresignedUrlResponse>{
     const result = await this.uploadService.getPresignedUrl(
       body.fileName,
       body.contentType,
       'images',
     )
-    return { statusCode: 200, message: 'Upload ảnh thành công', data: result }
+    return result
   }
 }
