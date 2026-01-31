@@ -31,8 +31,8 @@ export default function HeaderClient({ session }: HeaderClientProps) {
       <div className="container flex h-14 max-w-screen-2xl items-center p-4">
         {/* Logo */}
         <div className="mr-4 flex">
-          <Link href="/" className="mr-6 flex items-center space-x-2 font-bold">
-            <Image src="/logo.png" alt="Logo" width="140" height="60" />
+          <Link href="/" className="ml-10 mr-10 flex items-center space-x-2 font-bold">
+            <Image src="/logo.png" alt="Logo" width="85" height="60" />
           </Link>
         </div>
 

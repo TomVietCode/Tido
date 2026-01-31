@@ -16,7 +16,7 @@ export class UsersController {
     const data = await this.usersService.getUsers()
     return data
   }
-  
+
   @Get('profile')
   @ApiAuth()
   @DocsInfo({ summary: 'Get user profile' })
@@ -29,7 +29,10 @@ export class UsersController {
   @Patch('profile')
   @ApiAuth()
   @DocsInfo({ summary: 'Update user profile' })
-  async updateProfile(@Body() dto: UpdateUserProfileDto, @CurrentUser() user: IUserPayload): Promise<UserResponse> {
+  async updateProfile(
+    @Body() dto: UpdateUserProfileDto,
+    @CurrentUser() user: IUserPayload,
+  ): Promise<UserResponse> {
     const data = await this.usersService.updateProfile(dto, user.id)
     return data as UserResponse
   }
