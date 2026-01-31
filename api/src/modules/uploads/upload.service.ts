@@ -37,11 +37,11 @@ export class UploadService {
       ContentType: contentType,
       ACL: 'public-read',
     })
-
+    console.log(fileName, contentType, folder);
     const uploadUrl = await getSignedUrl(this.s3Client, command, {
       expiresIn: 60 * 5,
     })
-
+    console.log('Generated presigned URL:', uploadUrl)  
     const region = this.configService.get('aws.doSpaceRegion')!
     const uploadedUrl = `https://${this.bucket}.${region}.cdn.digitaloceanspaces.com/${key}`
 

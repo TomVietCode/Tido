@@ -55,13 +55,13 @@ export class UsersService {
     })
     return user as User
   }
- 
+
   async findOne(props: Prisma.UserWhereUniqueInput): Promise<User> {
     const user = await this.prisma.user.findUnique({
       where: props,
     })
 
-    if(!user) {
+    if (!user) {
       throw new NotFoundException('Không tìm thấy tài khoản')
     }
 
@@ -72,7 +72,7 @@ export class UsersService {
     await this.findOne({ id })
     const updatedUser = await this.prisma.user.update({
       where: { id },
-      data: { ...dto }
+      data: { ...dto },
     })
 
     const { password, ...userData } = updatedUser
