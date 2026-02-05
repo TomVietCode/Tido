@@ -21,7 +21,7 @@ export class UploadController {
     const result = await this.uploadService.getPresignedUrl(
       body.fileName,
       body.contentType,
-      'images',
+      body.folder,
     )
     return result
   }

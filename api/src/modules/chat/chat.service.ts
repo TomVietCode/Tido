@@ -7,6 +7,7 @@ import { CreateConversationDto } from '@modules/chat/dtos'
 import { UsersService } from '@modules/users/users.service'
 import { IConversationResponse } from '@modules/chat/chat.interface'
 import { IMessage } from '@common/interfaces/chat'
+import { MessageType } from '@common/enums'
 
 @Injectable()
 export class ChatService {
@@ -96,17 +97,27 @@ export class ChatService {
     return true
   }
 
-  async saveMessage(conversationId: string, senderId: string, content: string) {
+  async saveMessage(
+    conversationId: string,
+    senderId: string,
+    content: string,
+    type: MessageType,
+    imageUrl?: string,  
+  ) {
     const newMessage = await this.messageModel.create({
       conversationId,
       senderId,
       content,
+      type,
+      imageUrl
     })
 
+    const lastMsgContent = type === MessageType.IMAGE ? "[Hình ảnh]" : newMessage.content
     await this.conversationModel.findByIdAndUpdate(conversationId, {
       lastMessage: {
-        content: newMessage.content,
+        content: lastMsgContent,
         senderId: newMessage.senderId,
+        type: newMessage.type,
         createdAt: new Date(),
         isRead: false,
       },
@@ -133,7 +144,6 @@ export class ChatService {
     const messages = await this.messageModel
       .find(filter)
       .sort({ createdAt: -1 })
-      .select('_id conversationId senderId content isRead createdAt updatedAt')
       .limit(limit + 1)
       .lean()
 
@@ -152,14 +162,15 @@ export class ChatService {
     })
 
     // calculate next cursor
-    const nextCursor = hasMore && messages.length > 0
-      ? (result[0] as any).createdAt.toISOString()
-      : null
+    const nextCursor =
+      hasMore && messages.length > 0
+        ? (result[0] as any).createdAt.toISOString()
+        : null
 
     return {
       messages: result as unknown as IMessage[],
       nextCursor,
-      hasMore
+      hasMore,
     }
   }
 

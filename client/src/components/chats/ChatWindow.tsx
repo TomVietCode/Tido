@@ -1,11 +1,17 @@
 "use client"
 import ChatHeader from "@/components/chats/ChatHeader"
+import EmojiPicker from "@/components/chats/EmojiPicker"
+import { MessageContent } from "@/components/chats/MessageContent"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { useSocket } from "@/lib/contexts/SocketContext"
+import { uploadChatImage } from "@/lib/helpers/client-upload"
 import { useChatScroll, useConversations, useInfiniteMessages } from "@/lib/hooks"
 import { useChatSocket } from "@/lib/hooks/useChatSocket"
 import { IMessage } from "@/types"
+import { MessageType } from "@/types/enums"
+import { ArrowDownIcon, ImageIcon, SmileIcon, X } from "lucide-react"
 import { Session } from "next-auth"
 import { useCallback, useEffect, useRef, useState } from "react"
 
@@ -30,6 +36,7 @@ export default function ChatWindow({
   // States
   const [input, setInput] = useState("")
   const [isRecipientTyping, setIsRecipientTyping] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
   const isOwn = useCallback((senderId?: string) => senderId && currentUserId && senderId === currentUserId, [])
 
   // Hook for infinite scroll
@@ -42,39 +49,63 @@ export default function ChatWindow({
 
   // ref for scroll management
   const messagesContainerRef = useRef<HTMLDivElement>(null)
-  const messagesEndRef = useRef<HTMLDivElement | null>(null)
-  const isInitialLoadRef = useRef(true)
-  const { scrollToBottom } = useChatScroll(messages, messagesContainerRef)
-
-  // Scroll to bottom when messages update
-  useEffect(() => {
-    if (isInitialLoadRef.current) {
-      scrollToBottom(false)
-      isInitialLoadRef.current = false
-    }
-  }, [scrollToBottom])
+  const { scrollToBottom, showScrollButton } = useChatScroll(messages, messagesContainerRef)
 
   // socket events
   const handleNewMessage = (msg: IMessage) => {
     if (msg.conversationId === conversationId) {
       addNewMessage(msg)
 
-      if (msg.senderId !== currentUserId) {
-        socket?.emit("mark_as_read", { conversationId })
+      // scroll when near bottom or is my message
+      const container = messagesContainerRef.current
+      if (container) {
+        const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight
+        const isNearBottom = distanceFromBottom < 150
+
+        if (isNearBottom || msg.senderId === currentUserId) {
+          setTimeout(() => scrollToBottom(true), 0)
+        }
+        if (msg.senderId !== currentUserId && isNearBottom) {
+          socket?.emit("mark_as_read", { conversationId })
+        }
       }
     }
   }
+
   const handleMessagesRead = () => {
     updateMessages((prev) => prev.map((msg) => (msg.senderId === currentUserId ? { ...msg, isRead: true } : msg)))
   }
+
   useChatSocket(socket, conversationId, {
     onNewMessage: handleNewMessage,
     onMessagesRead: handleMessagesRead,
   })
 
-  const sendMessage = () => {
-    if (!input.trim() || !socket) return
+  const sendMessage = async () => {
+    if (!socket) return
 
+    if (selectedImage) {
+      try {
+        setIsUploading(true)
+        const imageUrl = await uploadChatImage(selectedImage)
+
+        socket.emit("send_message", {
+          conversationId,
+          content: input.trim(),
+          type: MessageType.IMAGE,
+          imageUrl,
+        })
+        clearSelectedImage()
+      } catch (error) {
+        console.error("Upload failed", error)
+        setIsUploading(false)
+      } finally {
+        setIsUploading(false)
+      }
+      return
+    }
+
+    if (!input.trim()) return
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
     socket.emit("stop_typing", { conversationId })
     isTypingRef.current = false
@@ -143,13 +174,54 @@ export default function ChatWindow({
   }, [socket])
 
   useEffect(() => {
-    if (isRecipientTyping) {
-      scrollToBottom(true)
+    if (!isRecipientTyping) return
+
+    const container = messagesContainerRef.current
+    if (!container) return
+
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight
+    const isNearBottom = distanceFromBottom < 150
+
+    if (isNearBottom) {
+      requestAnimationFrame(() => {
+        scrollToBottom(true)
+      })
     }
   }, [isRecipientTyping, scrollToBottom])
 
+  const [selectedImage, setSelectedImage] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setSelectedImage(file)
+
+    // gen preview URL
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const clearSelectedImage = () => {
+    setSelectedImage(null)
+    setImagePreview(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
+  const handleEmojiSelect = (emoji: string) => {
+    setInput((prev) => prev + emoji)
+  }
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
       {/* Chat Header */}
       <ChatHeader conversation={currentConversation} />
 
@@ -171,21 +243,7 @@ export default function ChatWindow({
             const mine = isOwn(msg.senderId)
             const isLastMsg = i === messages.length - 1
             return (
-              <div key={msg.id || i} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-                <div className="max-w-[60%] flex flex-col">
-                  <div
-                    className={`px-3 py-2 rounded-lg wrap-anywhere break-normal ${
-                      mine ? "bg-primary text-white rounded-br-none" : "bg-white text-slate-900 border rounded-bl-none"
-                    }`}
-                  >
-                    {msg.content}
-                  </div>
-
-                  {mine && isLastMsg && (
-                    <span className="text-[10px] text-gray-500 text-right">{msg.isRead ? "Đã đọc" : "Đã gửi"}</span>
-                  )}
-                </div>
-              </div>
+              <MessageContent key={msg.id} msg={msg} mine={mine as boolean} isLastMsg={isLastMsg} />
             )
           })
         )}
@@ -200,12 +258,74 @@ export default function ChatWindow({
             </div>
           </div>
         )}
-        <div ref={messagesEndRef} />
       </div>
+
+      {showScrollButton && (
+        <Button
+          onClick={() => {
+            scrollToBottom(true)
+            setUnreadCount(0)
+          }}
+          className="absolute bottom-24 left-1/2 -translate-x-1/2 z-30 
+                 rounded-full bg-white shadow-lg border border-gray-100
+                 text-primary font-medium text-sm
+                 hover:bg-gray-50 transition-all active:scale-95"
+          aria-label="Scroll to bottom"
+        >
+          {unreadCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
+          <ArrowDownIcon className="size-5" />
+        </Button>
+      )}
 
       {/* Input area */}
       <div className="border-t p-4 bg-white ">
-        <div className="flex gap-2 ">
+        {/* Image Preview */}
+        {imagePreview && (
+          <div className="p-2">
+            <div className="relative inline-block">
+              <img src={imagePreview} alt="Preview" className="max-h-32 rounded-lg object-cover" />
+              <button
+                onClick={clearSelectedImage}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+              >
+                <X className="size-3" />
+              </button>
+            </div>
+          </div>
+        )}
+        <div className="flex gap-2">
+          <input type="file" ref={fileInputRef} accept="image/*" onChange={handleImageSelect} className="hidden" />
+
+          {/* Image button */}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className="p-2 text-gray-500 hover:text-primary hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <ImageIcon className="size-5" />
+          </button>
+
+          {/* Emoji picker */}
+          <div className="relative">
+            <button
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              className="h-full p-2 text-gray-500 hover:text-primary hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <SmileIcon className="size-5" />
+            </button>
+
+            {showEmojiPicker && (
+              <div className="absolute bottom-12 left-0 z-50">
+                <EmojiPicker onSelect={handleEmojiSelect} onClose={() => setShowEmojiPicker(false)}/>
+              </div>
+            )}
+          </div>
+
+          {/* Text input */}
           <Input
             value={input}
             onChange={handleInputChange}
@@ -215,6 +335,7 @@ export default function ChatWindow({
           />
           <button
             onClick={sendMessage}
+            disabled={isUploading || (!input.trim() && !selectedImage)}
             className="bg-primary text-white px-6 rounded-md hover:bg-primary-600 transition-colors"
           >
             Gửi

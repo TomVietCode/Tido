@@ -1,9 +1,11 @@
 import { IMessage } from "@/types"
-import { useCallback, useLayoutEffect, useRef } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 
 export function useChatScroll(messages: IMessage[], messagesContainerRef: any) {
+  const [showScrollButton, setShowScrollButton] = useState(false)
   const prevScrollHeightRef = useRef(0)
   const prevMessagesLengthRef = useRef(messages.length)
+  const isInitialLoadRef = useRef(true)
 
   const scrollToBottom = useCallback((smooth = false) => {
     if (!messagesContainerRef) return
@@ -16,6 +18,30 @@ export function useChatScroll(messages: IMessage[], messagesContainerRef: any) {
       })
     }, 0)
   }, [])
+
+  // Scroll to bottom when messages update
+  useEffect(() => {
+    if (isInitialLoadRef.current) {
+      scrollToBottom(false)
+      isInitialLoadRef.current = false
+    }
+  }, [scrollToBottom])
+
+  const handleShowScrollBtn = useCallback(() => {
+    const container = messagesContainerRef.current
+    if (!container) return
+
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight
+    const isNearBottom = distanceFromBottom < 150
+    setShowScrollButton(!isNearBottom)
+  }, [])
+
+  useEffect(() => {
+    const container = messagesContainerRef.current
+    if (!container) return
+    container.addEventListener("scroll", handleShowScrollBtn)
+    return () => container.removeEventListener("scroll", handleShowScrollBtn)
+  }, [handleShowScrollBtn])
 
   // handle scroll jump when prepending messages
   useLayoutEffect(() => {
@@ -38,5 +64,5 @@ export function useChatScroll(messages: IMessage[], messagesContainerRef: any) {
     prevMessagesLengthRef.current = currentMessagesLength
   }, [messages])
 
-  return { scrollToBottom }
+  return { scrollToBottom, showScrollButton }
 }

@@ -33,3 +33,9 @@ export enum SortOrder {
   ASC = 'asc',
   DESC = 'desc',
 }
+
+export enum MessageType {
+  TEXT = 'text',
+  IMAGE = 'image',
+  EMOJI = 'emoji',
+}

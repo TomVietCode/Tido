@@ -12,6 +12,7 @@ import { Server, Socket } from 'socket.io'
 import { ChatService } from '@modules/chat/chat.service'
 import { UseGuards } from '@nestjs/common'
 import { WsJwtGuard } from '@modules/chat/guards/ws-jwt.guard'
+import { MessageType } from '@common/enums'
 
 @WebSocketGateway({
   cors: {
@@ -75,7 +76,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('send_message')
   async handleMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { conversationId: string; content: string },
+    @MessageBody()
+    data: { 
+      conversationId: string
+      content: string
+      type?: MessageType 
+      imageUrl?: string
+    }
   ) {
     const user = client['user']
 
@@ -83,6 +90,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       data.conversationId,
       user.sub,
       data.content,
+      data.type || MessageType.TEXT,
+      data.imageUrl,
     )
 
     const conv = await this.chatService.getConversation(data.conversationId)
@@ -92,12 +101,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       conversationId: data.conversationId,
       senderId: user.sub,
       content: data.content,
+      type: data.type || MessageType.TEXT,
+      imageUrl: data.imageUrl,
       isRead: result.isRead,
       createdAt: new Date(),
     }
+
     this.server.to(data.conversationId).emit('new_message', message)
 
-    const recipientId = conv?.participants.find(pId => pId !== user.sub)
+    const recipientId = conv?.participants.find((pId) => pId !== user.sub)
     if (recipientId) {
       this.server.to(recipientId).emit('conversation_updated', message)
     }
@@ -120,20 +132,24 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @UseGuards(WsJwtGuard) 
+  @UseGuards(WsJwtGuard)
   @SubscribeMessage('start_typing')
-  async handleStartTyping(@ConnectedSocket() client: Socket, @MessageBody('conversationId') conversationId: string) {
-    console.log("start_typing")
+  async handleStartTyping(
+    @ConnectedSocket() client: Socket,
+    @MessageBody('conversationId') conversationId: string,
+  ) {
     this.server.to(conversationId).emit('user_typing', {
       userId: client['user'].sub,
       conversationId,
     })
   }
 
-  @UseGuards(WsJwtGuard) 
+  @UseGuards(WsJwtGuard)
   @SubscribeMessage('stop_typing')
-  async handleStopTyping(@ConnectedSocket() client: Socket, @MessageBody('conversationId') conversationId: string) {
-    console.log("stop_typing")
+  async handleStopTyping(
+    @ConnectedSocket() client: Socket,
+    @MessageBody('conversationId') conversationId: string,
+  ) {
     this.server.to(conversationId).emit('user_stopped_typing', {
       userId: client['user'].sub,
       conversationId,

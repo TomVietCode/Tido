@@ -28,3 +28,9 @@ export enum CategoryStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
 }
+
+export enum MessageType {
+  TEXT = 'text',
+  IMAGE = 'image',
+  EMOJI = 'emoji',
+}

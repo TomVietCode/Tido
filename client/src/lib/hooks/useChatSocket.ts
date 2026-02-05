@@ -9,6 +9,7 @@ export function useChatSocket(
     onMessagesRead: () => void
   }
 ) {
+  
   // handle socket events
   useEffect(() => {
     if (!socket || !conversationId) return

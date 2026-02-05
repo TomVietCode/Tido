@@ -1,3 +1,5 @@
+import { MessageType } from "@/types/enums"
+
 export interface IConversation {
   id: string
   participants: string[]
@@ -21,6 +23,8 @@ export interface IMessage {
   conversationId: string
   senderId: string
   content: string
+  type: MessageType
+  imageUrl?:string
   isRead?: boolean
   createdAt?: string
   updatedAt?: string

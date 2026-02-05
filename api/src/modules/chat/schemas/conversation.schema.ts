@@ -1,3 +1,4 @@
+import { MessageType } from '@common/enums'
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { Document } from 'mongoose'
 
@@ -13,6 +14,7 @@ export class Conversation extends Document {
   lastMessage: {
     content: string
     senderId: string
+    type: MessageType
     createdAt: Date
     isRead: boolean
   }

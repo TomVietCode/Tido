@@ -1,3 +1,4 @@
+import { MessageType } from '@common/enums'
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { Document, Types } from 'mongoose'
 
@@ -12,6 +13,12 @@ export class Message extends Document {
   @Prop({ required: true })
   content: string
 
+  @Prop({ default: MessageType.TEXT, enum: MessageType })
+  type: MessageType
+  
+  @Prop({ required: false })
+  imageUrl?: string
+  
   @Prop({ default: false })
   isRead: boolean
 }
