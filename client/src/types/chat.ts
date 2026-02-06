@@ -24,7 +24,7 @@ export interface IMessage {
   senderId: string
   content: string
   type: MessageType
-  imageUrl?:string
+  imageUrls: string[]
   isRead?: boolean
   createdAt?: string
   updatedAt?: string

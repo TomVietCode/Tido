@@ -102,14 +102,14 @@ export class ChatService {
     senderId: string,
     content: string,
     type: MessageType,
-    imageUrl?: string,  
+    imageUrls: string[],  
   ) {
     const newMessage = await this.messageModel.create({
       conversationId,
       senderId,
       content,
       type,
-      imageUrl
+      imageUrls
     })
 
     const lastMsgContent = type === MessageType.IMAGE ? "[Hình ảnh]" : newMessage.content

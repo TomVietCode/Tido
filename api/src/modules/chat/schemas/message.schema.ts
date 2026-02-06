@@ -10,14 +10,14 @@ export class Message extends Document {
   @Prop({ required: true })
   senderId: string
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   content: string
 
   @Prop({ default: MessageType.TEXT, enum: MessageType })
   type: MessageType
   
-  @Prop({ required: false })
-  imageUrl?: string
+  @Prop({ required: false, type: [String] })
+  imageUrls: string[]
   
   @Prop({ default: false })
   isRead: boolean

@@ -81,7 +81,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       conversationId: string
       content: string
       type?: MessageType 
-      imageUrl?: string
+      imageUrls: string[]
     }
   ) {
     const user = client['user']
@@ -91,7 +91,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       user.sub,
       data.content,
       data.type || MessageType.TEXT,
-      data.imageUrl,
+      data.imageUrls,
     )
 
     const conv = await this.chatService.getConversation(data.conversationId)
@@ -102,7 +102,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       senderId: user.sub,
       content: data.content,
       type: data.type || MessageType.TEXT,
-      imageUrl: data.imageUrl,
+      imageUrls: data.imageUrls,
       isRead: result.isRead,
       createdAt: new Date(),
     }

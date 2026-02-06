@@ -13,7 +13,9 @@ import { IMessage } from "@/types"
 import { MessageType } from "@/types/enums"
 import { ArrowDownIcon, ImageIcon, SmileIcon, X } from "lucide-react"
 import { Session } from "next-auth"
+import Image from "next/image"
 import { useCallback, useEffect, useRef, useState } from "react"
+import { object } from "zod"
 
 interface IChatWindowProps {
   conversationId: string
@@ -84,18 +86,22 @@ export default function ChatWindow({
   const sendMessage = async () => {
     if (!socket) return
 
-    if (selectedImage) {
+    if (selectedImages.length > 0) {
       try {
         setIsUploading(true)
-        const imageUrl = await uploadChatImage(selectedImage)
+        const imageUrls = await Promise.all(
+          selectedImages.map(async (image) => {
+            return await uploadChatImage(image)
+          })
+        )
 
         socket.emit("send_message", {
           conversationId,
           content: input.trim(),
           type: MessageType.IMAGE,
-          imageUrl,
+          imageUrls
         })
-        clearSelectedImage()
+        clearPreviewImages()
       } catch (error) {
         console.error("Upload failed", error)
         setIsUploading(false)
@@ -189,34 +195,32 @@ export default function ChatWindow({
     }
   }, [isRecipientTyping, scrollToBottom])
 
-  const [selectedImage, setSelectedImage] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [selectedImages, setSelectedImages] = useState<File[]>([])
+  const [imagePreviews, setImagePreviews] = useState<string[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const files = e.target.files
+    if (!files || files.length === 0) return
 
-    setSelectedImage(file)
+    setSelectedImages([...selectedImages, ...files])
 
     // gen preview URL
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string)
-    }
-    reader.readAsDataURL(file)
+    const objectUrls = Array.from(files).map((file) => URL.createObjectURL(file))
+    setImagePreviews([...imagePreviews, ...objectUrls])
   }
 
-  const clearSelectedImage = () => {
-    setSelectedImage(null)
-    setImagePreview(null)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
-    }
+  const removePreviewImage = (index: number) => {
+    setImagePreviews(imagePreviews.filter((_, i) => i !== index))
+    setSelectedImages(selectedImages.filter((_, i) => i !== index))
   }
-
+ 
+  const clearPreviewImages = () => {
+    setImagePreviews([])
+    setSelectedImages([])
+  } 
   const handleEmojiSelect = (emoji: string) => {
     setInput((prev) => prev + emoji)
   }
@@ -284,21 +288,31 @@ export default function ChatWindow({
       {/* Input area */}
       <div className="border-t p-4 bg-white ">
         {/* Image Preview */}
-        {imagePreview && (
-          <div className="p-2">
-            <div className="relative inline-block">
-              <img src={imagePreview} alt="Preview" className="max-h-32 rounded-lg object-cover" />
+        {imagePreviews && (
+          <div className="p-2 flex gap-2">
+            {imagePreviews.map((imagePreview, index) => (
+              <div className="relative inline-block" key={index}>
+                <Image 
+                  src={imagePreview} 
+                  alt="Preview" 
+                  width={100} 
+                  height={100} 
+                  className="max-h-32 rounded-lg object-cover" 
+                  priority={false} 
+                  loading="lazy" 
+                />
               <button
-                onClick={clearSelectedImage}
-                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                onClick={() => removePreviewImage(index)}
+                className="absolute -top-2 -right-2 bg-red-400 text-white rounded-full p-0.5 hover:bg-red-600"
               >
                 <X className="size-3" />
               </button>
             </div>
+            ))}
           </div>
         )}
         <div className="flex gap-2">
-          <input type="file" ref={fileInputRef} accept="image/*" onChange={handleImageSelect} className="hidden" />
+          <input type="file" multiple ref={fileInputRef} accept="image/*" onChange={handleImageSelect} className="hidden" />
 
           {/* Image button */}
           <button
@@ -335,7 +349,7 @@ export default function ChatWindow({
           />
           <button
             onClick={sendMessage}
-            disabled={isUploading || (!input.trim() && !selectedImage)}
+            disabled={isUploading || (!input.trim() && selectedImages.length === 0)}
             className="bg-primary text-white px-6 rounded-md hover:bg-primary-600 transition-colors"
           >
             Gửi
