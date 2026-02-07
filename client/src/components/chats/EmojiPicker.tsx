@@ -21,7 +21,7 @@ export default function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
         <Picker 
           onEmojiClick={(emojiObject) => onSelect(emojiObject.emoji)} 
           lazyLoadEmojis={true}
-          suggestedEmojisMode={SuggestionMode.RECENT}
+          suggestedEmojisMode={SuggestionMode.FREQUENT}
           emojiStyle={EmojiStyle.FACEBOOK}
           skinTonesDisabled={true}
           previewConfig={{ showPreview: false }}

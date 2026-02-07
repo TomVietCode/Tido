@@ -9,13 +9,13 @@ import { useSocket } from "@/lib/contexts/SocketContext"
 import { uploadChatImage } from "@/lib/helpers/client-upload"
 import { useChatScroll, useConversations, useInfiniteMessages } from "@/lib/hooks"
 import { useChatSocket } from "@/lib/hooks/useChatSocket"
+import { isOnlyEmoji } from "@/lib/utils"
 import { IMessage } from "@/types"
 import { MessageType } from "@/types/enums"
-import { ArrowDownIcon, ImageIcon, SmileIcon, X } from "lucide-react"
+import { ArrowDownIcon, ImageIcon, SendHorizontal, SmileIcon, X } from "lucide-react"
 import { Session } from "next-auth"
 import Image from "next/image"
 import { useCallback, useEffect, useRef, useState } from "react"
-import { object } from "zod"
 
 interface IChatWindowProps {
   conversationId: string
@@ -51,7 +51,10 @@ export default function ChatWindow({
 
   // ref for scroll management
   const messagesContainerRef = useRef<HTMLDivElement>(null)
-  const { scrollToBottom, showScrollButton } = useChatScroll(messages, messagesContainerRef)
+  const { scrollToBottom, showScrollButton, getDistanceFromBottom } = useChatScroll(
+    messagesContainerRef,
+    messages.length
+  )
 
   // socket events
   const handleNewMessage = (msg: IMessage) => {
@@ -61,8 +64,7 @@ export default function ChatWindow({
       // scroll when near bottom or is my message
       const container = messagesContainerRef.current
       if (container) {
-        const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight
-        const isNearBottom = distanceFromBottom < 150
+        const isNearBottom = getDistanceFromBottom() < 150
 
         if (isNearBottom || msg.senderId === currentUserId) {
           setTimeout(() => scrollToBottom(true), 0)
@@ -85,7 +87,7 @@ export default function ChatWindow({
 
   const sendMessage = async () => {
     if (!socket) return
-
+    const content = input.trim()
     if (selectedImages.length > 0) {
       try {
         setIsUploading(true)
@@ -97,9 +99,9 @@ export default function ChatWindow({
 
         socket.emit("send_message", {
           conversationId,
-          content: input.trim(),
+          content,
           type: MessageType.IMAGE,
-          imageUrls
+          imageUrls,
         })
         clearPreviewImages()
       } catch (error) {
@@ -116,9 +118,11 @@ export default function ChatWindow({
     socket.emit("stop_typing", { conversationId })
     isTypingRef.current = false
 
+    const type = isOnlyEmoji(content) ? MessageType.EMOJI : MessageType.TEXT
     socket.emit("send_message", {
       conversationId,
-      content: input.trim(),
+      content,
+      type,
     })
 
     setInput("")
@@ -179,21 +183,17 @@ export default function ChatWindow({
     }
   }, [socket])
 
+  //update typing scroll effect
   useEffect(() => {
     if (!isRecipientTyping) return
-
-    const container = messagesContainerRef.current
-    if (!container) return
-
-    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight
-    const isNearBottom = distanceFromBottom < 150
+    const isNearBottom = getDistanceFromBottom() < 150
 
     if (isNearBottom) {
       requestAnimationFrame(() => {
         scrollToBottom(true)
       })
     }
-  }, [isRecipientTyping, scrollToBottom])
+  }, [isRecipientTyping, scrollToBottom, getDistanceFromBottom])
 
   const [selectedImages, setSelectedImages] = useState<File[]>([])
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
@@ -216,11 +216,11 @@ export default function ChatWindow({
     setImagePreviews(imagePreviews.filter((_, i) => i !== index))
     setSelectedImages(selectedImages.filter((_, i) => i !== index))
   }
- 
+
   const clearPreviewImages = () => {
     setImagePreviews([])
     setSelectedImages([])
-  } 
+  }
   const handleEmojiSelect = (emoji: string) => {
     setInput((prev) => prev + emoji)
   }
@@ -232,36 +232,41 @@ export default function ChatWindow({
       {/* Message area */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 min-h-0 max-w-full p-4 space-y-2 overflow-y-auto bg-gray-50"
-        style={{ overflowAnchor: "none" }}
+        className="flex flex-col-reverse flex-1 min-h-0 max-w-full overflow-y-auto bg-gray-50"
       >
-        {hasMore && (
-          <div ref={sentinelRef} className="flex justify-center py-2">
-            {isLoadingMore && <Spinner className="size-6 text-primary" />}
-          </div>
-        )}
-        {messages.length === 0 ? (
-          <p className="text-center items-center text-gray-500">Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!</p>
-        ) : (
-          messages.map((msg, i) => {
-            const mine = isOwn(msg.senderId)
-            const isLastMsg = i === messages.length - 1
-            return (
-              <MessageContent key={msg.id} msg={msg} mine={mine as boolean} isLastMsg={isLastMsg} />
-            )
-          })
-        )}
-        {isRecipientTyping && (
-          <div className="flex justify-start">
-            <div className="bg-gray-200 px-4 py-3 rounded-lg rounded-bl-none">
-              <div className="flex gap-1 items-center">
-                <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+        <div className="p-4 space-y-2">
+          {hasMore && (
+            <div ref={sentinelRef} className="flex justify-center py-2">
+              {isLoadingMore && <Spinner className="size-6 text-primary" />}
+            </div>
+          )}
+          {messages.length === 0 ? (
+            <p className="text-center items-center text-gray-500">Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!</p>
+          ) : (
+            messages.map((msg, i) => {
+              const mine = isOwn(msg.senderId)
+              const isLastMsg = i === messages.length - 1
+              return <MessageContent key={msg.id} msg={msg} mine={mine as boolean} isLastMsg={isLastMsg} />
+            })
+          )}
+          {isRecipientTyping && (
+            <div className="flex justify-start">
+              <div className="bg-gray-200 px-4 py-3 rounded-lg rounded-bl-none">
+                <div className="flex gap-1 items-center">
+                  <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span
+                    className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                    style={{ animationDelay: "150ms" }}
+                  />
+                  <span
+                    className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
+                    style={{ animationDelay: "300ms" }}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {showScrollButton && (
@@ -286,39 +291,46 @@ export default function ChatWindow({
       )}
 
       {/* Input area */}
-      <div className="border-t p-4 bg-white ">
+      <div className="border-t px-4 py-2 bg-white ">
         {/* Image Preview */}
         {imagePreviews && (
           <div className="p-2 flex gap-2">
             {imagePreviews.map((imagePreview, index) => (
               <div className="relative inline-block" key={index}>
-                <Image 
-                  src={imagePreview} 
-                  alt="Preview" 
-                  width={100} 
-                  height={100} 
-                  className="max-h-32 rounded-lg object-cover" 
-                  priority={false} 
-                  loading="lazy" 
+                <Image
+                  src={imagePreview}
+                  alt="Preview"
+                  width={100}
+                  height={100}
+                  className="max-h-32 rounded-lg object-cover"
+                  priority={false}
+                  loading="lazy"
                 />
-              <button
-                onClick={() => removePreviewImage(index)}
-                className="absolute -top-2 -right-2 bg-red-400 text-white rounded-full p-0.5 hover:bg-red-600"
-              >
-                <X className="size-3" />
-              </button>
-            </div>
+                <button
+                  onClick={() => removePreviewImage(index)}
+                  className="absolute -top-2 -right-2 bg-red-400 text-white rounded-full p-0.5 hover:bg-red-600"
+                >
+                  <X className="size-3" />
+                </button>
+              </div>
             ))}
           </div>
         )}
         <div className="flex gap-2">
-          <input type="file" multiple ref={fileInputRef} accept="image/*" onChange={handleImageSelect} className="hidden" />
+          <input
+            type="file"
+            multiple
+            ref={fileInputRef}
+            accept="image/*"
+            onChange={handleImageSelect}
+            className="hidden"
+          />
 
           {/* Image button */}
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className="p-2 text-gray-500 hover:text-primary hover:bg-gray-100 rounded-full transition-colors"
+            className=" text-gray-500 hover:text-primary hover:bg-gray-100 rounded-full transition-colors"
           >
             <ImageIcon className="size-5" />
           </button>
@@ -334,7 +346,7 @@ export default function ChatWindow({
 
             {showEmojiPicker && (
               <div className="absolute bottom-12 left-0 z-50">
-                <EmojiPicker onSelect={handleEmojiSelect} onClose={() => setShowEmojiPicker(false)}/>
+                <EmojiPicker onSelect={handleEmojiSelect} onClose={() => setShowEmojiPicker(false)} />
               </div>
             )}
           </div>
@@ -347,13 +359,13 @@ export default function ChatWindow({
             placeholder="Nhập tin nhắn..."
             className="flex-1 "
           />
-          <button
+          <Button
             onClick={sendMessage}
-            disabled={isUploading || (!input.trim() && selectedImages.length === 0)}
-            className="bg-primary text-white px-6 rounded-md hover:bg-primary-600 transition-colors"
+            disabled={isUploading}
+            className="bg-primary text-white hover:bg-primary-600 transition-colors"
           >
-            Gửi
-          </button>
+            <SendHorizontal />
+          </Button>
         </div>
       </div>
     </div>

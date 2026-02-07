@@ -23,8 +23,7 @@ export function useInfiniteMessages(
   const [messages, setMessages] = useState<IMessage[]>(initialMessages)
   const [cursor, setCursor] = useState<string | null>(initialCursor)
   const [hasMore, setHasMore] = useState(initialHasMore)
-
-  const [isPending, startTransition] = useTransition()
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
 
   const isLoadingRef = useRef(false)
   const observerRef = useRef<IntersectionObserver | null>(null)
@@ -35,25 +34,24 @@ export function useInfiniteMessages(
     if (isLoadingRef.current || !hasMore || !cursor) return
 
     isLoadingRef.current = true
+    setIsLoadingMore(true)
 
     try {
       const result = await getMessages(conversationId, limit, cursor)
-
       if (!result.success || !result.data) return
 
       const { messages: newMessages, nextCursor, hasMore: moreAvailable } = result.data
 
-      startTransition(() => {
-        setMessages((prev) => [...newMessages, ...prev])
-        setCursor(nextCursor)
-        setHasMore(moreAvailable)
-      })
+      setMessages((prev) => [...newMessages, ...prev])
+      setCursor(nextCursor)
+      setHasMore(moreAvailable)
     } catch (error) {
       console.error("Error loading more messages:", error)
     } finally {
+      setIsLoadingMore(false)
       isLoadingRef.current = false
     }
-  }, [conversationId, limit, cursor, limit])
+  }, [conversationId, limit, cursor, hasMore])
 
   // add new message to the end
   const addNewMessage = useCallback((msg: IMessage) => {
@@ -93,7 +91,7 @@ export function useInfiniteMessages(
 
   return {
     messages,
-    isLoadingMore: isPending,
+    isLoadingMore,
     hasMore,
     loadMoreMessages,
     addNewMessage,

@@ -1,68 +1,59 @@
-import { IMessage } from "@/types"
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 
-export function useChatScroll(messages: IMessage[], messagesContainerRef: any) {
+export function useChatScroll(messagesContainerRef: any, messageLength: number) {
   const [showScrollButton, setShowScrollButton] = useState(false)
   const prevScrollHeightRef = useRef(0)
-  const prevMessagesLengthRef = useRef(messages.length)
-  const isInitialLoadRef = useRef(true)
+  const prevMessageLengthRef = useRef(messageLength)
 
   const scrollToBottom = useCallback((smooth = false) => {
-    if (!messagesContainerRef) return
     const container = messagesContainerRef.current
+    if (!container) return
 
-    setTimeout(() => {
-      container.scrollTo({
-        top: container.scrollHeight,
-        behavior: smooth ? "smooth" : "auto",
-      })
-    }, 0)
-  }, [])
-
-  // Scroll to bottom when messages update
-  useEffect(() => {
-    if (isInitialLoadRef.current) {
-      scrollToBottom(false)
-      isInitialLoadRef.current = false
+    if (smooth) {
+      container.scrollTo({ top: 0, behavior: "smooth" })
+    } else {
+      container.scrollTop = 0
     }
-  }, [scrollToBottom])
+  }, [messagesContainerRef])
 
-  const handleShowScrollBtn = useCallback(() => {
+  // calculate distance from bottom
+  const getDistanceFromBottom = useCallback(() => {
     const container = messagesContainerRef.current
-    if (!container) return
+    if (!container) return 0
 
-    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight
-    const isNearBottom = distanceFromBottom < 150
-    setShowScrollButton(!isNearBottom)
+    return Math.abs(container.scrollTop)
   }, [])
 
-  useEffect(() => {
+  //restore scroll position after prepending older messages
+  useLayoutEffect(() => {
     const container = messagesContainerRef.current
     if (!container) return
-    container.addEventListener("scroll", handleShowScrollBtn)
-    return () => container.removeEventListener("scroll", handleShowScrollBtn)
-  }, [handleShowScrollBtn])
 
-  // handle scroll jump when prepending messages
-  useLayoutEffect(() => {
-    if (!messagesContainerRef) return
-    const container = messagesContainerRef.current
-
-    const currentMessagesLength = messages.length
-    const prevMessagesLength = prevMessagesLengthRef.current
-
-    //cal how many messages were prepended
-    const prependedCount = currentMessagesLength - prevMessagesLength
-    if (prependedCount > 0 && prevScrollHeightRef.current > 0) {
-      const newScrollHeight = container.scrollHeight
-      const heightDiff = newScrollHeight - prevScrollHeightRef.current
-
+    const addedCount = messageLength - prevMessageLengthRef.current
+    const prevHeight = prevScrollHeightRef.current
+    const newHeight = container.scrollHeight
+    
+    if (addedCount > 1 && prevHeight > 0 && newHeight > prevHeight) {
+      const heightDiff = newHeight - prevHeight
       container.scrollTop += heightDiff
     }
 
-    prevScrollHeightRef.current = container.scrollHeight
-    prevMessagesLengthRef.current = currentMessagesLength
-  }, [messages])
+    prevScrollHeightRef.current = newHeight
+    prevMessageLengthRef.current = messageLength
+  }, [messageLength, messagesContainerRef])
+  
+  // show/hide scroll to bottom btn
+  useEffect(() => {
+    const container = messagesContainerRef.current
+    if (!container) return
+    const handleScroll = () => {
+      setShowScrollButton(getDistanceFromBottom() > 200)
+      prevScrollHeightRef.current = container.scrollHeight
+    }
+    container.addEventListener("scroll", handleScroll)
+    return () => container.removeEventListener("scroll", handleScroll)
+  }, [messagesContainerRef])
 
-  return { scrollToBottom, showScrollButton }
+
+  return { scrollToBottom, showScrollButton, getDistanceFromBottom }
 }

@@ -4,12 +4,13 @@ import { UserSearchItem } from "@/components/chats/UserSearchItem"
 import { Button } from "@/components/ui/button"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { createConversation, searchUsers } from "@/lib/actions/chat.action"
-import { useConversations } from "@/lib/hooks"
+import { useConversations, useDebounce } from "@/lib/hooks"
 import { IConversation, SearchUserResponse } from "@/types"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { MoveLeft, SearchIcon } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
-import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { Spinner } from "@/components/ui/spinner"
 
 interface IChatSidebarProps {
   currentUserId: string
@@ -24,7 +25,7 @@ export default function ChatSidebar({ currentUserId }: IChatSidebarProps) {
   const [isSearching, setIsSearching] = useState(false)
 
   // Debounce search query
-  const deferredQuery = useDeferredValue(searchQuery)
+  const debouncedQuery = useDebounce(searchQuery)
 
   const activeId = useMemo(() => {
     const match = pathname?.match(/\/chats\/([^/]+)/)
@@ -33,7 +34,7 @@ export default function ChatSidebar({ currentUserId }: IChatSidebarProps) {
 
   // Search user with debounced query
   useEffect(() => {
-    if (deferredQuery.trim().length < 2) {
+    if (debouncedQuery.trim().length < 2) {
       setSearchResults([])
       setIsSearching(false)
       return
@@ -43,7 +44,7 @@ export default function ChatSidebar({ currentUserId }: IChatSidebarProps) {
     setIsSearching(true)
 
     const doSearch = async () => {
-      const res = await searchUsers(deferredQuery)
+      const res = await searchUsers(debouncedQuery)
       if (cancelled) return
       setSearchResults(res.success ? res.data! : [])
       setIsSearching(false)
@@ -53,7 +54,7 @@ export default function ChatSidebar({ currentUserId }: IChatSidebarProps) {
     return () => {
       cancelled = true
     }
-  }, [deferredQuery])
+  }, [debouncedQuery])
 
   const handleSelectUser = useCallback(
     async (user: SearchUserResponse) => {
@@ -72,7 +73,7 @@ export default function ChatSidebar({ currentUserId }: IChatSidebarProps) {
     [conversations, router, mutate]
   )
 
-  const isShowingSearchResult = deferredQuery.trim().length >= 2
+  const isShowingSearchResult = debouncedQuery.trim().length >= 2
   return (
     <div className="h-full flex flex-col gap-4">
       <div className="flex items-center justify-between mt-2 mx-2">
@@ -109,12 +110,14 @@ export default function ChatSidebar({ currentUserId }: IChatSidebarProps) {
         {isShowingSearchResult ? (
           <>
             {isSearching ? (
-              <div className="p-4 text-center text-sm text-gray-500">Đang tìm kiếm...</div>
+              <div className="flex items-center justify-center gap-2 p-4 text-sm text-gray-500">
+                <Spinner /> Đang tìm kiếm...
+              </div>
             ) : searchResults.length === 0 ? (
               <div className="p-4 text-center text-sm text-gray-500">Không tìm thấy kết quả</div>
             ) : (
               <>
-                <p className="px-4 py-2 text-xs text-gray-500 uppercase">Kết quả tìm kiếm cho: {deferredQuery}</p>
+                <p className="px-4 py-2 text-xs text-gray-500 uppercase">Kết quả tìm kiếm cho: {debouncedQuery}</p>
                 {searchResults.map((user) => (
                   <UserSearchItem key={user.id} user={user} onClick={() => handleSelectUser(user)} />
                 ))}
