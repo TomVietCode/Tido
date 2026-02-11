@@ -13,7 +13,7 @@ const fetcher = async () => {
 
 export function useConversations(currentConversationId?: string) {
   const { socket } = useSocket()
-  const { data: conversations, mutate } = useSWR("/api/conversations", fetcher, {
+  const { data: conversations, mutate, isLoading } = useSWR("/api/conversations", fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: true,
   })
@@ -83,5 +83,6 @@ export function useConversations(currentConversationId?: string) {
     conversations: conversations || [],
     currentConversation: conversations?.find((conv) => conv.id === currentConversationId),
     mutate,
+    isLoading
   }
 }

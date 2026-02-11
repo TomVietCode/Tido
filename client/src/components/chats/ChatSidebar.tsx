@@ -11,13 +11,14 @@ import { MoveLeft, SearchIcon } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Spinner } from "@/components/ui/spinner"
+import { ChatSidebarSkeleton } from "@/components/chats/skeletons/SidebarSkeleton"
 
 interface IChatSidebarProps {
   currentUserId: string
 }
 export default function ChatSidebar({ currentUserId }: IChatSidebarProps) {
   const router = useRouter()
-  const { conversations, mutate } = useConversations()
+  const { conversations, mutate, isLoading } = useConversations()
   const pathname = usePathname()
 
   const [searchQuery, setSearchQuery] = useState("")
@@ -74,6 +75,11 @@ export default function ChatSidebar({ currentUserId }: IChatSidebarProps) {
   )
 
   const isShowingSearchResult = debouncedQuery.trim().length >= 2
+
+  if (isLoading) {
+    return <ChatSidebarSkeleton />
+  }
+  
   return (
     <div className="h-full flex flex-col gap-4">
       <div className="flex items-center justify-between mt-2 mx-2">

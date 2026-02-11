@@ -20,7 +20,7 @@ export default function ClientLayout({
       <div className="sticky top-0 z-50 shrink-0">
         <Header />
       </div>
-      <main className="flex flex-1 pt-14">{children}</main>
+      <main className="flex flex-1 justify-center pt-14">{children}</main>
       <div className="shrink-0 z-50">
         <Footer />
       </div>

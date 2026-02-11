@@ -7,20 +7,21 @@ interface IMessageContentProps {
   msg: IMessage
   mine: boolean
   isLastMsg: boolean
+  onImageClick: (images: string[], index: number) => void
 }
 
-export const MessageContent = ({ msg, mine, isLastMsg }: IMessageContentProps) => {
+export const MessageContent = ({ msg, mine, isLastMsg, onImageClick }: IMessageContentProps) => {
   const colNum = useMemo(() => {
     if (msg.type !== MessageType.IMAGE) return 1
     return Math.min(msg.imageUrls.length, 3)
   }, [msg.imageUrls])
-  const imageSizeMap: Record<number, { width: number; height: number; sizes: string }> = {
-    1: { width: 350, height: 450, sizes: "350px" },
-    2: { width: 250, height: 250, sizes: "200px" },
-    3: { width: 150, height: 200, sizes: "150px" },
+  const imageSizeMap: Record<number, { width: number; height: number; sizes: string; classSize: string }> = {
+    1: { width: 350, height: 450, sizes: "350px", classSize: "" },
+    2: { width: 300, height: 250, sizes: "200px", classSize: "h-[250px]" },
+    3: { width: 150, height: 150, sizes: "150px", classSize: "h-[150px]" },
   }
   const imageCount = msg?.imageUrls?.length ?? 0
-  const { width, height, sizes } = imageSizeMap[imageCount] ?? imageSizeMap[3]
+  const { width, height, sizes, classSize } = imageSizeMap[imageCount] ?? imageSizeMap[3]
 
   return (
     <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
@@ -32,15 +33,19 @@ export const MessageContent = ({ msg, mine, isLastMsg }: IMessageContentProps) =
 
         {/* Image Type */}
         {msg.type === MessageType.IMAGE && (
-          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${colNum}, minmax(0, 1fr))` }}>
-            {msg.imageUrls.map((url) => (
-              <div key={url} className="relative overflow-hidden rounded-lg">
+          <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${colNum}, minmax(0, 1fr))` }}>
+            {msg.imageUrls.map((url, index) => (
+              <div
+                key={url}
+                className="relative overflow-hidden rounded-lg cursor-pointer"
+                onClick={() => onImageClick?.(msg.imageUrls, index)}
+              >
                 <Image
                   src={url}
                   alt="Hình ảnh"
                   width={width}
                   height={height}
-                  className="object-cover rounded-lg"
+                  className={`object-cover rounded-lg ${classSize}`}
                   sizes={sizes}
                   priority={false}
                   loading="lazy"

@@ -1,6 +1,7 @@
 "use client"
 import ChatHeader from "@/components/chats/ChatHeader"
 import EmojiPicker from "@/components/chats/EmojiPicker"
+import { ImageViewer } from "@/components/chats/ImageViewer"
 import { MessageContent } from "@/components/chats/MessageContent"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -37,6 +38,7 @@ export default function ChatWindow({
 
   // States
   const [input, setInput] = useState("")
+  const inputRef = useRef<HTMLInputElement>(null)
   const [isRecipientTyping, setIsRecipientTyping] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
   const isOwn = useCallback((senderId?: string) => senderId && currentUserId && senderId === currentUserId, [])
@@ -199,6 +201,7 @@ export default function ChatWindow({
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [viewerState, setViewerState] = useState<{ images: string[]; index: number } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -210,7 +213,12 @@ export default function ChatWindow({
     // gen preview URL
     const objectUrls = Array.from(files).map((file) => URL.createObjectURL(file))
     setImagePreviews([...imagePreviews, ...objectUrls])
+    inputRef.current?.focus()
   }
+
+  const handleImageClick = useCallback((images: string[], index: number) => {
+    setViewerState({ images, index })
+  }, [])
 
   const removePreviewImage = (index: number) => {
     setImagePreviews(imagePreviews.filter((_, i) => i !== index))
@@ -234,19 +242,29 @@ export default function ChatWindow({
         ref={messagesContainerRef}
         className="flex flex-col-reverse flex-1 min-h-0 max-w-full overflow-y-auto bg-gray-50"
       >
-        <div className="p-4 space-y-2">
+        <div className="p-4 space-y-2 flex-1">
           {hasMore && (
             <div ref={sentinelRef} className="flex justify-center py-2">
               {isLoadingMore && <Spinner className="size-6 text-primary" />}
             </div>
           )}
           {messages.length === 0 ? (
-            <p className="text-center items-center text-gray-500">Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!</p>
+            <p className="flex justify-center items-center text-gray-500 h-full">
+              Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!
+            </p>
           ) : (
             messages.map((msg, i) => {
               const mine = isOwn(msg.senderId)
               const isLastMsg = i === messages.length - 1
-              return <MessageContent key={msg.id} msg={msg} mine={mine as boolean} isLastMsg={isLastMsg} />
+              return (
+                <MessageContent
+                  key={msg.id}
+                  msg={msg}
+                  mine={mine as boolean}
+                  isLastMsg={isLastMsg}
+                  onImageClick={handleImageClick}
+                />
+              )
             })
           )}
           {isRecipientTyping && (
@@ -302,7 +320,7 @@ export default function ChatWindow({
                   alt="Preview"
                   width={100}
                   height={100}
-                  className="max-h-32 rounded-lg object-cover"
+                  className="h-20 rounded-lg object-cover"
                   priority={false}
                   loading="lazy"
                 />
@@ -330,7 +348,7 @@ export default function ChatWindow({
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className=" text-gray-500 hover:text-primary hover:bg-gray-100 rounded-full transition-colors"
+            className=" text-gray-500 p-2 hover:text-primary hover:bg-gray-100 rounded-full transition-colors"
           >
             <ImageIcon className="size-5" />
           </button>
@@ -346,13 +364,20 @@ export default function ChatWindow({
 
             {showEmojiPicker && (
               <div className="absolute bottom-12 left-0 z-50">
-                <EmojiPicker onSelect={handleEmojiSelect} onClose={() => setShowEmojiPicker(false)} />
+                <EmojiPicker
+                  onSelect={handleEmojiSelect}
+                  onClose={() => {
+                    setShowEmojiPicker(false)
+                    inputRef.current?.focus()
+                  }}
+                />
               </div>
             )}
           </div>
 
           {/* Text input */}
           <Input
+            ref={inputRef}
             value={input}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
@@ -368,6 +393,14 @@ export default function ChatWindow({
           </Button>
         </div>
       </div>
+      <ImageViewer
+        images={viewerState?.images ?? []}
+        initialIndex={viewerState?.index ?? 0}
+        open={viewerState !== null}
+        onOpenChange={(open) => {
+          if (!open) setViewerState(null)
+        }}
+      />
     </div>
   )
 }

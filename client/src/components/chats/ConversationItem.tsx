@@ -53,7 +53,9 @@ export const ConversationItem = memo(function ConversationItem({
                     ? "font-extrabold text-[0.8rem]"
                     : "text-slate-500"
                 }`}
-              >{lastPreview}</span>
+              >
+                {lastPreview}
+              </span>
             ) : (
               <span className="italic text-slate-400">Chưa có tin nhắn nào</span>
             )}

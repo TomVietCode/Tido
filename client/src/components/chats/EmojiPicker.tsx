@@ -14,7 +14,6 @@ interface EmojiPickerProps {
 export default function EmojiPicker({ onSelect, onClose }: EmojiPickerProps) {
   return (
     <div className="relative">
-      {/* Backdrop để đóng picker */}
       <div className="fixed inset-0 z-40" onClick={onClose} />
 
       <div className="relative z-50">
