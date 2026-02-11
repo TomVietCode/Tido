@@ -16,3 +16,5 @@ export interface User {
 }
 
 export interface UserResponse extends Omit<User, 'password'> {}
+
+export interface SearchUserResponse extends Pick<User, 'id' | 'fullName' | 'avatarUrl'> {}

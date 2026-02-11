@@ -8,4 +8,8 @@ export class GetPresignedUrlDto {
   @IsString()
   @IsNotEmpty()
   contentType: string
+
+  @IsString()
+  @IsNotEmpty()
+  folder: string
 }

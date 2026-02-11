@@ -22,6 +22,16 @@ export class UsersService {
     return users as UserResponse[]
   }
 
+  async findMany(options: any) {
+    const users = await this.prisma.user.findMany({
+      where: options.where,
+      select: options.select,
+      skip: options.skip,
+      take: options.take,
+    })
+    return users as unknown as UserResponse[]
+  }
+
   async createUserFromLocal(data: CreateUserLocalDto) {
     try {
       const { password, ...props } = data
@@ -55,13 +65,13 @@ export class UsersService {
     })
     return user as User
   }
- 
+
   async findOne(props: Prisma.UserWhereUniqueInput): Promise<User> {
     const user = await this.prisma.user.findUnique({
       where: props,
     })
 
-    if(!user) {
+    if (!user) {
       throw new NotFoundException('Không tìm thấy tài khoản')
     }
 
@@ -72,12 +82,13 @@ export class UsersService {
     await this.findOne({ id })
     const updatedUser = await this.prisma.user.update({
       where: { id },
-      data: { ...dto }
+      data: { ...dto },
     })
 
     const { password, ...userData } = updatedUser
     return userData
   }
+
   generateAvatarUrl(fullName: string) {
     const name = slugify(fullName, { strict: true })
     return `https://ui-avatars.com/api/?name=${name}&background=random&size=100`
