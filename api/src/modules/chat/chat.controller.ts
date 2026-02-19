@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   ForbiddenException,
   Get,
   Param,
@@ -51,11 +52,20 @@ export class ChatController {
       throw new ForbiddenException('Bạn không có quyền truy cập đoạn chat này')
 
     const result = await this.chatService.getMessages(
-      conversationId, 
+      conversationId,
       Number(limit),
-      cursor
+      cursor,
     )
     return result
+  }
+
+  @Delete('conversation/:id')
+  @ApiAuth()
+  async deleteConversation(
+    @CurrentUser() user: IUserPayload,
+    @Param('id') conversationId: string,
+  ) {
+    return this.chatService.deleteConversationForMe(conversationId, user.id)
   }
 
   @Get('search')
@@ -64,7 +74,7 @@ export class ChatController {
     @CurrentUser() user: IUserPayload,
     @Query('query') query: string,
   ): Promise<SearchUserResponse[]> {
-    if(!query || query.trim().length < 2) {
+    if (!query || query.trim().length < 2) {
       return []
     }
     const decodedQuery = decodeURIComponent(query.trim())

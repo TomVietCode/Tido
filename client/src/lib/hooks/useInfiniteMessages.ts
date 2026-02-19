@@ -1,6 +1,6 @@
 import { getMessages } from "@/lib/actions/chat.action"
 import { IMessage } from "@/types"
-import { useCallback, useRef, useState, useTransition } from "react"
+import { useCallback, useRef, useState } from "react"
 
 interface UseInfiniteMessagesReturn {
   messages: IMessage[]
@@ -13,7 +13,7 @@ interface UseInfiniteMessagesReturn {
 }
 
 export function useInfiniteMessages(
-  conversationId: string,
+  conversationId: string | undefined,
   initialMessages: IMessage[],
   initialCursor: string | null,
   initialHasMore: boolean,
@@ -28,6 +28,15 @@ export function useInfiniteMessages(
   const isLoadingRef = useRef(false)
   const observerRef = useRef<IntersectionObserver | null>(null)
 
+  if (!conversationId) return {
+    messages: [],
+    isLoadingMore: false,
+    hasMore: false,
+    loadMoreMessages: async () => {},
+    addNewMessage: () => {},
+    sentinelRef: () => {},
+    updateMessages: () => {},
+  }
   // called when sentinel becomes visible
   const loadMoreMessages = useCallback(async () => {
     // prevent duplicate requests

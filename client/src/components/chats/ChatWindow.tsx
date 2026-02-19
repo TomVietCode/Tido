@@ -3,6 +3,7 @@ import ChatHeader from "@/components/chats/ChatHeader"
 import EmojiPicker from "@/components/chats/EmojiPicker"
 import { ImageViewer } from "@/components/chats/ImageViewer"
 import { MessageContent } from "@/components/chats/MessageContent"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
@@ -13,13 +14,16 @@ import { useChatSocket } from "@/lib/hooks/useChatSocket"
 import { isOnlyEmoji } from "@/lib/utils"
 import { IMessage } from "@/types"
 import { MessageType } from "@/types/enums"
-import { ArrowDownIcon, ImageIcon, SendHorizontal, SmileIcon, X } from "lucide-react"
+import { ArrowDownIcon, ChevronLeft, ImageIcon, SendHorizontal, SmileIcon, X } from "lucide-react"
 import { Session } from "next-auth"
 import Image from "next/image"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 interface IChatWindowProps {
-  conversationId: string
+  conversationId?: string
+  draftRecipientId?: string
   initialMessages: IMessage[]
   initialCursor: string | null
   initialHasMore: boolean
@@ -27,14 +31,16 @@ interface IChatWindowProps {
 }
 export default function ChatWindow({
   conversationId,
+  draftRecipientId,
   initialMessages,
   initialCursor,
   initialHasMore,
   session,
 }: IChatWindowProps) {
+  const router =  useRouter()
   const currentUserId = session?.user?.id
   const { socket } = useSocket()
-  const { currentConversation } = useConversations(conversationId)
+  const { mutate: mutateConversations, currentConversation } = useConversations(conversationId)
 
   // States
   const [input, setInput] = useState("")
@@ -101,9 +107,15 @@ export default function ChatWindow({
 
         socket.emit("send_message", {
           conversationId,
+          recipientId: draftRecipientId,
           content,
           type: MessageType.IMAGE,
           imageUrls,
+        }, (ack: { ok: boolean; conversationId: string }) => {
+          if (ack?.ok && !conversationId) {
+            router.replace(`/chats/${ack.conversationId}`)
+            mutateConversations()
+          }
         })
         clearPreviewImages()
       } catch (error) {
@@ -123,17 +135,22 @@ export default function ChatWindow({
     const type = isOnlyEmoji(content) ? MessageType.EMOJI : MessageType.TEXT
     socket.emit("send_message", {
       conversationId,
-      content,
+      recipientId: draftRecipientId,
+      content,   
       type,
+    }, (ack: { ok: boolean; conversationId: string }) => {
+      if (ack?.ok && !conversationId) {
+        router.replace(`/chats/${ack.conversationId}`) // draft -> real
+        mutateConversations() // refresh list only now
+      }
     })
-
     setInput("")
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
-      sendMessage()
+      sendMessage() 
     }
   }
 
@@ -233,9 +250,45 @@ export default function ChatWindow({
     setInput((prev) => prev + emoji)
   }
   return (
-    <div className="flex flex-col h-full relative">
-      {/* Chat Header */}
-      <ChatHeader conversation={currentConversation} />
+    <div className="relative flex h-full w-full flex-col">
+      {/* Mobile Header */}
+      <div className="flex items-center gap-2 border-b bg-white p-2 md:hidden">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          onClick={() => router.replace("/chats")}
+          aria-label="Quay lại danh sách trò chuyện"
+        >
+          <ChevronLeft className="size-5" />
+        </Button>
+
+        {currentConversation ? (
+          <Link
+            href={`/users/${currentConversation.recipient.id}`}
+            className="flex min-w-0 items-center gap-2 rounded-md p-1 hover:bg-gray-100"
+          >
+            <Avatar className="size-9">
+              <AvatarImage src={currentConversation.recipient.avatarUrl} />
+              <AvatarFallback>
+                {currentConversation.recipient.fullName.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            <span className="truncate text-sm font-semibold">
+              {currentConversation.recipient.fullName}
+            </span>
+          </Link>
+        ) : (
+          <span className="truncate text-sm font-semibold text-gray-700">
+            Tin nhắn mới
+          </span>
+        )}
+      </div>
+
+      {/* Desktop Header */}
+      <div className="hidden md:block">
+        <ChatHeader conversation={currentConversation} />
+      </div>
 
       {/* Message area */}
       <div

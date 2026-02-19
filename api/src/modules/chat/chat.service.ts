@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Message } from '@modules/chat/schemas/message.schema'
 import { Conversation } from '@modules/chat/schemas/conversation.schema'
@@ -18,10 +18,22 @@ export class ChatService {
     private usersService: UsersService,
   ) {}
 
+  private buildParticipantKey(a: string, b: string) {
+    return [a, b].sort().join(':')
+  }
+
+  async findConversationBetween(userA: string, userB: string) {
+    const participantKey = this.buildParticipantKey(userA, userB)
+    return this.conversationModel.findOne({ participantKey }).lean()
+  }
+
   async getConversations(userId: string) {
     const [conversations, unreadCounts] = await Promise.all([
       this.conversationModel
-        .find({ participants: { $in: [userId] } })
+        .find({
+          participants: { $in: [userId] },
+          deletedBy: { $nin: [userId] },
+        })
         .sort({ updatedAt: -1 })
         .lean(),
       this.getUnreadCounts(userId),
@@ -75,18 +87,19 @@ export class ChatService {
     }
   }
 
-  async getConversation(conversationId: string) {
-    const conversation = await this.conversationModel
-      .findById(conversationId)
-      .lean()
-    if (!conversation) return null
-
-    const { _id, ...rest } = conversation
-
-    return {
-      id: _id.toString(),
-      ...rest,
+  async deleteConversationForMe(conversationId: string, userId: string): Promise<boolean> {
+    const conv = await this.conversationModel.findById(conversationId).lean()
+    if (!conv) throw new NotFoundException('Cuộc trò chuyện không tồn tại')
+  
+    if (!conv.participants.includes(userId)) {
+      throw new ForbiddenException('Bạn không có quyền thao tác cuộc trò chuyện này')
     }
+  
+    await this.conversationModel.findByIdAndUpdate(conversationId, {
+      $addToSet: { deletedBy: userId },
+    })
+  
+    return true
   }
 
   async checkRoomAccess(conversationId: string, userId: string) {
@@ -94,36 +107,79 @@ export class ChatService {
     if (!conversation) return false
 
     if (!conversation.participants.includes(userId)) return false
+
+    if ((conversation.deletedBy || []).includes(userId)) return false
+
     return true
   }
 
-  async saveMessage(
-    conversationId: string,
-    senderId: string,
-    content: string,
-    type: MessageType,
-    imageUrls: string[],  
-  ) {
-    const newMessage = await this.messageModel.create({
+  async sendMessageAtomic(params: {
+    senderId: string
+    conversationId?: string
+    recipientId?: string
+    content: string
+    type: MessageType
+    imageUrls?: string[]
+  }) {
+    const {
+      senderId,
       conversationId,
+      recipientId,
+      content,
+      type,
+      imageUrls = [],
+    } = params
+
+    let conversation: any
+    if (conversationId) {
+      conversation = await this.conversationModel.findById(conversationId)
+    } else {
+      if (!recipientId)
+        throw new Error('recipientId is required for draft send')
+
+      const participantKey = this.buildParticipantKey(senderId, recipientId)
+      conversation = await this.conversationModel.findOneAndUpdate(
+        { participantKey },
+        {
+          $setOnInsert: {
+            participants: [senderId, recipientId],
+            participantKey,
+          },
+        },
+        { upsert: true, returnDocument: 'after' },
+      )
+    }
+
+    const message = await this.messageModel.create({
+      conversationId: conversation._id.toString(),
       senderId,
       content,
       type,
-      imageUrls
+      imageUrls,
     })
 
-    const lastMsgContent = type === MessageType.IMAGE ? "[Hình ảnh]" : newMessage.content
-    await this.conversationModel.findByIdAndUpdate(conversationId, {
-      lastMessage: {
-        content: lastMsgContent,
-        senderId: newMessage.senderId,
-        type: newMessage.type,
-        createdAt: new Date(),
-        isRead: false,
+    const lastMsgContent = type === MessageType.IMAGE ? '[Hình ảnh]' : content
+    await this.conversationModel.findByIdAndUpdate(conversation._id, {
+      $set: {
+        lastMessage: {
+          content: lastMsgContent,
+          senderId,
+          type,
+          createdAt: new Date(),
+          isRead: false,
+        },
       },
+      $pull: {
+        deletedBy: { $in: conversation.participants }
+      }
     })
 
-    return newMessage
+    return {
+      conversationId: conversation._id.toString(),
+      participants: conversation.participants,
+      message,
+      createdConversation: !conversationId,
+    }
   }
 
   async getMessages(
