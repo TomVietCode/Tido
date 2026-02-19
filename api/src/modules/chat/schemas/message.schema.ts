@@ -21,6 +21,9 @@ export class Message extends Document {
   
   @Prop({ default: false })
   isRead: boolean
+
+  createdAt: Date
+  updatedAt: Date
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message)

@@ -77,42 +77,47 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleMessage(
     @ConnectedSocket() client: Socket,
     @MessageBody()
-    data: { 
-      conversationId: string
+    data: {
+      conversationId?: string
+      recipientId?: string
       content: string
-      type?: MessageType 
+      type?: MessageType
       imageUrls: string[]
-    }
+    },
   ) {
-    const user = client['user']
+    const senderId = client['user'].sub
 
-    const result = await this.chatService.saveMessage(
-      data.conversationId,
-      user.sub,
-      data.content,
-      data.type || MessageType.TEXT,
-      data.imageUrls,
-    )
-
-    const conv = await this.chatService.getConversation(data.conversationId)
-
-    const message = {
-      id: result._id.toString(),
+    const result = await this.chatService.sendMessageAtomic({
+      senderId,
       conversationId: data.conversationId,
-      senderId: user.sub,
+      recipientId: data.recipientId,
       content: data.content,
       type: data.type || MessageType.TEXT,
-      imageUrls: data.imageUrls,
-      isRead: result.isRead,
-      createdAt: new Date(),
+      imageUrls: data.imageUrls || [],
+    })
+
+    const messagePayload = {
+      id: result.message._id.toString(),
+      conversationId: result.conversationId,
+      senderId,
+      content: result.message.content,
+      type: result.message.type,
+      imageUrls: result.message.imageUrls || [],
+      isRead: result.message.isRead,
+      createdAt: result.message.createdAt,
     }
 
-    this.server.to(data.conversationId).emit('new_message', message)
+    // conversation room
+    this.server.to(result.conversationId).emit('new_message', messagePayload)
+    // user channels so both users update sidebar even before joining room
+    this.server.to(senderId).emit('conversation_updated', messagePayload)
+    const recipientId = result.participants.find(
+      (id: string) => id !== senderId,
+    )
+    if (recipientId)
+      this.server.to(recipientId).emit('conversation_updated', messagePayload)
 
-    const recipientId = conv?.participants.find((pId) => pId !== user.sub)
-    if (recipientId) {
-      this.server.to(recipientId).emit('conversation_updated', message)
-    }
+    return { ok: true, conversationId: result.conversationId }
   }
 
   @UseGuards(WsJwtGuard)

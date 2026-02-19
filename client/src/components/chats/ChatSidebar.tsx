@@ -3,7 +3,7 @@ import { ConversationItem } from "@/components/chats/ConversationItem"
 import { UserSearchItem } from "@/components/chats/UserSearchItem"
 import { Button } from "@/components/ui/button"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
-import { createConversation, searchUsers } from "@/lib/actions/chat.action"
+import { deleteConversationForMe, searchUsers } from "@/lib/actions/chat.action"
 import { useConversations, useDebounce } from "@/lib/hooks"
 import { IConversation, SearchUserResponse } from "@/types"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -12,6 +12,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Spinner } from "@/components/ui/spinner"
 import { ChatSidebarSkeleton } from "@/components/chats/skeletons/SidebarSkeleton"
+import { toast } from "sonner"
 
 interface IChatSidebarProps {
   currentUserId: string
@@ -32,6 +33,7 @@ export default function ChatSidebar({ currentUserId }: IChatSidebarProps) {
     const match = pathname?.match(/\/chats\/([^/]+)/)
     return match ? match[1] : null
   }, [pathname])
+  const isMobileChatMode = Boolean(activeId)
 
   // Search user with debounced query
   useEffect(() => {
@@ -57,22 +59,50 @@ export default function ChatSidebar({ currentUserId }: IChatSidebarProps) {
     }
   }, [debouncedQuery])
 
-  const handleSelectUser = useCallback(
-    async (user: SearchUserResponse) => {
-      const existingConv = conversations.find((conv: IConversation) => conv.recipient.id === user.id)
-      if (existingConv) {
-        router.push(`/chats/${existingConv.id}`)
-      } else {
-        const res = await createConversation(user.id)
-        if (res.success && res.data) {
-          mutate()
-          router.push(`/chats/${res.data.id}`)
-        }
+  const handleSelectUser = useCallback((user: SearchUserResponse) => {
+    const existingConv = conversations.find((conv: IConversation) => conv.recipient.id === user.id)
+    if (existingConv) {
+      router.push(`/chats/${existingConv.id}`)
+    } else {
+      router.push(`/chats/draft_${user.id}`)
+    }
+    setSearchQuery("")
+  }, [conversations, router])
+
+  const handleDeleteConv = useCallback(async (conv: IConversation) => {
+    const snapshot = conversations
+    const wasActive = activeId === conv.id
+  
+    const nextList = snapshot.filter((c) => c.id !== conv.id)
+  
+    // optimistic remove
+    mutate(nextList, false)
+  
+    // move to nearest
+    if (wasActive) {
+      const deletedIndex = snapshot.findIndex((c) => c.id === conv.id)
+      const fallback =
+        nextList[deletedIndex] || 
+        nextList[deletedIndex - 1] ||
+        null
+  
+      router.replace(fallback ? `/chats/${fallback.id}` : "/chats")
+    }
+  
+    const res = await deleteConversationForMe(conv.id)
+    if (!res.success) {
+      mutate(snapshot, false)
+      toast.error("Có lỗi xảy ra khi xóa cuộc trò chuyện")
+  
+      // rollback route
+      if (wasActive) {
+        router.replace(`/chats/${conv.id}`)
       }
-      setSearchQuery("")
-    },
-    [conversations, router, mutate]
-  )
+      return
+    }
+  
+    mutate()
+  }, [conversations, mutate, activeId, router])
 
   const isShowingSearchResult = debouncedQuery.trim().length >= 2
 
@@ -81,7 +111,11 @@ export default function ChatSidebar({ currentUserId }: IChatSidebarProps) {
   }
   
   return (
-    <div className="h-full flex flex-col gap-4">
+    <div
+      className={`h-full w-full flex-col gap-4 ${
+        isMobileChatMode ? "hidden md:flex" : "flex"
+      }`}
+    >
       <div className="flex items-center justify-between mt-2 mx-2">
         <p className="font-bold  text-2xl text-gray-800">Tin Nhắn</p>
         <Tooltip>
@@ -141,6 +175,7 @@ export default function ChatSidebar({ currentUserId }: IChatSidebarProps) {
                   conversation={conversation}
                   isActive={activeId === conversation.id}
                   currentUserId={currentUserId}
+                  onDelete={handleDeleteConv}
                 />
               ))
             )}

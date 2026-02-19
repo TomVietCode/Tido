@@ -2,6 +2,7 @@ import NotFound from "@/app/(client)/not-found"
 import { auth } from "@/auth"
 import ChatWindow from "@/components/chats/ChatWindow"
 import { getMessages } from "@/lib/actions/chat.action"
+import { redirect } from "next/navigation"
 
 export default async function ChatPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -11,26 +12,37 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
   }
   if (!id) {
     return (
-      <div className="flex h-full items-center justify-center gap-3 p-4 border-b">
+      <div className="hidden h-full items-center justify-center gap-3 border-b p-4 md:flex bg-gray-50">
         <h1>Mở một cuộc hội thoại để bắt đầu</h1>
       </div>
     )
   }
   const convId = id[0]
+  const isDraft = convId.startsWith("draft_")
+  const draftRecipientId = isDraft ? convId.replace("draft_", "") : undefined
 
   let initialMessages: any[] = []
   let initialCursor: string | null = null
   let initialHasMore: boolean = true
 
-  const res = await getMessages(convId, 50)
-  if (res.success && res.data) {
-    initialMessages = res.data.messages
-    initialCursor = res.data.nextCursor
-    initialHasMore = res.data.hasMore
+  if (!isDraft) {
+    const res = await getMessages(convId, 50)
+    if (!res.success) {
+      if (res.statusCode === 403 || res.statusCode === 404) {
+        redirect("/chats")
+      }
+    }
+
+    if (res.success && res.data) {
+      initialMessages = res.data.messages
+      initialCursor = res.data.nextCursor
+      initialHasMore = res.data.hasMore
+    }
   }
   return (
     <ChatWindow
-      conversationId={convId}
+      conversationId={isDraft ? undefined : convId}
+      draftRecipientId={draftRecipientId}
       initialMessages={initialMessages}
       initialCursor={initialCursor}
       initialHasMore={initialHasMore}

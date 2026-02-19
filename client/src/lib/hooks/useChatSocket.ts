@@ -3,7 +3,7 @@ import { useEffect } from "react"
 
 export function useChatSocket(
   socket: any,
-  conversationId: string,
+  conversationId: string | undefined,
   handlers: {
     onNewMessage: (msg: IMessage) => void
     onMessagesRead: () => void

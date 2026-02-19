@@ -19,13 +19,13 @@ export const getConversations = async () => {
       success: true,
       data: res.data,
       message: res.message,
-      statusCode: res.statusCode
+      statusCode: res.statusCode,
     }
   } catch (error: any) {
     return {
       success: false,
       message: error.message,
-      code: error.status || 500
+      code: error.status || 500,
     }
   }
 }
@@ -63,22 +63,22 @@ export const getMessages = async (conversationId: string, limit = 50, cursor?: s
         Authorization: `Bearer ${session.user.access_token}`,
       },
       queryParams: {
-        limit, 
-        cursor
-      }
+        limit,
+        cursor,
+      },
     })
 
     return {
       success: true,
       data: res.data,
       message: res.message,
-      statusCode: res.statusCode
+      statusCode: res.statusCode,
     }
   } catch (error: any) {
     return {
       success: false,
       message: error.message,
-      statusCode: error.status || 500
+      statusCode: error.status || 500,
     }
   }
 }
@@ -101,7 +101,29 @@ export const searchUsers = async (query: string) => {
     return {
       success: false,
       error: error.message,
-      data: []
+      data: [],
+    }
+  }
+}
+
+export const deleteConversationForMe = async (conversationId: string) => {
+  try {
+    const session = await auth()
+    if (!session) throw new Error("Unauthorized")
+
+    const res = await sendRequest<IBackendRes<boolean>>({
+      url: `/chats/conversation/${conversationId}`,
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${session.user.access_token}`,
+      },
+    })
+
+    return { success: true, data: res.data }
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message,
     }
   }
 }
