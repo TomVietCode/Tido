@@ -67,7 +67,7 @@ export const MessageContent = ({ msg, mine, isLastMsg, onImageClick }: IMessageC
         )}
 
         {mine && isLastMsg && (
-          <span className="text-[10px] text-gray-500 text-right mt-1">{msg.isRead ? "Đã đọc" : "Đã gửi"}</span>
+          <span className="text-[10px] text-gray-500 text-right mt-1">{msg.isRead ? "Đã xem" : "Đã gửi"}</span>
         )}
       </div>
     </div>

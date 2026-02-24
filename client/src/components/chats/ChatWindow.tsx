@@ -24,6 +24,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 interface IChatWindowProps {
   conversationId?: string
   draftRecipientId?: string
+  draftRecipient?: { id: string; fullName: string; avatarUrl: string }
   initialMessages: IMessage[]
   initialCursor: string | null
   initialHasMore: boolean
@@ -32,6 +33,7 @@ interface IChatWindowProps {
 export default function ChatWindow({
   conversationId,
   draftRecipientId,
+  draftRecipient,
   initialMessages,
   initialCursor,
   initialHasMore,
@@ -64,12 +66,20 @@ export default function ChatWindow({
     messages.length
   )
 
-  // socket events
   const handleNewMessage = (msg: IMessage) => {
     if (msg.conversationId === conversationId) {
-      addNewMessage(msg)
+      if (msg.senderId === currentUserId) {
+        updateMessages((prev) => {
+          const hasTemp = prev.some((m) => m.id.startsWith("temp_"))
+          if (hasTemp) {
+            return [...prev.filter((m) => !m.id.startsWith("temp_")), msg]
+          }
+          return [...prev, msg]
+        })
+      } else {
+        addNewMessage(msg)
+      }
 
-      // scroll when near bottom or is my message
       const container = messagesContainerRef.current
       if (container) {
         const isNearBottom = getDistanceFromBottom() < 150
@@ -93,6 +103,24 @@ export default function ChatWindow({
     onMessagesRead: handleMessagesRead,
   })
 
+  const createOptimisticMessage = (content: string, type: MessageType, imageUrls: string[] = []): IMessage => ({
+    id: `temp_${Date.now()}`,
+    conversationId: conversationId || "",
+    senderId: currentUserId!,
+    content,
+    type,
+    imageUrls,
+    isRead: false,
+    createdAt: new Date().toISOString(),
+  })
+
+  const handleDraftAck = (ack: { ok: boolean; conversationId: string }) => {
+    if (ack?.ok && !conversationId) {
+      router.replace(`/chats/${ack.conversationId}`)
+      mutateConversations()
+    }
+  }
+
   const sendMessage = async () => {
     if (!socket) return
     const content = input.trim()
@@ -105,18 +133,17 @@ export default function ChatWindow({
           })
         )
 
+        const optimistic = createOptimisticMessage(content, MessageType.IMAGE, imageUrls)
+        addNewMessage(optimistic)
+        setTimeout(() => scrollToBottom(true), 0)
+
         socket.emit("send_message", {
           conversationId,
           recipientId: draftRecipientId,
           content,
           type: MessageType.IMAGE,
           imageUrls,
-        }, (ack: { ok: boolean; conversationId: string }) => {
-          if (ack?.ok && !conversationId) {
-            router.replace(`/chats/${ack.conversationId}`)
-            mutateConversations()
-          }
-        })
+        }, handleDraftAck)
         clearPreviewImages()
       } catch (error) {
         console.error("Upload failed", error)
@@ -133,18 +160,18 @@ export default function ChatWindow({
     isTypingRef.current = false
 
     const type = isOnlyEmoji(content) ? MessageType.EMOJI : MessageType.TEXT
+
+    const optimistic = createOptimisticMessage(content, type)
+    addNewMessage(optimistic)
+    setInput("")
+    setTimeout(() => scrollToBottom(true), 0)
+
     socket.emit("send_message", {
       conversationId,
       recipientId: draftRecipientId,
-      content,   
+      content,
       type,
-    }, (ack: { ok: boolean; conversationId: string }) => {
-      if (ack?.ok && !conversationId) {
-        router.replace(`/chats/${ack.conversationId}`) // draft -> real
-        mutateConversations() // refresh list only now
-      }
-    })
-    setInput("")
+    }, handleDraftAck)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -263,31 +290,34 @@ export default function ChatWindow({
           <ChevronLeft className="size-5" />
         </Button>
 
-        {currentConversation ? (
-          <Link
-            href={`/users/${currentConversation.recipient.id}`}
-            className="flex min-w-0 items-center gap-2 rounded-md p-1 hover:bg-gray-100"
-          >
-            <Avatar className="size-9">
-              <AvatarImage src={currentConversation.recipient.avatarUrl} />
-              <AvatarFallback>
-                {currentConversation.recipient.fullName.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <span className="truncate text-sm font-semibold">
-              {currentConversation.recipient.fullName}
+        {(() => {
+          const recipient = currentConversation?.recipient ?? draftRecipient
+          return recipient ? (
+            <Link
+              href={`/users/${recipient.id}`}
+              className="flex min-w-0 items-center gap-2 rounded-md p-1 hover:bg-gray-100"
+            >
+              <Avatar className="size-9">
+                <AvatarImage src={recipient.avatarUrl} />
+                <AvatarFallback>
+                  {recipient.fullName.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <span className="truncate text-sm font-semibold">
+                {recipient.fullName}
+              </span>
+            </Link>
+          ) : (
+            <span className="truncate text-sm font-semibold text-gray-700">
+              Tin nhắn mới
             </span>
-          </Link>
-        ) : (
-          <span className="truncate text-sm font-semibold text-gray-700">
-            Tin nhắn mới
-          </span>
-        )}
+          )
+        })()}
       </div>
 
       {/* Desktop Header */}
       <div className="hidden md:block">
-        <ChatHeader conversation={currentConversation} />
+        <ChatHeader conversation={currentConversation} draftRecipient={draftRecipient} />
       </div>
 
       {/* Message area */}

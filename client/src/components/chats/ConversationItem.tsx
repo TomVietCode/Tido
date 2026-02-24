@@ -44,7 +44,7 @@ export const ConversationItem = memo(function ConversationItem({
     const isMine = lastMessage.senderId === currentUserId
     return isMine ? `Bạn: ${lastMessage.content}` : lastMessage.content
   }, [lastMessage, currentUserId, conversation.unreadCount])
-
+  console.log(lastMessage)
   const handleDelete = async () => {
     try {
       setDeleting(true)
@@ -118,7 +118,7 @@ export const ConversationItem = memo(function ConversationItem({
               Trang cá nhân
             </DropdownMenuItem>
             <DropdownMenuItem className="text-red-600 focus:text-red-600" onClick={() => setOpenConfirm(true)}>
-              <Trash2 className="mr-2 size-4" />
+              <Trash2 className="mr-2 size-4 text-red-600" />
               Xóa cuộc trò chuyện
             </DropdownMenuItem>
           </DropdownMenuContent>

@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Message } from '@modules/chat/schemas/message.schema'
 import { Conversation } from '@modules/chat/schemas/conversation.schema'
@@ -28,7 +32,7 @@ export class ChatService {
   }
 
   async getConversations(userId: string) {
-    const [conversations, unreadCounts] = await Promise.all([
+    const [conversations, { counts: unreadCounts }] = await Promise.all([
       this.conversationModel
         .find({
           participants: { $in: [userId] },
@@ -67,6 +71,16 @@ export class ChatService {
     return result as IConversationResponse[]
   }
 
+  async getConversationById(conversationId: string, userId: string) {
+    const conv = await this.conversationModel.findOne({
+      _id: conversationId,
+      participants: { $in: [userId] },
+      deletedBy: { $nin: [userId] },
+    }).lean()
+    if (!conv) throw new NotFoundException('Cuộc trò chuyện không tồn tại')
+    return conv
+  }
+
   async createConversation(dto: CreateConversationDto) {
     const { participants, postId } = dto
     const existingConversation = await this.conversationModel.findOne({
@@ -87,18 +101,23 @@ export class ChatService {
     }
   }
 
-  async deleteConversationForMe(conversationId: string, userId: string): Promise<boolean> {
+  async deleteConversationForMe(
+    conversationId: string,
+    userId: string,
+  ): Promise<boolean> {
     const conv = await this.conversationModel.findById(conversationId).lean()
     if (!conv) throw new NotFoundException('Cuộc trò chuyện không tồn tại')
-  
+
     if (!conv.participants.includes(userId)) {
-      throw new ForbiddenException('Bạn không có quyền thao tác cuộc trò chuyện này')
+      throw new ForbiddenException(
+        'Bạn không có quyền thao tác cuộc trò chuyện này',
+      )
     }
-  
+
     await this.conversationModel.findByIdAndUpdate(conversationId, {
       $addToSet: { deletedBy: userId },
     })
-  
+
     return true
   }
 
@@ -170,8 +189,8 @@ export class ChatService {
         },
       },
       $pull: {
-        deletedBy: { $in: conversation.participants }
-      }
+        deletedBy: { $in: conversation.participants },
+      },
     })
 
     return {
@@ -259,21 +278,35 @@ export class ChatService {
       .lean()
 
     if (lastMsg && lastMsg.senderId !== userId) {
-      await this.conversationModel.findByIdAndUpdate(conversationId, {
-        'lastMessage.isRead': true,
-      })
+      await this.conversationModel.findByIdAndUpdate(
+        conversationId,
+        { 'lastMessage.isRead': true },
+        { timestamps: false }
+      )
     }
 
     // return number of messages marked as read
     return result.modifiedCount
   }
 
-  async getUnreadCounts(userId: string): Promise<Record<string, number>> {
+  async getUnreadCounts(
+    userId: string,
+  ): Promise<{ counts: Record<string, number>; total: number }> {
+    const conversations = await this.conversationModel
+      .find({
+        participants: { $in: [userId] },
+        deletedBy: { $nin: [userId] },
+      })
+      .lean()
+
+    const convIds = conversations.map((c) => c._id.toString())
+
     const result = await this.messageModel.aggregate([
       {
         $match: {
           senderId: { $ne: userId },
           isRead: false,
+          conversationId: { $in: convIds },
         },
       },
       {
@@ -284,9 +317,14 @@ export class ChatService {
       },
     ])
 
-    return result.reduce((acc, item) => {
+    const counts: Record<string, number> = result.reduce((acc, item) => {
       acc[item._id.toString()] = item.count
       return acc
     }, {})
+    const total = Object.values(counts).reduce(
+      (acc: number, count: number) => acc + count,
+      0,
+    ) as number
+    return { counts, total }
   }
 }

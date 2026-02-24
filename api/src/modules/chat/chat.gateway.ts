@@ -60,6 +60,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
     client.join(conversationId)
     console.log(`User ${client['user'].sub} joined room: ${conversationId}`)
+    return { ok: true, conversationId }
   }
 
   @UseGuards(WsJwtGuard)
@@ -114,8 +115,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const recipientId = result.participants.find(
       (id: string) => id !== senderId,
     )
-    if (recipientId)
+    if (recipientId) {
       this.server.to(recipientId).emit('conversation_updated', messagePayload)
+    }
 
     return { ok: true, conversationId: result.conversationId }
   }
@@ -127,13 +129,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody('conversationId') conversationId: string,
   ) {
     const userId = client['user'].sub
-
     const count = await this.chatService.markAsRead(conversationId, userId)
 
     if (count > 0) {
-      this.server.to(conversationId).emit('messages_read', {
-        conversationId,
-      })
+      const payload = { conversationId, userId, count }
+      this.server.to(conversationId).emit('messages_read', payload)
+      this.server.to(userId).emit('messages_read', payload)
     }
   }
 

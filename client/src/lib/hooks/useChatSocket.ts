@@ -14,8 +14,11 @@ export function useChatSocket(
   useEffect(() => {
     if (!socket || !conversationId) return
 
-    socket.emit("join_room", { conversationId })
-    socket.emit("mark_as_read", { conversationId })
+    socket.emit("join_room", { conversationId }, (ack: { ok: boolean }) => {
+      if (ack?.ok) {
+        socket.emit("mark_as_read", { conversationId })
+      }
+    })
 
     const handleVisibilityChange = () => {
       if (!document.hidden) {

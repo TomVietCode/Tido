@@ -40,7 +40,7 @@ export function useConversations(currentConversationId?: string) {
                 },
                 unreadCount: isViewingConv ? 0 : (conv.unreadCount || 0) + 1
               }
-            }
+            } 
             return conv
           })
           .sort((a: any, b: any) => {
@@ -67,13 +67,11 @@ export function useConversations(currentConversationId?: string) {
         })
       }, false)
     }
-
-    socket.on("new_message", handleNewMessage)
+    
     socket.on("conversation_updated", handleNewMessage)
     socket.on("messages_read", handleMessagesRead)
 
     return () => {
-      socket.off("new_message", handleNewMessage)
       socket.off("conversation_updated", handleNewMessage)
       socket.off("messages_read", handleMessagesRead)
     }

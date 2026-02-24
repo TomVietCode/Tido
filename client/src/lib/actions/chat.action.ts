@@ -3,6 +3,24 @@ import { auth } from "@/auth"
 import { sendRequest } from "@/lib/helpers/api"
 import { IConversation, IGetMessagesResponse, SearchUserResponse } from "@/types"
 
+export const getUserById = async (userId: string) => {
+  try {
+    const session = await auth()
+    if (!session) throw new Error("Unauthorized")
+
+    const res = await sendRequest<IBackendRes<SearchUserResponse>>({
+      url: `/users/${userId}`,
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${session.user.access_token}`,
+      },
+    })
+    return { success: true, data: res.data }
+  } catch (error: any) {
+    return { success: false, message: error.message }
+  }
+}
+
 export const getConversations = async () => {
   try {
     const session = await auth()
@@ -124,6 +142,33 @@ export const deleteConversationForMe = async (conversationId: string) => {
     return {
       success: false,
       message: error.message,
+    }
+  }
+}
+
+export const getUnreadCounts = async () => {
+  try {
+    const session = await auth()
+    if (!session) throw new Error("Unauthorized")
+
+    const res = await sendRequest<IBackendRes<number>>({
+      url: "/chats/unread-count",
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${session.user.access_token}`,
+      },
+    })
+    return {
+      success: true,
+      data: res.data || 0,
+      message: res.message,
+      statusCode: res.statusCode,
+    }
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message,
+      statusCode: error.status || 500,
     }
   }
 }

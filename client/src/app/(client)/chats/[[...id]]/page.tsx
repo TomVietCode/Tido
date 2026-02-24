@@ -1,7 +1,7 @@
 import NotFound from "@/app/(client)/not-found"
 import { auth } from "@/auth"
 import ChatWindow from "@/components/chats/ChatWindow"
-import { getMessages } from "@/lib/actions/chat.action"
+import { getMessages, getUserById } from "@/lib/actions/chat.action"
 import { redirect } from "next/navigation"
 
 export default async function ChatPage({ params }: { params: Promise<{ id: string }> }) {
@@ -24,8 +24,18 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
   let initialMessages: any[] = []
   let initialCursor: string | null = null
   let initialHasMore: boolean = true
+  let draftRecipient: { id: string; fullName: string; avatarUrl: string } | undefined
 
-  if (!isDraft) {
+  if (isDraft && draftRecipientId) {
+    const userRes = await getUserById(draftRecipientId)
+    if (userRes.success && userRes.data) {
+      draftRecipient = {
+        id: userRes.data.id,
+        fullName: userRes.data.fullName,
+        avatarUrl: userRes.data.avatarUrl || "",
+      }
+    }
+  } else {
     const res = await getMessages(convId, 50)
     if (!res.success) {
       if (res.statusCode === 403 || res.statusCode === 404) {
@@ -39,10 +49,12 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
       initialHasMore = res.data.hasMore
     }
   }
+
   return (
     <ChatWindow
       conversationId={isDraft ? undefined : convId}
       draftRecipientId={draftRecipientId}
+      draftRecipient={draftRecipient}
       initialMessages={initialMessages}
       initialCursor={initialCursor}
       initialHasMore={initialHasMore}

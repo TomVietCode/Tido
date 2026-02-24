@@ -1,31 +1,24 @@
-"use client";
+"use client"
 
-import Link from "next/link";
-import Image from "next/image";
-import { useState } from "react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import UserDropDown from "@/components/auth/UserDropDown";
-import AuthDialog from "@/components/auth/AuthDialog";
-import {
-  Search,
-  MessageCircleMore,
-  Bell,
-  FileText,
-  Home,
-  FolderUp,
-  Menu,
-  X,
-} from "lucide-react";
-import { Session } from "next-auth";
+import Link from "next/link"
+import Image from "next/image"
+import { useState } from "react"
+import { Button } from "../ui/button"
+import { Input } from "../ui/input"
+import UserDropDown from "@/components/auth/UserDropDown"
+import AuthDialog from "@/components/auth/AuthDialog"
+import { Search, MessageCircleMore, Bell, FileText, Home, FolderUp, Menu, X } from "lucide-react"
+import { Session } from "next-auth"
+import { useUnreadCount } from "@/lib/hooks/useUnreadCount"
 
 interface HeaderClientProps {
-  session: Session | null;
+  session: Session | null
 }
 
 export default function HeaderClient({ session }: HeaderClientProps) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const totalUnread = useUnreadCount()
+  
   return (
     <header className="fixed top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container flex h-14 max-w-screen-2xl items-center p-4">
@@ -63,9 +56,16 @@ export default function HeaderClient({ session }: HeaderClientProps) {
               <nav className="hidden md:flex items-center gap-6 text-xs font-medium">
                 <Link
                   href="/chats"
-                  className="flex flex-col items-center gap-1 text-foreground/60 transition-colors hover:text-foreground/80 m-1"
+                  className="relative flex flex-col items-center gap-1 text-foreground/60 transition-colors hover:text-foreground/80 m-1"
                 >
-                  <MessageCircleMore className="h-5 w-5" />
+                  <div className="relative">
+                    <MessageCircleMore className="h-5 w-5" />
+                    {typeof totalUnread === 'number' && totalUnread > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white leading-none">
+                        {totalUnread > 99 ? "99+" : totalUnread}
+                      </span>
+                    )}
+                  </div>
                   <span>Chat</span>
                 </Link>
 
@@ -114,11 +114,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Toggle menu"
         >
-          {mobileMenuOpen ? (
-            <X className="h-6 w-6" />
-          ) : (
-            <Menu className="h-6 w-6" />
-          )}
+          {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
@@ -155,7 +151,14 @@ export default function HeaderClient({ session }: HeaderClientProps) {
                   className="flex items-center gap-3 text-foreground/60 transition-colors hover:text-foreground/80 p-2"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <MessageCircleMore className="h-5 w-5" />
+                  <div className="relative">
+                    <MessageCircleMore className="h-5 w-5" />
+                    {typeof totalUnread === 'number' && totalUnread > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white leading-none">
+                        {totalUnread > 99 ? "99+" : totalUnread}
+                      </span>
+                    )}
+                  </div>
                   <span>Chat</span>
                 </Link>
 
@@ -211,5 +214,5 @@ export default function HeaderClient({ session }: HeaderClientProps) {
         </div>
       )}
     </header>
-  );
+  )
 }

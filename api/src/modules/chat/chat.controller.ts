@@ -68,6 +68,13 @@ export class ChatController {
     return this.chatService.deleteConversationForMe(conversationId, user.id)
   }
 
+  @Get('unread-count')
+  @ApiAuth()
+  async getUnReadCount(@CurrentUser() user: IUserPayload) {
+    const { total } = await this.chatService.getUnreadCounts(user.id)
+    return total
+  }
+  
   @Get('search')
   @ApiAuth()
   async searchUser(

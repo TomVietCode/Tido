@@ -58,14 +58,6 @@ export class AuthService {
   async signUp(dto: SignUpDto): Promise<AuthResponse> {
     const { fullName, email, password } = dto
 
-    const existingUser = await this.usersService.findOne({
-      email,
-      provider: Provider.LOCAL,
-    })
-    if (existingUser) {
-      throw new BadRequestException('Tài khoản với email này đã tồn tại')
-    }
-
     const user = await this.usersService.createUserFromLocal({
       fullName,
       email,

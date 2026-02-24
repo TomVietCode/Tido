@@ -19,7 +19,6 @@ export function useInfiniteMessages(
   initialHasMore: boolean,
   limit: number = 50
 ): UseInfiniteMessagesReturn {
-  // state
   const [messages, setMessages] = useState<IMessage[]>(initialMessages)
   const [cursor, setCursor] = useState<string | null>(initialCursor)
   const [hasMore, setHasMore] = useState(initialHasMore)
@@ -28,19 +27,8 @@ export function useInfiniteMessages(
   const isLoadingRef = useRef(false)
   const observerRef = useRef<IntersectionObserver | null>(null)
 
-  if (!conversationId) return {
-    messages: [],
-    isLoadingMore: false,
-    hasMore: false,
-    loadMoreMessages: async () => {},
-    addNewMessage: () => {},
-    sentinelRef: () => {},
-    updateMessages: () => {},
-  }
-  // called when sentinel becomes visible
   const loadMoreMessages = useCallback(async () => {
-    // prevent duplicate requests
-    if (isLoadingRef.current || !hasMore || !cursor) return
+    if (!conversationId || isLoadingRef.current || !hasMore || !cursor) return
 
     isLoadingRef.current = true
     setIsLoadingMore(true)
@@ -62,7 +50,6 @@ export function useInfiniteMessages(
     }
   }, [conversationId, limit, cursor, hasMore])
 
-  // add new message to the end
   const addNewMessage = useCallback((msg: IMessage) => {
     setMessages((prev) => [...prev, msg])
   }, [])
@@ -72,9 +59,8 @@ export function useInfiniteMessages(
       if (observerRef.current) {
         observerRef.current.disconnect()
       }
-      if (!node) return
+      if (!node || !conversationId) return
 
-      // create new observer
       observerRef.current = new IntersectionObserver(
         (entries) => {
           const [entry] = entries
@@ -83,7 +69,6 @@ export function useInfiniteMessages(
           }
         },
         {
-          // trigger when sentinel is 100px from viewport
           rootMargin: "100px 0px 0px 0px",
           threshold: 0,
         }
@@ -91,7 +76,7 @@ export function useInfiniteMessages(
 
       observerRef.current.observe(node)
     },
-    [hasMore, loadMoreMessages]
+    [conversationId, hasMore, loadMoreMessages]
   )
 
   const updateMessages = useCallback((updater: (prev: IMessage[]) => IMessage[]) => {
@@ -101,7 +86,7 @@ export function useInfiniteMessages(
   return {
     messages,
     isLoadingMore,
-    hasMore,
+    hasMore: conversationId ? hasMore : false,
     loadMoreMessages,
     addNewMessage,
     sentinelRef,

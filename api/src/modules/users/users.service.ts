@@ -35,7 +35,9 @@ export class UsersService {
   async createUserFromLocal(data: CreateUserLocalDto) {
     try {
       const { password, ...props } = data
-      const existingUser = await this.findOne({ email: props.email })
+      const existingUser = await this.prisma.user.findUnique({
+        where: { email: props.email },
+      })
       if (existingUser) {
         throw new BadRequestException('Tài khoản với email này đã tồn tại')
       }
