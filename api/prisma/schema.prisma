@@ -46,7 +46,7 @@ enum CategoryStatus {
 }
 
 model User {
-  id          String      @id @default(uuid()) @db.Uuid
+  id          String      @id @default(uuid(7)) @db.Uuid
   email       String      @unique
   fullName    String      @map("full_name")
   avatarUrl   String?     @map("avatar_url")
@@ -81,8 +81,8 @@ model Category {
 }
 
 model Post {
-  id               String     @id @default(uuid()) @db.Uuid
-  userId           String     @db.Uuid
+  id               String     @id @default(uuid(7)) @db.Uuid
+  userId           String     @db.Uuid @map("user_id")
   categoryId       Int        @map("category_id")
   title            String
   description      String?
@@ -92,6 +92,7 @@ model Post {
   hasReward        Boolean    @default(false) @map("has_reward")
   securityQuestion String?    @map("security_question")
   contactVisible   Boolean    @default(false) @map("contact_visible")
+  location         String?    @map("location")
   happenedAt       DateTime?  @map("happened_at")
   createdAt        DateTime   @default(now()) @map("created_at")
   updatedAt        DateTime   @updatedAt @map("updated_at")
@@ -117,3 +118,4 @@ model SavedPost {
   @@id([userId, postId])
   @@map("saved_posts")
 }
+

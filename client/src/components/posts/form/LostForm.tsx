@@ -69,7 +69,6 @@ export default function LostForm({ categories }: { categories: Category[] }) {
   const onSubmit = async (data: LostFormValues) => {
     const { files, ...props } = data
   
-    // Upload tất cả ảnh song song và đợi hoàn thành
     const uploadResults = await Promise.all(
       files.map(async (file: File) => {
         try {

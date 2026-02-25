@@ -59,13 +59,11 @@ export class GetPostsQueryDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  page?: number = 1
+  limit?: number = 20
 
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  limit?: number = 10
+  @IsString()
+  cursor?: string
 
   @IsOptional()
   @IsString()
@@ -83,10 +81,6 @@ export class GetPostsQueryDto {
   @IsOptional()
   @IsEnum(PostType, { message: 'Loại bài đăng không hợp lệ' })
   type?: PostType
-
-  @IsOptional()
-  @IsString()
-  sortBy?: string = 'createdAt'
 
   @IsOptional()
   @IsEnum(SortOrder)

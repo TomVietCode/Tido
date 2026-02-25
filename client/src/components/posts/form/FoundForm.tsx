@@ -16,12 +16,17 @@ import { foundFormSchema, FoundFormValues } from "@/lib/schemas/post.schema"
 import { zodResolver } from "@hookform/resolvers/zod"
 import FormErrorMessage from "@/components/ui/form-error-message"
 import { Category } from "@/types"
-import { Spinner } from "@/components/ui/spinner"
+import { uploadFile } from "@/lib/helpers/client-upload"
+import { getPresignedUrl } from "@/lib/actions/upload.action"
+import { toast } from "sonner"
+import { PostType } from "@/types/enums"
+import { createPost } from "@/lib/actions/post.action"
+import { showErrorToast } from "@/lib/helpers/handle-errors"
 
 export default function FoundForm({ categories }: { categories: Category[] }) {
   const [filePreviews, setFilePreviews] = useState<string[]>([])
 
-  const { register, watch, getValues, setValue, formState, handleSubmit } = useForm<FoundFormValues>({
+  const { register, watch, getValues, setValue, formState, handleSubmit, reset } = useForm<FoundFormValues>({
     resolver: zodResolver(foundFormSchema),
     defaultValues: {
       title: "",
@@ -38,7 +43,7 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
     const updatedFiles = [...currentFiles, ...newFiles].slice(0, 5)
     setValue("files", updatedFiles, { shouldValidate: true })
   }
-  
+
   useEffect(() => {
     if (files.length === 0) {
       setFilePreviews([])
@@ -55,8 +60,49 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
     setValue("files", updatedFiles, { shouldValidate: true })
   }
 
-  const onSubmit = (data: FoundFormValues) => {
-    console.log("Dữ liệu gửi lên server:", data)
+  const onSubmit = async (data: FoundFormValues) => {
+    const { files, ...props } = data
+
+    const uploadResults = await Promise.all(
+      files.map(async (file: File) => {
+        try {
+          const { uploadUrl, uploadedUrl } = await getPresignedUrl(file.name, file.type)
+          await uploadFile(file, uploadUrl)
+          return uploadedUrl
+        } catch (error: any) {
+          toast.error(error.message || "Xảy ra lỗi khi upload ảnh")
+          return null
+        }
+      })
+    )
+
+    const images = uploadResults.filter((url): url is string => url !== null)
+    if (images.length === 0 && files.length > 0) {
+      toast.error("Không thể upload ảnh, vui lòng thử lại")
+      return
+    }
+
+    const submitData = {
+      ...props,
+      happenedAt: props.happenedAt ? props.happenedAt : undefined,
+      images: images.length > 0 ? images : [],
+      type: PostType.FOUND,
+    }
+
+    const res = await createPost(submitData)
+    if (res.success === false) {
+      showErrorToast(res.message)
+      return
+    }
+
+    toast.success("Đăng tin thành công")
+    reset({
+      title: "",
+      description: "",
+      files: [],
+      location: "",
+      contactVisible: false,
+    })
   }
 
   return (
@@ -90,7 +136,9 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
                 <SelectContent>
                   <SelectGroup>
                     {categories.map((category) => (
-                      <SelectItem key={category.slug} value={category.id.toString()}>{category.name}</SelectItem>
+                      <SelectItem key={category.slug} value={category.id.toString()}>
+                        {category.name}
+                      </SelectItem>
                     ))}
                   </SelectGroup>
                 </SelectContent>
@@ -112,9 +160,7 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
 
             {/* Security Question */}
             <div className="grid gap-1">
-              <Label htmlFor="tabs-lost-title">
-                Câu hỏi bảo mật
-              </Label>
+              <Label htmlFor="tabs-lost-title">Câu hỏi bảo mật</Label>
               <Input
                 {...register("securityQuestion")}
                 id="tabs-found-security-question"
@@ -187,7 +233,7 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
               disabled={formState.isSubmitting}
               className="w-full bg-chart-2 text-white hover:bg-chart-3 transition-colors duration-300 cursor-pointer "
             >
-              {formState.isSubmitting ? <><Spinner /> Đang đăng...</> : "Đăng tin ngay"}
+              {formState.isSubmitting ? "Đang đăng..." : "Đăng tin ngay"}
             </Button>
           </CardFooter>
         </form>

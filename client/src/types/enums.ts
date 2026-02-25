@@ -24,6 +24,11 @@ export enum PostStatus {
   HIDDEN = 'HIDDEN',
 }
 
+export enum SortOrder {
+  DESC = 'desc',
+  ASC = 'asc',
+}
+
 export enum CategoryStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',

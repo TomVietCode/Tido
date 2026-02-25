@@ -16,3 +16,26 @@ export interface Post {
   createdAt: Date | string     
   updatedAt: Date | string     
 }
+
+export interface PostListItem {
+  id: string
+  userId: string
+  title: string
+  images: string[]
+  type: PostType
+  hasReward?: boolean
+  securityQuestion?: string 
+  contactVisible?: boolean 
+  location?: string
+  happenedAt?: Date | string  
+  createdAt: Date | string
+}
+
+export interface PostListResponse {
+  meta: {
+    limit: number
+    hasNextPage: boolean
+    nextCursor: string | null
+  }
+  data: PostListItem[]
+}

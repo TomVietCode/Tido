@@ -12,7 +12,7 @@ import {
   GetPostsQueryDto,
   UpdatePostDto,
 } from '@src/modules/posts/dtos/post.dto'
-import { PostStatus, SortOrder, UserStatus } from '@common/enums'
+import { PostStatus, PostType, SortOrder, UserStatus } from '@common/enums'
 import { IUserPayload } from '@common/interfaces'
 import { SavedPostsService } from '@modules/saved-posts/saved-posts.service'
 
@@ -54,16 +54,16 @@ export class PostsService {
 
   async findAll(query: GetPostsQueryDto) {
     const {
-      page = 1,
-      limit = 10,
+      limit = 20,
       search,
       catSlug,
       catId,
       type,
-      sortBy = 'createdAt',
       sortOrder = SortOrder.DESC,
+      cursor,
     } = query
-    const skip = (page - 1) * limit
+    const safeLimit = Math.min(limit, 30)
+
     const where: any = { status: PostStatus.OPEN }
 
     if (search) {
@@ -72,80 +72,83 @@ export class PostsService {
         { description: { contains: search, mode: 'insensitive' } },
       ]
     }
+
     if (catId) where.categoryId = catId
     if (catSlug) where.category = { slug: catSlug }
     if (type) where.type = type
 
-    const [data, total] = await Promise.all([
-      this.prisma.post.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { [sortBy]: sortOrder },
-        select: {
-          id: true,
-          userId: true,
-          title: true,
-          images: true,
-          type: true,
-          status: true,
-          hasReward: true,
-          createdAt: true,
-        },
-      }),
-      this.prisma.post.count({ where }),
-    ])
+    const rows = await this.prisma.post.findMany({
+      where,
+      take: safeLimit + 1,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+      orderBy: { id: sortOrder },
+      select: {
+        id: true,
+        userId: true,
+        title: true,
+        images: true,
+        type: true,
+        hasReward: true,
+        location: true,
+        securityQuestion: true,
+        happenedAt: true,
+        createdAt: true,
+      }
+    })
 
+    const hasNextPage = rows.length > safeLimit
+    const data = hasNextPage ? rows.slice(0, safeLimit) : rows
+    const nextCursor = hasNextPage ? data[data.length - 1].id : null
+    
     return {
       meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
+        limit: safeLimit,
+        hasNextPage,
+        nextCursor
       },
       data,
     }
   }
 
-  async findMyPosts(query: GetMyPostsQueryDto, user: IUserPayload) {
-    const {
-      page = 1,
-      limit = 10,
-      catSlug,
-      catId,
-      status,
-      type,
-      sortBy = 'createdAt',
-      sortOrder = SortOrder.DESC,
-    } = query
-    const skip = (page - 1) * limit
-    const where: any = { userId: user.id }
+  // async findMyPosts(query: GetMyPostsQueryDto, user: IUserPayload) {
+  //   const {
+  //     page = 1,
+  //     limit = 10,
+  //     catSlug,
+  //     catId,
+  //     status,
+  //     type,
+  //     sortBy = 'createdAt',
+  //     sortOrder = SortOrder.DESC,
+  //   } = query
+  //   const skip = (page - 1) * limit
+  //   const where: any = { userId: user.id }
 
-    if (catId) where.categoryId = catId
-    if (catSlug) where.category = { slug: catSlug }
-    if (type) where.type = type
-    if (status) where.status = status
+  //   if (catId) where.categoryId = catId
+  //   if (catSlug) where.category = { slug: catSlug }
+  //   if (type) where.type = type
+  //   if (status) where.status = status
 
-    const [data, total] = await Promise.all([
-      this.prisma.post.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { [sortBy]: sortOrder },
-      }),
-      this.prisma.post.count({ where }),
-    ])
+  //   const [data, total] = await Promise.all([
+  //     this.prisma.post.findMany({
+  //       where,
+  //       skip,
+  //       take: limit,
+  //       orderBy: { [sortBy]: sortOrder },
+  //     }),
+  //     this.prisma.post.count({ where }),
+  //   ])
 
-    return {
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-      data,
-    }
-  }
+  //   return {
+  //     meta: {
+  //       total,
+  //       page,
+  //       limit,
+  //       totalPages: Math.ceil(total / limit),
+  //     },
+  //     data,
+  //   }
+  // }
 
   async findSavedPosts(user: IUserPayload) {
     const savedPosts = await this.savedPost.findAll(user)
