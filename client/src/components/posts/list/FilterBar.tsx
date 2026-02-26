@@ -12,8 +12,8 @@ import { useDebounce } from "@/lib/hooks/useDebounce"
 
 const TYPE_OPTIONS = [
   { label: "Tất cả", value: "all" },
-  { label: "Mất đồ", value: PostType.LOST },
-  { label: "Tìm được đồ", value: PostType.FOUND },
+  { label: "Thất lạc", value: PostType.LOST },
+  { label: "Tìm thấy", value: PostType.FOUND },
 ] as const
 
 const ALL_CATEGORIES_VALUE = "all"
@@ -83,7 +83,7 @@ export default function FilterBar({ categories = [] }: FilterBarProps) {
               type="text"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
-              placeholder="Tìm kiếm đồ thất lạc..."
+              placeholder="Tìm kiếm vật thất lạc..."
               className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:border-transparent"
             />
           </div>

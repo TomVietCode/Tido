@@ -151,7 +151,7 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
               <Label htmlFor="tabs-demo-description">Mô tả chi tiết</Label>
               <Textarea
                 id="tabs-demo-description"
-                placeholder="Mô tả đặc điểm, tình trạng của đồ vật..."
+                placeholder="Mô tả đặc điểm, tình trạng của vật..."
                 {...register("description")}
                 className={formState.errors.description && "border-destructive"}
               />

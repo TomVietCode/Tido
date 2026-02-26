@@ -8,6 +8,7 @@ import {
   Post,
   Query,
   Req,
+  UseGuards,
 } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import {
@@ -25,6 +26,7 @@ import { CurrentUser } from '@modules/auth/decorators/user.decorator'
 import { IUserPayload } from '@common/interfaces'
 import { ApiAuth, DocsInfo } from '@common/decorators'
 import { PostListResponseDto, PostResponseDto } from '@modules/posts/dtos'
+import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard'
 
 @Controller('posts')
 @ApiTags('Posts')
@@ -48,15 +50,17 @@ export class PostsController {
 
   @Get()
   @Public()
+  @UseGuards(JwtAuthGuard)
   @DocsInfo({
     summary: 'Get all posts',
     type: PostListResponseDto,
     paginated: true,
   })
   async findAll(
+    @CurrentUser() user: IUserPayload,
     @Query() query: GetPostsQueryDto,
-  ): Promise<IPostsPaginatedResponse> {
-    const data = await this.postsService.findAll(query)
+  ): Promise<IPostsPaginatedResponse> { 
+    const data = await this.postsService.findAll(query, user?.id)
     return data as IPostsPaginatedResponse
   }
 

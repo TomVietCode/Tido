@@ -10,12 +10,55 @@ import { PostListItem } from "@/types/post"
 import dayjs from "dayjs"
 import { PostType } from "@/types/enums"
 import { getPostTimeAgo } from "@/lib/helpers/date"
+import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
+import { useState } from "react"
+import { toast } from "sonner"
+import AuthDialog from "@/components/auth/AuthDialog"
+import { createConversation } from "@/lib/actions/chat.action"
 
 interface PostCardProps {
   post: PostListItem
 }
 
 export default function PostCard({ post }: PostCardProps) {
+  const { data: session } = useSession()
+  const router = useRouter()
+  const [showAuthDialog, setShowAuthDialog] = useState(false)
+  const [showQuestionDialog, setShowQuestionDialog] = useState(false)
+  const [isContacting, setIsContacting] = useState(false)
+
+  const handleContact = async () => {
+    if (!session) {
+      toast.warning("Bạn cần đăng nhập để thực hiện chức năng này!")
+      setShowAuthDialog(true)
+      return
+    }
+
+    if (post.type === PostType.FOUND && post.securityQuestion) {
+      setShowQuestionDialog(true)
+      return
+    }
+
+    await startConversation()
+  }
+
+  const startConversation = async () => {
+    try {
+      setIsContacting(true)
+      const res = await createConversation(post.userId, post.id)
+      if (res.success && res.data) {
+        router.push(`/chats/${res.data.id}`)
+      } else {
+        toast.error(res.message ?? "Không thể tạo cuộc hội thoại")
+      }
+    } catch {
+      toast.error("Có lỗi xảy ra, vui lòng thử lại sau.")
+    } finally {
+      setIsContacting(false)
+    }
+  }
+  
   const isLost = post.type === PostType.LOST
   const hasImage = post.images?.length > 0
   const detailHref = `/posts/${post.id}`
@@ -38,7 +81,7 @@ export default function PostCard({ post }: PostCardProps) {
         )}
 
         <Badge className={`absolute left-3 top-3 select-none ${isLost ? "bg-orange-400" : "bg-chart-2"}`}>
-          {isLost ? "Mất đồ" : "Nhặt được"}
+          {isLost ? "Thất lạc" : "Tìm thấy"}
         </Badge>
 
         <Button
@@ -53,9 +96,9 @@ export default function PostCard({ post }: PostCardProps) {
       {/* Content */}
       <CardContent className="flex flex-1 flex-col gap-4 px-4 pb-5">
         <div className="flex-1 space-y-2.5">
-          <div className="text-xs text-muted-foreground">
-            <span>· {getPostTimeAgo(post.createdAt)} ·</span>
-          </div>  
+          <div className="text-xs text-muted-foreground flex items-center gap-1">
+            <Clock className="h-3 w-3 shrink-0" />· {getPostTimeAgo(post.createdAt)}
+          </div>
           <Link href={detailHref} className="hover:underline">
             <h3 className="text-[15px] font-semibold leading-snug line-clamp-2">{post.title}</h3>
           </Link>
@@ -85,7 +128,8 @@ export default function PostCard({ post }: PostCardProps) {
         </div>
 
         <div className="flex gap-3 shrink-0">
-          <Button className="flex-1 gap-2 cursor-pointer" size="lg">
+          {}
+          <Button className="flex-1 gap-2 cursor-pointer" size="lg" onClick={handleContact}>
             <MessageCircle className="h-4 w-4" />
             Liên hệ
           </Button>
@@ -97,6 +141,8 @@ export default function PostCard({ post }: PostCardProps) {
           </Button>
         </div>
       </CardContent>
+
+      <AuthDialog open={showAuthDialog} onOpenChange={setShowAuthDialog} />
     </Card>
   )
 }

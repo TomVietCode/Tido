@@ -52,7 +52,7 @@ export class PostsService {
     }
   }
 
-  async findAll(query: GetPostsQueryDto) {
+  async findAll(query: GetPostsQueryDto, userId?: string) {
     const {
       limit = 20,
       search,
@@ -65,6 +65,7 @@ export class PostsService {
     const safeLimit = Math.min(limit, 30)
 
     const where: any = { status: PostStatus.OPEN }
+    if (userId) where.userId = { not: userId }
 
     if (search) {
       where.OR = [
@@ -93,18 +94,18 @@ export class PostsService {
         securityQuestion: true,
         happenedAt: true,
         createdAt: true,
-      }
+      },
     })
 
     const hasNextPage = rows.length > safeLimit
     const data = hasNextPage ? rows.slice(0, safeLimit) : rows
     const nextCursor = hasNextPage ? data[data.length - 1].id : null
-    
+
     return {
       meta: {
         limit: safeLimit,
         hasNextPage,
-        nextCursor
+        nextCursor,
       },
       data,
     }

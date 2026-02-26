@@ -7,20 +7,22 @@ export const sendRequest = async <T>(props: IRequest) => {
   }
 
   // Query Params
-  if (queryParams) {
-    const searchParams = new URLSearchParams()
-    for (const key in queryParams) {
-      if (queryParams[key] !== undefined && queryParams[key] !== null) {
-        searchParams.append(key, queryParams[key].toString())
-      }
+  let queryString = ""
+
+  if (queryParams instanceof URLSearchParams) {
+    queryString = queryParams.toString()
+  } else if (queryParams) {
+    const sp = new URLSearchParams()
+    for (const [key, value] of Object.entries(queryParams)) {
+      if (value !== undefined && value !== null) sp.append(key, String(value))
     }
-    const queryString = searchParams.toString()
-    if (queryString) {
-      url = `${url}${url.includes("?") ? "&" : "?"}${queryString}`
-    }
+    queryString = sp.toString()
+  }
+  
+  if (queryString) {
+    url = `${url}${url.includes("?") ? "&" : "?"}${queryString}`
   }
 
-  // B. Cấu hình Fetch Options
   const options: RequestInit & { next?: NextFetchRequestConfig } = {
     method,
     headers: new Headers({

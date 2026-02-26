@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -72,26 +73,37 @@ export class ChatService {
   }
 
   async getConversationById(conversationId: string, userId: string) {
-    const conv = await this.conversationModel.findOne({
-      _id: conversationId,
-      participants: { $in: [userId] },
-      deletedBy: { $nin: [userId] },
-    }).lean()
+    const conv = await this.conversationModel
+      .findOne({
+        _id: conversationId,
+        participants: { $in: [userId] },
+        deletedBy: { $nin: [userId] },
+      })
+      .lean()
     if (!conv) throw new NotFoundException('Cuộc trò chuyện không tồn tại')
     return conv
   }
 
   async createConversation(dto: CreateConversationDto) {
     const { participants, postId } = dto
-    const existingConversation = await this.conversationModel.findOne({
-      participants,
-    })
-    if (existingConversation) {
-      return existingConversation
+
+    if (participants.length !== 2 || participants[0] === participants[1]) {
+      throw new BadRequestException('Có lỗi xảy ra khi tạo cuộc hội thoại')
     }
+    
+    const existingConversation = await this.findConversationBetween(participants[0], participants[1])
+    if (existingConversation) {
+      const { _id, ...rest } = existingConversation
+      return {
+        id: _id.toString(),
+        ...rest,
+      }
+    }
+    const participantKey = this.buildParticipantKey(participants[0], participants[1])
     const conversation = await this.conversationModel.create({
       participants,
       postId,
+      participantKey
     })
 
     const { _id, ...rest } = conversation.toObject()
@@ -281,7 +293,7 @@ export class ChatService {
       await this.conversationModel.findByIdAndUpdate(
         conversationId,
         { 'lastMessage.isRead': true },
-        { timestamps: false }
+        { timestamps: false },
       )
     }
 

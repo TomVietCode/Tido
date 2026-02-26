@@ -1,12 +1,13 @@
 "use server"
 import { auth } from "@/auth"
+import { ErrUnauthorized } from "@/lib/errors"
 import { sendRequest } from "@/lib/helpers/api"
 import { IConversation, IGetMessagesResponse, SearchUserResponse } from "@/types"
 
 export const getUserById = async (userId: string) => {
   try {
     const session = await auth()
-    if (!session) throw new Error("Unauthorized")
+    if (!session) throw ErrUnauthorized
 
     const res = await sendRequest<IBackendRes<SearchUserResponse>>({
       url: `/users/${userId}`,
@@ -24,7 +25,7 @@ export const getUserById = async (userId: string) => {
 export const getConversations = async () => {
   try {
     const session = await auth()
-    if (!session) throw new Error("Unauthorized")
+    if (!session) throw ErrUnauthorized
 
     const res = await sendRequest<IBackendRes<IConversation[]>>({
       url: "/chats/conversations",
@@ -48,10 +49,10 @@ export const getConversations = async () => {
   }
 }
 
-export const createConversation = async (recipientId: string) => {
+export const createConversation = async (recipientId: string, postId?: string) => {
   try {
     const session = await auth()
-    if (!session) throw new Error("Unauthorized")
+    if (!session) throw ErrUnauthorized
 
     const res = await sendRequest<IBackendRes<IConversation>>({
       url: "/chats",
@@ -61,8 +62,12 @@ export const createConversation = async (recipientId: string) => {
       },
       body: {
         participants: [session.user.id, recipientId],
+        postId,
       },
     })
+    if (Number(res.statusCode) >= 400) {
+      throw new Error(res.message)
+    }
     return { success: true, data: res.data }
   } catch (error: any) {
     return { success: false, message: error.message }
@@ -72,7 +77,7 @@ export const createConversation = async (recipientId: string) => {
 export const getMessages = async (conversationId: string, limit = 50, cursor?: string) => {
   try {
     const session = await auth()
-    if (!session) throw new Error("Unauthorized")
+    if (!session) throw ErrUnauthorized
 
     const res = await sendRequest<IBackendRes<IGetMessagesResponse>>({
       url: `/chats/conversation/${conversationId}/messages`,
@@ -104,7 +109,7 @@ export const getMessages = async (conversationId: string, limit = 50, cursor?: s
 export const searchUsers = async (query: string) => {
   try {
     const session = await auth()
-    if (!session) throw new Error("Unauthorized")
+    if (!session) throw ErrUnauthorized
 
     const res = await sendRequest<IBackendRes<SearchUserResponse[]>>({
       method: "GET",
@@ -127,7 +132,7 @@ export const searchUsers = async (query: string) => {
 export const deleteConversationForMe = async (conversationId: string) => {
   try {
     const session = await auth()
-    if (!session) throw new Error("Unauthorized")
+    if (!session) throw ErrUnauthorized
 
     const res = await sendRequest<IBackendRes<boolean>>({
       url: `/chats/conversation/${conversationId}`,
@@ -149,7 +154,7 @@ export const deleteConversationForMe = async (conversationId: string) => {
 export const getUnreadCounts = async () => {
   try {
     const session = await auth()
-    if (!session) throw new Error("Unauthorized")
+    if (!session) throw ErrUnauthorized
 
     const res = await sendRequest<IBackendRes<number>>({
       url: "/chats/unread-count",

@@ -8,7 +8,7 @@ export default async function NewPostPage() {
   const data = categories.data || []
   return (
     <div className="flex flex-col justify-center items-center gap-4 mt-5">
-      <h1 className="text-3xl font-bold">Đăng Tin Tìm Đồ/Chủ Đồ</h1>
+      <h1 className="text-3xl font-bold">Đăng Tin Tìm Kiếm</h1>
       <p>Điền các thông tin dưới đây để đăng tin của bạn lên hệ thống</p>
 
       <div className="flex w-2xl flex-col gap-6">
@@ -18,13 +18,13 @@ export default async function NewPostPage() {
               value="lost"
               className="data-[state=active]:bg-orange-400 data-[state=active]:text-white hover:bg-orange-300 hover:text-white transition-all duration-400"
             >
-              Tin mất đồ
+              Tôi làm mất / Thất lạc
             </TabsTrigger>
             <TabsTrigger
               value="found"
               className="data-[state=active]:bg-chart-2 data-[state=active]:text-white hover:bg-chart-1 hover:text-white transition-all duration-400"
             >
-              Tin nhặt được đồ
+             Tôi nhặt được / Tìm thấy
             </TabsTrigger>
           </TabsList>
           <LostForm categories={data} />

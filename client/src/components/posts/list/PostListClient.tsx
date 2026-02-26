@@ -13,13 +13,15 @@ interface PostListClientProps {
   searchParams: Record<string, string | undefined>
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL
-
 const fetcher = async (url: string): Promise<PostListResponse> => {
-  const res = await fetch(`${API_BASE}${url}`)
+  const res = await fetch(`/api${url}`, { credentials: "include" })
   const json = await res.json()
-  if (!res.ok) throw new Error("Có lỗi khi tải dữ liệu")
-  return json.data
+
+  if (!res.ok || !json?.data) {
+    throw new Error("Có lỗi khi tải dữ liệu")
+  }
+
+  return json.data as PostListResponse
 }
 
 export default function PostListClient({

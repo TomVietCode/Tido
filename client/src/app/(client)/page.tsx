@@ -17,13 +17,12 @@ export default function Home() {
           <main className="flex flex-1 items-center justify-center">
             <div className="relative mx-auto max-w-7xl px-4 py-20 text-center sm:px-6 sm:py-24">
               <h1 className="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl md:text-6xl">
-                Nền tảng hỗ trợ tìm kiếm đồ thất lạc
+                Nền tảng hỗ trợ tìm kiếm vật thất lạc
               </h1>
               <h2 className="mx-auto mt-4 max-w-2xl text-lg text-slate-600 dark:text-slate-300">
                 Nhanh chóng - An toàn - Tin cậy
               </h2>
               <div className="mx-auto mt-10 flex max-w-sm flex-col items-center justify-center gap-4 sm:flex-row">
-                {/* Tôi bị mất đồ */}
                 <Button
                   variant="destructive"
                   asChild
@@ -31,7 +30,7 @@ export default function Home() {
                 >
                   <Link href="/posts?type=lost">
                     <AlertTriangle className="h-5 w-5" />
-                    Tôi bị mất đồ
+                    Tôi làm mất / Thất lạc
                   </Link>
                 </Button>
 
@@ -42,7 +41,7 @@ export default function Home() {
                 >
                   <Link href="/posts?type=found">
                     <HandHeart className="h-5 w-5" />
-                    Tôi nhặt được đồ
+                    Tôi tìm được / Tìm thấy
                   </Link>
                 </Button>
               </div>
