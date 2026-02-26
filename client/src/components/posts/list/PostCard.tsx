@@ -83,6 +83,11 @@ export default function PostCard({ post }: PostCardProps) {
         <Badge className={`absolute left-3 top-3 select-none ${isLost ? "bg-orange-400" : "bg-chart-2"}`}>
           {isLost ? "Thất lạc" : "Tìm thấy"}
         </Badge>
+        {post.category?.name ? (
+          <Badge className="absolute left-3 top-11 select-none bg-primary-300 text-primary-foreground">
+            {post.category.name}
+          </Badge>
+        ) : null}
 
         <Button
           size="icon"

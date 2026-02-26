@@ -38,6 +38,7 @@ export interface IPostList
     | 'location'
     | 'createdAt'
     | 'happenedAt'
+    | 'category'
   > {}
 
 export interface IPostsPaginatedResponse {

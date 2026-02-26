@@ -23,6 +23,10 @@ export interface PostListItem {
   title: string
   images: string[]
   type: PostType
+  category?: {
+    name: string
+    slug: string
+  }
   hasReward?: boolean
   securityQuestion?: string 
   contactVisible?: boolean 

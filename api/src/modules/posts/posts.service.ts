@@ -94,6 +94,12 @@ export class PostsService {
         securityQuestion: true,
         happenedAt: true,
         createdAt: true,
+        category: {
+          select: {
+            name: true,
+            slug: true,
+          },
+        },
       },
     })
 
