@@ -20,7 +20,7 @@ export default async function PostListPage({
     ? postsRes.data
     : { meta: { limit: 20, hasNextPage: false, nextCursor: null }, data: [] }
   return (
-    <div className="flex min-h-[calc(100svh-4rem)] flex-col">
+    <div className="flex w-full min-h-[calc(100svh-4rem)] flex-col">
       <FilterBar categories={categories} />
 
       <div className="flex flex-1 flex-col max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
