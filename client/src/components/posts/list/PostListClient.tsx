@@ -7,6 +7,7 @@ import PostCardSkeleton from "@/components/posts/list/PostCardSkeleton"
 import { Button } from "@/components/ui/button"
 import { Loader2, SearchX } from "lucide-react"
 import { buildQueryString } from "@/lib/utils"
+import { showErrorToast } from "@/lib/helpers/handle-errors"
 
 interface PostListClientProps {
   initialData: PostListResponse
@@ -16,9 +17,8 @@ interface PostListClientProps {
 const fetcher = async (url: string): Promise<PostListResponse> => {
   const res = await fetch(`/api${url}`, { credentials: "include" })
   const json = await res.json()
-
   if (!res.ok || !json?.data) {
-    throw new Error("Có lỗi khi tải dữ liệu")
+    throw new Error(json?.message || "Có lỗi khi tải dữ liệu")
   }
 
   return json.data as PostListResponse
@@ -45,8 +45,11 @@ export default function PostListClient({
     fallbackData: [initialData],
     revalidateFirstPage: false,
     revalidateOnFocus: false,
+    onError: (err) => {
+      const errMsg = err.message
+      showErrorToast(errMsg)
+    }
   })
-
   const pages = data ?? [initialData]
   const posts = pages.flatMap((page) => page.data)
   const hasNextPage = pages[pages.length - 1]?.meta.hasNextPage ?? false

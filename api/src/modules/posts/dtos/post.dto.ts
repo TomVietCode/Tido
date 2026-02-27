@@ -79,11 +79,14 @@ export class GetPostsQueryDto {
   catId?: number
 
   @IsOptional()
+  @Transform(({ value }) => {
+    return typeof value === 'string' ? value.toUpperCase() : value
+  })
   @IsEnum(PostType, { message: 'Loại bài đăng không hợp lệ' })
   type?: PostType
 
   @IsOptional()
-  @IsEnum(SortOrder)
+  @IsEnum(SortOrder, { message: 'Thứ tự sắp xếp không hợp lệ'})
   sortOrder?: SortOrder = SortOrder.DESC
 }
 

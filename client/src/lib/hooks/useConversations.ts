@@ -4,10 +4,12 @@ import { getConversations } from "@/lib/actions/chat.action"
 import { useSocket } from "@/lib/contexts/SocketContext"
 import { useEffect } from "react"
 import { IConversation, IMessage } from "@/types"
+import { showErrorToast } from "@/lib/helpers/handle-errors"
 
 const fetcher = async () => {
   const result = await getConversations()
-  if (!result.success) throw new Error(result.message)
+  console.log(result)
+  if (!result.success|| !result.data) throw new Error(result.message)
   return result.data
 }
 
@@ -16,6 +18,9 @@ export function useConversations(currentConversationId?: string) {
   const { data: conversations, mutate, isLoading } = useSWR("/api/conversations", fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: true,
+    onError: (err: any) => {
+      showErrorToast(err.message)
+    }
   })
 
   useEffect(() => {
