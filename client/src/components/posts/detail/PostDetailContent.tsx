@@ -4,14 +4,28 @@ import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
 import { toast } from "sonner"
-import { MapPin, Folder, MessageCircle, Share2, ImageOff, User, Gift, Mail, Phone, Calendar, Pencil } from "lucide-react"
+import {
+  MapPin,
+  Folder,
+  MessageCircle,
+  Share2,
+  ImageOff,
+  User,
+  Mail,
+  Phone,
+  Calendar,
+  Pencil,
+  Search,
+  CheckCircle,
+  EyeOff,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { ImageViewer } from "@/components/chats/ImageViewer"
 import { PostDetail } from "@/types/post"
-import { PostType } from "@/types/enums"
+import { PostStatus, PostType } from "@/types/enums"
 import { getPostTimeAgo } from "@/lib/helpers/date"
 import { usePostContact } from "@/lib/hooks/usePostContact"
 import AuthDialog from "@/components/auth/AuthDialog"
@@ -111,9 +125,7 @@ export default function PostDetailContent({ post }: PostDetailContentProps) {
               <div className="flex flex-wrap items-center gap-2">
                 <Badge
                   className={`select-none text-sm ${
-                    isLost
-                      ? "bg-orange-400 text-white hover:bg-orange-500"
-                      : "bg-chart-2 text-white hover:bg-chart-3"
+                    isLost ? "bg-orange-400 text-white hover:bg-orange-500" : "bg-chart-2 text-white hover:bg-chart-3"
                   }`}
                 >
                   {isLost ? "Thất lạc" : "Tìm thấy"}
@@ -126,13 +138,24 @@ export default function PostDetailContent({ post }: PostDetailContentProps) {
                 ) : null}
               </div>
 
-              <h1 className="text-2xl font-bold leading-tight sm:text-3xl">
-                {post.title}
-              </h1>
+              <h1 className="text-2xl font-bold leading-tight sm:text-3xl">{post.title}</h1>
 
-              <p className="text-sm text-muted-foreground">
-                Đã đăng: {getPostTimeAgo(post.createdAt)}
-              </p>
+              <div className="text-sm text-muted-foreground flex items-center gap-1">
+                {getPostTimeAgo(post.createdAt)}
+                {post.status === PostStatus.OPEN ? (
+                  <div className="flex items-center gap-1">
+                    · <Search className="h-4 w-4" /> Đang tìm
+                  </div>
+                ) : post.status === PostStatus.CLOSED ? (
+                  <div className="flex items-center gap-1">
+                    · <CheckCircle className="h-4 w-4" /> {isLost ? "Đã tìm thấy" : "Đã trao trả"}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    · <EyeOff className="h-4 w-4" /> Đã ẩn
+                  </div>
+                )}
+              </div>
             </div>
 
             <Separator />
@@ -173,7 +196,9 @@ export default function PostDetailContent({ post }: PostDetailContentProps) {
                     <Calendar className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">{post.type === PostType.LOST ? "Mất ngày" : "Tìm thấy ngày"}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {post.type === PostType.LOST ? "Mất ngày" : "Tìm thấy ngày"}
+                    </p>
                     <p className="font-medium">{dayjs(post.happenedAt).format("DD/MM/YYYY")}</p>
                   </div>
                 </div>
@@ -234,9 +259,7 @@ export default function PostDetailContent({ post }: PostDetailContentProps) {
                 <Separator />
                 <div className="space-y-2">
                   <h2 className="text-lg font-semibold">Mô tả chi tiết</h2>
-                  <p className="whitespace-pre-line text-muted-foreground leading-relaxed">
-                    {post.description}
-                  </p>
+                  <p className="whitespace-pre-line text-muted-foreground leading-relaxed">{post.description}</p>
                 </div>
               </>
             ) : null}
@@ -246,11 +269,7 @@ export default function PostDetailContent({ post }: PostDetailContentProps) {
         {/* Action Buttons */}
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           {isOwner ? (
-            <Button
-              size="lg"
-              className="w-full cursor-pointer gap-2 sm:w-auto sm:min-w-[200px]"
-              asChild
-            >
+            <Button size="lg" className="w-full cursor-pointer gap-2 sm:w-auto sm:min-w-[200px]" asChild>
               <Link href={`/posts/${post.id}/edit`}>
                 <Pencil className="h-5 w-5" />
                 Chỉnh sửa bài viết
@@ -280,12 +299,7 @@ export default function PostDetailContent({ post }: PostDetailContentProps) {
       </div>
 
       {hasImages ? (
-        <ImageViewer
-          images={post.images}
-          initialIndex={selectedImage}
-          open={showViewer}
-          onOpenChange={setShowViewer}
-        />
+        <ImageViewer images={post.images} initialIndex={selectedImage} open={showViewer} onOpenChange={setShowViewer} />
       ) : null}
       <AuthDialog open={showAuthDialog} onOpenChange={setShowAuthDialog} />
       <QuestionDialog
