@@ -66,7 +66,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
                       </span>
                     )}
                   </div>
-                  <span>Chat</span>
+                  <span>Tin nhắn</span>
                 </Link>
 
                 <Link
@@ -159,7 +159,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
                       </span>
                     )}
                   </div>
-                  <span>Chat</span>
+                  <span>Tin nhắn</span>
                 </Link>
 
                 <Link

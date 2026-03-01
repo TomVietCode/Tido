@@ -16,6 +16,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 import AuthDialog from "@/components/auth/AuthDialog"
 import { createConversation } from "@/lib/actions/chat.action"
+import QuestionDialog from "@/components/posts/list/QuestionDialog"
 
 interface PostCardProps {
   post: PostListItem
@@ -29,6 +30,7 @@ export default function PostCard({ post }: PostCardProps) {
   const [isContacting, setIsContacting] = useState(false)
 
   const handleContact = async () => {
+    console.log(session)
     if (!session) {
       toast.warning("Bạn cần đăng nhập để thực hiện chức năng này!")
       setShowAuthDialog(true)
@@ -44,21 +46,16 @@ export default function PostCard({ post }: PostCardProps) {
   }
 
   const startConversation = async () => {
-    try {
-      setIsContacting(true)
-      const res = await createConversation(post.userId, post.id)
-      if (res.success && res.data) {
-        router.push(`/chats/${res.data.id}`)
-      } else {
-        toast.error(res.message ?? "Không thể tạo cuộc hội thoại")
-      }
-    } catch {
-      toast.error("Có lỗi xảy ra, vui lòng thử lại sau.")
-    } finally {
-      setIsContacting(false)
+    setIsContacting(true)
+    const res = await createConversation(post.userId, post.id)
+    if (res.success && res.data) {
+      router.push(`/chats/${res.data.id}`)
+    } else {
+      toast.error(res.message ?? "Có lỗi xảy ra, vui lòng thử lại sau!")
     }
+    setIsContacting(false)
   }
-  
+
   const isLost = post.type === PostType.LOST
   const hasImage = post.images?.length > 0
   const detailHref = `/posts/${post.id}`
@@ -133,7 +130,6 @@ export default function PostCard({ post }: PostCardProps) {
         </div>
 
         <div className="flex gap-3 shrink-0">
-          {}
           <Button className="flex-1 gap-2 cursor-pointer" size="lg" onClick={handleContact}>
             <MessageCircle className="h-4 w-4" />
             Liên hệ
@@ -148,6 +144,12 @@ export default function PostCard({ post }: PostCardProps) {
       </CardContent>
 
       <AuthDialog open={showAuthDialog} onOpenChange={setShowAuthDialog} />
+      <QuestionDialog
+        open={showQuestionDialog}
+        onOpenChange={setShowQuestionDialog}
+        postId={post.id}
+        question={post.securityQuestion!}
+      />
     </Card>
   )
 }

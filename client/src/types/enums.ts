@@ -39,3 +39,9 @@ export enum MessageType {
   IMAGE = 'image',
   EMOJI = 'emoji',
 }
+
+export enum ContactRequestStatus {
+  PENDING = 'PENDING',
+  ACCEPTED = 'ACCEPTED',
+  REJECTED = 'REJECTED',
+}

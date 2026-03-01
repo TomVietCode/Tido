@@ -13,6 +13,7 @@ import { toast } from "sonner"
 import { Spinner } from "../ui/spinner"
 import { signInAction, signUpAction } from "@/lib/actions/auth.action"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 
 interface AuthDialogProps {
   open?: boolean
@@ -21,6 +22,7 @@ interface AuthDialogProps {
 }
 
 export default function AuthDialog({ open, onOpenChange, trigger }: AuthDialogProps) {
+  const { update } = useSession()
   const router = useRouter()
   const [authMode, setAuthMode] = useState<string | null>(null)
 
@@ -50,7 +52,10 @@ export default function AuthDialog({ open, onOpenChange, trigger }: AuthDialogPr
     signInForm.reset()
     signUpForm.reset()
   }
-  const closeDialog = () => setAuthMode(null)
+  const closeDialog = () => {
+    setAuthMode(null)
+    onOpenChange?.(false)
+  }
 
   const signUpForm = useForm<SignUpValues>({
     resolver: zodResolver(SignUpSchema),
@@ -75,6 +80,7 @@ export default function AuthDialog({ open, onOpenChange, trigger }: AuthDialogPr
       toast.success("Đăng ký tài khoản thành công!")
       signUpForm.reset()
       closeDialog()
+      await update()
       router.push("/profile")
     } catch (error: any) {
       toast.error(error.message ?? "Có lỗi xảy ra, vui lòng thử lại sau.")
@@ -87,6 +93,7 @@ export default function AuthDialog({ open, onOpenChange, trigger }: AuthDialogPr
       toast.success(res.message)
       signInForm.reset()
       closeDialog()
+      await update()
       router.refresh()
     } else {
       toast.error(res.message ?? "Có lỗi xảy ra, vui lòng thử lại sau.")

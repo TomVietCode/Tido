@@ -12,9 +12,10 @@ import { PostsModule } from '@modules/posts/posts.module'
 import { CategoriesModule } from '@modules/categories/categories.module'
 import { RoleGuard } from '@modules/auth/guards/role.guard'
 import { UploadModule } from '@modules/uploads/upload.module';
-import { SavedPostsModule } from './modules/saved-posts/saved-posts.module';
+import { SavedPostsModule } from '@modules/saved-posts/saved-posts.module';
 import { MongooseModule } from '@nestjs/mongoose'
-import { ChatModule } from './modules/chat/chat.module';
+import { ChatModule } from '@modules/chat/chat.module';
+import { ContactRequestsModule } from '@modules/contact-requests/contact-requests.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { ChatModule } from './modules/chat/chat.module';
     UploadModule,
     SavedPostsModule,
     ChatModule,
+    ContactRequestsModule,
   ],
   controllers: [AppController],
   providers: [
