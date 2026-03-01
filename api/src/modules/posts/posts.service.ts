@@ -187,13 +187,25 @@ export class PostsService {
       where: { id },
       include: {
         category: true,
-        user: { select: { fullName: true, avatarUrl: true } },
+        user: {
+          select: {
+            fullName: true,
+            avatarUrl: true,
+            email: true,
+            phoneNumber: true,
+          },
+        },
       },
     })
     if (!post) throw new NotFoundException('Bài viết không tồn tại')
 
     if (post.status === PostStatus.HIDDEN && post.userId !== requesterId) {
       throw new NotFoundException('Bài viết không tồn tại')
+    }
+
+    if (!post.contactVisible && post.user) {
+      delete (post.user as any).email
+      delete (post.user as any).phoneNumber
     }
 
     return post

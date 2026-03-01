@@ -17,6 +17,20 @@ export interface Post {
   updatedAt: Date | string     
 }
 
+export interface PostDetail extends Post {
+  location: string | null
+  user?: {
+    fullName: string
+    avatarUrl: string
+    email?: string
+    phoneNumber?: string
+  }
+  category?: {
+    name: string
+    slug: string
+  }
+}
+
 export interface PostListItem {
   id: string
   userId: string

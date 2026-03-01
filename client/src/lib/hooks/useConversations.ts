@@ -8,7 +8,6 @@ import { showErrorToast } from "@/lib/helpers/handle-errors"
 
 const fetcher = async () => {
   const result = await getConversations()
-  console.log(result)
   if (!result.success|| !result.data) throw new Error(result.message)
   return result.data
 }

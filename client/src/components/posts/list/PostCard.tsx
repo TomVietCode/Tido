@@ -10,53 +10,36 @@ import { PostListItem } from "@/types/post"
 import dayjs from "dayjs"
 import { PostType } from "@/types/enums"
 import { getPostTimeAgo } from "@/lib/helpers/date"
-import { useRouter } from "next/navigation"
-import { useSession } from "next-auth/react"
 import { useState } from "react"
 import { toast } from "sonner"
 import AuthDialog from "@/components/auth/AuthDialog"
-import { createConversation } from "@/lib/actions/chat.action"
 import QuestionDialog from "@/components/posts/list/QuestionDialog"
 import { toggleSavePost } from "@/lib/actions/post.action"
 import { showErrorToast } from "@/lib/helpers/handle-errors"
 import { Tooltip, TooltipContent } from "@/components/ui/tooltip"
 import { TooltipTrigger } from "@radix-ui/react-tooltip"
+import { usePostContact } from "@/lib/hooks/usePostContact"
 
 interface PostCardProps {
   post: PostListItem
 }
 
 export default function PostCard({ post }: PostCardProps) {
-  const { data: session } = useSession()
-  const router = useRouter()
-  const [showAuthDialog, setShowAuthDialog] = useState(false)
-  const [showQuestionDialog, setShowQuestionDialog] = useState(false)
+  const {
+    session,
+    handleContact,
+    showAuthDialog,
+    setShowAuthDialog,
+    showQuestionDialog,
+    setShowQuestionDialog,
+  } = usePostContact({
+    postId: post.id,
+    postUserId: post.userId,
+    postType: post.type,
+    securityQuestion: post.securityQuestion,
+  })
+
   const [isSaved, setIsSaved] = useState(post.isSaved ?? false)
-
-  const handleContact = async () => {
-    console.log(session)
-    if (!session) {
-      toast.warning("Bạn cần đăng nhập để thực hiện chức năng này!")
-      setShowAuthDialog(true)
-      return
-    }
-
-    if (post.type === PostType.FOUND && post.securityQuestion) {
-      setShowQuestionDialog(true)
-      return
-    }
-
-    await startConversation()
-  }
-
-  const startConversation = async () => {
-    const res = await createConversation(post.userId, post.id)
-    if (res.success && res.data) {
-      router.push(`/chats/${res.data.id}`)
-    } else {
-      toast.error(res.message ?? "Có lỗi xảy ra, vui lòng thử lại sau!")
-    }
-  }
 
   const handleToggleSave = async () => {
     if (!session) {
@@ -70,7 +53,7 @@ export default function PostCard({ post }: PostCardProps) {
     const res = await toggleSavePost(post.id)
 
     if (!res.success) {
-      setIsSaved((prev) => !prev) // rollback on failure
+      setIsSaved((prev) => !prev)
       showErrorToast(res.message)
     }
   }
