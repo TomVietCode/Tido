@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function PostDetailLoading() {
   return (
-    <div className="min-h-[calc(100svh-4rem)] bg-background">
+    <div className="min-h-[calc(100svh-7rem)] bg-background">
       <div className="mx-auto lg:w-6xl max-w-6xl px-4 py-6">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           {/* Image Gallery Skeleton */}
@@ -10,7 +10,7 @@ export default function PostDetailLoading() {
             <Skeleton className="aspect-4/3 w-full rounded-xl" />
             <div className="flex gap-2">
               {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-16 w-16 shrink-0 rounded-lg" />
+                <Skeleton key={i} className="relative flex-1 aspect-square rounded-lg" />
               ))}
             </div>
           </div>
