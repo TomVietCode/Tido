@@ -51,3 +51,22 @@ export const createPost = async (data: any) => {
     return getErrPayload(error)
   }
 }
+
+export const toggleSavePost = async (postId: string) => {
+  try {
+    const session = await auth()
+    if (!session) throw ErrUnauthorized
+
+    const res = await sendRequest<IBackendRes<boolean>>({
+      url: `/posts/${postId}/save`,
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.user.access_token}`,
+      },
+    })
+
+    return res
+  } catch (error) {
+    return getErrPayload(error)
+  }
+}

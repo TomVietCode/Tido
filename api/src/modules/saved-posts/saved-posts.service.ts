@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import { IUserPayload } from '@common/interfaces'
 import { PrismaService } from '@src/database/prisma/prisma.service'
 import { PostStatus } from '@src/common/enums'
@@ -6,7 +6,16 @@ import { PostStatus } from '@src/common/enums'
 @Injectable()
 export class SavedPostsService {
   constructor(private readonly prisma: PrismaService) {}
+
   async toggleSave(postId: string, user: IUserPayload) {
+    const post = await this.prisma.post.findUnique({ 
+      where: { id: postId },
+      select: { userId: true }
+    })
+
+    if (!post) throw new NotFoundException("Không tìm thấy bài viết")
+    if (post.userId === user.id) throw new BadRequestException("Bạn không thể lưu bài viết của mình")
+      
     const where = { userId_postId: { userId: user.id, postId } }
     const savedPost = await this.prisma.savedPost.findUnique({ where })
     if (savedPost) {

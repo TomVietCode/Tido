@@ -39,7 +39,9 @@ export interface IPostList
     | 'createdAt'
     | 'happenedAt'
     | 'category'
-  > {}
+  > {
+    isSaved?: boolean
+  }
 
 export interface IPostsPaginatedResponse {
   meta: {

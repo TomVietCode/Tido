@@ -33,6 +33,7 @@ export interface PostListItem {
   location?: string
   happenedAt?: Date | string  
   createdAt: Date | string
+  isSaved?: boolean
 }
 
 export interface PostListResponse {

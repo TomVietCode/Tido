@@ -95,16 +95,24 @@ export class PostsService {
         happenedAt: true,
         createdAt: true,
         category: {
-          select: {
-            name: true,
-            slug: true,
-          },
+          select: { name: true, slug: true, },
         },
+        ...(userId ? {
+          savedPosts: {
+            where: { userId },
+            select: { userId: true },
+            take: 1,
+          }
+        } : {})
       },
     })
 
     const hasNextPage = rows.length > safeLimit
-    const data = hasNextPage ? rows.slice(0, safeLimit) : rows
+    const sliced = hasNextPage ? rows.slice(0, safeLimit) : rows
+    const data = sliced.map(({ savedPosts, ...rest }) => ({
+      ...rest,
+      isSaved: Array.isArray(savedPosts) && savedPosts.length > 0
+    }))
     const nextCursor = hasNextPage ? data[data.length - 1].id : null
 
     return {

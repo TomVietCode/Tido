@@ -114,7 +114,7 @@ export default function FilterBar({ categories = [] }: FilterBarProps) {
             {/* Type pills */}
             <div className="flex flex-wrap gap-2">
               {TYPE_OPTIONS.map((opt) => {
-                const isActive = opt.value === "all" ? currentType === "" : currentType === opt.value
+                const isActive = opt.value === "all" ? currentType === "" : currentType.toUpperCase() === opt.value
                 return (
                   <Button
                     key={opt.value}

@@ -148,10 +148,10 @@ export class PostsController {
   @ApiAuth()
   @DocsInfo({ summary: 'Toggle save post', type: Boolean })
   async toggleSave(
-    @Param('id') id: string,
+    @Param('id') postId: string,
     @CurrentUser() user: IUserPayload,
   ): Promise<boolean> {
-    const result = await this.savedPostsService.toggleSave(id, user)
+    const result = await this.savedPostsService.toggleSave(postId, user)
     return result
   }
 }

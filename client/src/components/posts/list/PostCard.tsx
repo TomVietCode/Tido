@@ -17,6 +17,10 @@ import { toast } from "sonner"
 import AuthDialog from "@/components/auth/AuthDialog"
 import { createConversation } from "@/lib/actions/chat.action"
 import QuestionDialog from "@/components/posts/list/QuestionDialog"
+import { toggleSavePost } from "@/lib/actions/post.action"
+import { showErrorToast } from "@/lib/helpers/handle-errors"
+import { Tooltip, TooltipContent } from "@/components/ui/tooltip"
+import { TooltipTrigger } from "@radix-ui/react-tooltip"
 
 interface PostCardProps {
   post: PostListItem
@@ -27,7 +31,7 @@ export default function PostCard({ post }: PostCardProps) {
   const router = useRouter()
   const [showAuthDialog, setShowAuthDialog] = useState(false)
   const [showQuestionDialog, setShowQuestionDialog] = useState(false)
-  const [isContacting, setIsContacting] = useState(false)
+  const [isSaved, setIsSaved] = useState(post.isSaved ?? false)
 
   const handleContact = async () => {
     console.log(session)
@@ -46,14 +50,29 @@ export default function PostCard({ post }: PostCardProps) {
   }
 
   const startConversation = async () => {
-    setIsContacting(true)
     const res = await createConversation(post.userId, post.id)
     if (res.success && res.data) {
       router.push(`/chats/${res.data.id}`)
     } else {
       toast.error(res.message ?? "Có lỗi xảy ra, vui lòng thử lại sau!")
     }
-    setIsContacting(false)
+  }
+
+  const handleToggleSave = async () => {
+    if (!session) {
+      toast.warning("Bạn cần đăng nhập để thực hiện chức năng này!")
+      setShowAuthDialog(true)
+      return
+    }
+
+    setIsSaved((prev) => !prev)
+
+    const res = await toggleSavePost(post.id)
+
+    if (!res.success) {
+      setIsSaved((prev) => !prev) // rollback on failure
+      showErrorToast(res.message)
+    }
   }
 
   const isLost = post.type === PostType.LOST
@@ -85,14 +104,28 @@ export default function PostCard({ post }: PostCardProps) {
             {post.category.name}
           </Badge>
         ) : null}
-
-        <Button
-          size="icon"
-          variant="secondary"
-          className="absolute right-3 top-3 h-8 w-8 rounded-full cursor-pointer opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-        >
-          <Bookmark className="h-4 w-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="icon"
+              variant="secondary"
+              onClick={(e) => {
+                e.preventDefault()
+                handleToggleSave()
+              }}
+              className={`absolute right-3 top-3 h-8 w-8 rounded-full cursor-pointer transition-opacity duration-200 ${
+                isSaved
+                  ? "opacity-100 bg-yellow-400 hover:bg-yellow-500 text-white"
+                  : "opacity-0 group-hover:opacity-100"
+              }`}
+            >
+              <Bookmark className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            <p>{isSaved ? "Bỏ lưu" : "Lưu bài viết"}</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       {/* Content */}
