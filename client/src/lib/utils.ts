@@ -21,3 +21,13 @@ export const isOnlyEmoji = (text: string): boolean => {
 
   return remaining.length === 0
 }
+
+export function buildQueryString(params: Record<string, string | undefined>) {
+  const sp = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== "") {
+      sp.set(key, value)
+    }
+  }
+  return sp.toString()
+}

@@ -44,7 +44,7 @@ export const ConversationItem = memo(function ConversationItem({
     const isMine = lastMessage.senderId === currentUserId
     return isMine ? `Bạn: ${lastMessage.content}` : lastMessage.content
   }, [lastMessage, currentUserId, conversation.unreadCount])
-  console.log(lastMessage)
+
   const handleDelete = async () => {
     try {
       setDeleting(true)

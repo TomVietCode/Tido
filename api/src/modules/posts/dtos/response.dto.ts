@@ -30,7 +30,7 @@ export class PostResponseDto {
     example: PostType.LOST,
 
     description:
-      'Loại bài đăng: LOST (tìm đồ đã mất) hoặc FOUND (nhặt được đồ)',
+      'Loại bài đăng: LOST (tìm đồ đã mất) hoặc FOUND (tìm thấy đồ)',
   })
   type: PostType
 

@@ -5,7 +5,8 @@ export * from './user'
 
 export interface BackendResponse<T> {
   statusCode: number
-  message: string
+  success: boolean
+  message?: string
   data?: T
   error?: string
 }

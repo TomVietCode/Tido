@@ -8,6 +8,7 @@ import {
   Post,
   Query,
   Req,
+  UseGuards,
 } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import {
@@ -25,6 +26,7 @@ import { CurrentUser } from '@modules/auth/decorators/user.decorator'
 import { IUserPayload } from '@common/interfaces'
 import { ApiAuth, DocsInfo } from '@common/decorators'
 import { PostListResponseDto, PostResponseDto } from '@modules/posts/dtos'
+import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard'
 
 @Controller('posts')
 @ApiTags('Posts')
@@ -48,32 +50,34 @@ export class PostsController {
 
   @Get()
   @Public()
+  @UseGuards(JwtAuthGuard)
   @DocsInfo({
     summary: 'Get all posts',
     type: PostListResponseDto,
     paginated: true,
   })
   async findAll(
+    @CurrentUser() user: IUserPayload,
     @Query() query: GetPostsQueryDto,
-  ): Promise<IPostsPaginatedResponse> {
-    const data = await this.postsService.findAll(query)
+  ): Promise<IPostsPaginatedResponse> { 
+    const data = await this.postsService.findAll(query, user?.id)
     return data as IPostsPaginatedResponse
   }
 
-  @Get('me')
-  @ApiAuth()
-  @DocsInfo({
-    summary: 'Get all my posts',
-    type: PostListResponseDto,
-    paginated: true,
-  })
-  async findMyPosts(
-    @Query() query: GetMyPostsQueryDto,
-    @CurrentUser() user: IUserPayload,
-  ): Promise<IPostsPaginatedResponse> {
-    const result = await this.postsService.findMyPosts(query, user)
-    return result as IPostsPaginatedResponse
-  }
+  // @Get('me')
+  // @ApiAuth()
+  // @DocsInfo({
+  //   summary: 'Get all my posts',
+  //   type: PostListResponseDto,
+  //   paginated: true,
+  // })
+  // async findMyPosts(
+  //   @Query() query: GetMyPostsQueryDto,
+  //   @CurrentUser() user: IUserPayload,
+  // ): Promise<any> {
+  //   const result = await this.postsService.findMyPosts(query, user)
+  //   return result
+  // }
 
   @Get('saved')
   @ApiAuth()
@@ -144,10 +148,10 @@ export class PostsController {
   @ApiAuth()
   @DocsInfo({ summary: 'Toggle save post', type: Boolean })
   async toggleSave(
-    @Param('id') id: string,
+    @Param('id') postId: string,
     @CurrentUser() user: IUserPayload,
   ): Promise<boolean> {
-    const result = await this.savedPostsService.toggleSave(id, user)
+    const result = await this.savedPostsService.toggleSave(postId, user)
     return result
   }
 }

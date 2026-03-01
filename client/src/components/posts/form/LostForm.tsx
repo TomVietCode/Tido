@@ -69,7 +69,6 @@ export default function LostForm({ categories }: { categories: Category[] }) {
   const onSubmit = async (data: LostFormValues) => {
     const { files, ...props } = data
   
-    // Upload tất cả ảnh song song và đợi hoàn thành
     const uploadResults = await Promise.all(
       files.map(async (file: File) => {
         try {
@@ -157,7 +156,7 @@ export default function LostForm({ categories }: { categories: Category[] }) {
               <Label htmlFor="tabs-demo-description">Mô tả chi tiết</Label>
               <Textarea
                 id="tabs-demo-description"
-                placeholder="Mô tả đặc điểm, tình trạng của đồ vật..."
+                placeholder="Mô tả đặc điểm, tình trạng của vật..."
                 {...register("description")}
                 className={formState.errors.description && "border-destructive"}
               />

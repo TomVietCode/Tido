@@ -22,7 +22,7 @@ export class TransformInterceptor<T>
     return next.handle().pipe(
       map((data) => ({
         statusCode: response.statusCode,
-        message: 'Success',
+        success: true,
         data: data,
       })),
     )

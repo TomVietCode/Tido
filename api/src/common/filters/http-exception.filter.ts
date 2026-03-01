@@ -43,6 +43,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const errResponse: BackendResponse<null> = {
       statusCode,
       message,
+      success: false,
       error,
     }
 

@@ -34,7 +34,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
           <Search className="absolute left-3 h-5 w-5 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Tìm kiếm đồ thất lạc..."
+            placeholder="Tìm kiếm vật thất lạc..."
             className="pl-10 text-base bg-slate-50 border-border/50 focus-visible:ring-2 focus-visible:ring-primary"
           />
         </div>
@@ -66,7 +66,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
                       </span>
                     )}
                   </div>
-                  <span>Chat</span>
+                  <span>Tin nhắn</span>
                 </Link>
 
                 <Link
@@ -127,7 +127,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
               <Search className="absolute left-3 h-5 w-5 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Tìm kiếm đồ thất lạc..."
+                placeholder="Tìm kiếm vật thất lạc..."
                 className="pl-10 text-base bg-slate-50 border-border/50 focus-visible:ring-2 focus-visible:ring-primary"
               />
             </div>
@@ -159,7 +159,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
                       </span>
                     )}
                   </div>
-                  <span>Chat</span>
+                  <span>Tin nhắn</span>
                 </Link>
 
                 <Link

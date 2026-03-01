@@ -45,8 +45,14 @@ enum CategoryStatus {
   INACTIVE
 }
 
+enum ContactRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
 model User {
-  id          String      @id @default(uuid()) @db.Uuid
+  id          String      @id @default(uuid(7)) @db.Uuid
   email       String      @unique
   fullName    String      @map("full_name")
   avatarUrl   String?     @map("avatar_url")
@@ -63,6 +69,9 @@ model User {
   savedPosts  SavedPost[]
 
   // Relations
+  contactRequestsSent     ContactRequest[] @relation("ContactRequestsAsRequester")
+  contactRequestsReceived ContactRequest[] @relation("ContactRequestsAsOwner")
+
   @@map("users")
 }
 
@@ -81,8 +90,8 @@ model Category {
 }
 
 model Post {
-  id               String     @id @default(uuid()) @db.Uuid
-  userId           String     @db.Uuid
+  id               String     @id @default(uuid(7)) @db.Uuid
+  userId           String     @map("user_id") @db.Uuid
   categoryId       Int        @map("category_id")
   title            String
   description      String?
@@ -92,23 +101,25 @@ model Post {
   hasReward        Boolean    @default(false) @map("has_reward")
   securityQuestion String?    @map("security_question")
   contactVisible   Boolean    @default(false) @map("contact_visible")
+  location         String?    @map("location")
   happenedAt       DateTime?  @map("happened_at")
   createdAt        DateTime   @default(now()) @map("created_at")
   updatedAt        DateTime   @updatedAt @map("updated_at")
 
   // Relations
-  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category   Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  savedPosts SavedPost[]
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category        Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  contactRequests ContactRequest[]
+  savedPosts      SavedPost[]
 
   @@map("posts")
 }
 
 model SavedPost {
-  userId String @db.Uuid
-  postId String @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  postId String @map("post_id") @db.Uuid
 
-  savedAt   DateTime @default(now()) @map("saved_at")
+  savedAt DateTime @default(now()) @map("saved_at")
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -116,4 +127,22 @@ model SavedPost {
 
   @@id([userId, postId])
   @@map("saved_posts")
+}
+
+model ContactRequest {
+  id          String               @id @default(uuid(7)) @db.Uuid
+  postId      String               @map("post_id") @db.Uuid
+  requesterId String               @map("requester_id") @db.Uuid
+  ownerId     String               @map("owner_id") @db.Uuid
+  answer      String
+  status      ContactRequestStatus @default(PENDING)
+  createdAt   DateTime             @default(now()) @map("created_at")
+  updatedAt   DateTime             @updatedAt @map("updated_at")
+
+  post      Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  requester User @relation("ContactRequestsAsRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  owner     User @relation("ContactRequestsAsOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, requesterId])
+  @@map("contact_requests")
 }

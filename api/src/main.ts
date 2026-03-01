@@ -39,7 +39,8 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, documentFactory)
 
   const port = configService.get('port')
+  app.enableCors()
   console.log(`Server is running on port ${port}`)
-  await app.listen(port, '0.0.0.0')
+  await app.listen(port)
 }
 bootstrap()

@@ -1,3 +1,17 @@
+export class HttpError extends Error {
+  status: number
+  error?: string
+  payload?: unknown
+
+  constructor(message: string, status: number, error?: string, payload?: unknown) {
+    super(message)
+    this.name = "HttpError"
+    this.status = status
+    this.error = error
+    this.payload = payload
+  }
+}
+
 export const sendRequest = async <T>(props: IRequest) => {
   let { url, method, body, queryParams, headers, nextOption } = props
   const baseUrl = process.env.NEXT_PUBLIC_API_URL
@@ -7,20 +21,22 @@ export const sendRequest = async <T>(props: IRequest) => {
   }
 
   // Query Params
-  if (queryParams) {
-    const searchParams = new URLSearchParams()
-    for (const key in queryParams) {
-      if (queryParams[key] !== undefined && queryParams[key] !== null) {
-        searchParams.append(key, queryParams[key].toString())
-      }
+  let queryString = ""
+
+  if (queryParams instanceof URLSearchParams) {
+    queryString = queryParams.toString()
+  } else if (queryParams) {
+    const sp = new URLSearchParams()
+    for (const [key, value] of Object.entries(queryParams)) {
+      if (value !== undefined && value !== null) sp.append(key, String(value))
     }
-    const queryString = searchParams.toString()
-    if (queryString) {
-      url = `${url}${url.includes("?") ? "&" : "?"}${queryString}`
-    }
+    queryString = sp.toString()
+  }
+  
+  if (queryString) {
+    url = `${url}${url.includes("?") ? "&" : "?"}${queryString}`
   }
 
-  // B. Cấu hình Fetch Options
   const options: RequestInit & { next?: NextFetchRequestConfig } = {
     method,
     headers: new Headers({
@@ -31,18 +47,23 @@ export const sendRequest = async <T>(props: IRequest) => {
     next: nextOption,
   }
 
-  return fetch(url, options).then((res) => {
-    if (res.ok) {
-      return res.json() as T 
-    } else {
-      return res.json().then(function (json) {
-        return {
-          statusCode: res.status,
-          success: false,
-          message: json?.message ?? "",
-          error: json?.error ?? "",
-        } as T
-      })
-    }
-  })
+  const res = await fetch(url, options)
+
+  let payload: any = null
+  try {
+    payload = await res.json()
+  } catch (error) {
+    payload = null
+  }
+
+  if (!res.ok) {
+    throw new HttpError(
+      payload?.message || "Lỗi không xác định!",
+      res.status || 500,
+      payload?.error,
+      payload
+    )
+  }
+
+  return payload as T
 }

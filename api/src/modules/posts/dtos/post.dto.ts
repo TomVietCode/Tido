@@ -59,13 +59,11 @@ export class GetPostsQueryDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  page?: number = 1
+  limit?: number = 20
 
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  limit?: number = 10
+  @IsString()
+  cursor?: string
 
   @IsOptional()
   @IsString()
@@ -81,15 +79,14 @@ export class GetPostsQueryDto {
   catId?: number
 
   @IsOptional()
+  @Transform(({ value }) => {
+    return typeof value === 'string' ? value.toUpperCase() : value
+  })
   @IsEnum(PostType, { message: 'Loại bài đăng không hợp lệ' })
   type?: PostType
 
   @IsOptional()
-  @IsString()
-  sortBy?: string = 'createdAt'
-
-  @IsOptional()
-  @IsEnum(SortOrder)
+  @IsEnum(SortOrder, { message: 'Thứ tự sắp xếp không hợp lệ'})
   sortOrder?: SortOrder = SortOrder.DESC
 }
 

@@ -8,15 +8,40 @@ import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { FcGoogle } from "react-icons/fc"
 import { SignInSchema, SignInValues, SignUpSchema, SignUpValues } from "@/lib/schemas/auth.schema"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Spinner } from "../ui/spinner"
 import { signInAction, signUpAction } from "@/lib/actions/auth.action"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 
-export default function AuthDialog() {
+interface AuthDialogProps {
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  trigger?: React.ReactNode
+}
+
+export default function AuthDialog({ open, onOpenChange, trigger }: AuthDialogProps) {
+  const { update } = useSession()
   const router = useRouter()
   const [authMode, setAuthMode] = useState<string | null>(null)
+
+  const isOpen = open !== undefined ? open : authMode !== null
+  const handleOpenChange = (val: boolean) => {
+    if (!val) {
+      setAuthMode(null)
+      onOpenChange?.(false)
+    }
+  }
+
+  // Open from outside
+  useEffect(() => {
+    if (open && authMode === null) {
+      setAuthMode("signIn")
+      signInForm.reset()
+    }
+  }, [open])
+
   const OpenSignIn = () => {
     setAuthMode("signIn")
     signInForm.reset()
@@ -27,7 +52,10 @@ export default function AuthDialog() {
     signInForm.reset()
     signUpForm.reset()
   }
-  const closeDialog = () => setAuthMode(null)
+  const closeDialog = () => {
+    setAuthMode(null)
+    onOpenChange?.(false)
+  }
 
   const signUpForm = useForm<SignUpValues>({
     resolver: zodResolver(SignUpSchema),
@@ -46,13 +74,13 @@ export default function AuthDialog() {
     },
   })
 
-
   const onSignUpSubmit = async (data: SignUpValues) => {
     try {
       await signUpAction(data)
       toast.success("Đăng ký tài khoản thành công!")
       signUpForm.reset()
       closeDialog()
+      await update()
       router.push("/profile")
     } catch (error: any) {
       toast.error(error.message ?? "Có lỗi xảy ra, vui lòng thử lại sau.")
@@ -65,6 +93,7 @@ export default function AuthDialog() {
       toast.success(res.message)
       signInForm.reset()
       closeDialog()
+      await update()
       router.refresh()
     } else {
       toast.error(res.message ?? "Có lỗi xảy ra, vui lòng thử lại sau.")
@@ -72,21 +101,26 @@ export default function AuthDialog() {
   }
 
   const handleOauth = async (event: any) => {
-    event.preventDefault();
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
-  };
+    event.preventDefault()
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`
+  }
 
   return (
-    <Dialog open={authMode !== null} onOpenChange={(open) => !open && closeDialog()}>
-      <DialogTrigger asChild>
-        <div className="flex gap-2">
-          <Button className="cursor-pointer" onClick={OpenSignUp} variant="outline">
-            Đăng ký
-          </Button>
-          <Button className="cursor-pointer" onClick={OpenSignIn}>Đăng nhập</Button>
-        </div>
-      </DialogTrigger>
-
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      {open === undefined && (
+        <DialogTrigger asChild>
+          {trigger ?? (
+            <div className="flex gap-2">
+              <Button className="cursor-pointer" onClick={OpenSignUp} variant="outline">
+                Đăng ký
+              </Button>
+              <Button className="cursor-pointer" onClick={OpenSignIn}>
+                Đăng nhập
+              </Button>
+            </div>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[500px]">
         {authMode === "signUp" ? (
           <>

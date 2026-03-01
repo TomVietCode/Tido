@@ -10,6 +10,7 @@ export interface IPost {
   hasReward?: boolean
   securityQuestion: string | null
   contactVisible: boolean
+  location: string | null
   happenedAt: Date | null
   userId: string
   categoryId: number
@@ -33,17 +34,20 @@ export interface IPostList
     | 'title'
     | 'images'
     | 'type'
-    | 'status'
     | 'hasReward'
+    | 'location'
     | 'createdAt'
-  > {}
+    | 'happenedAt'
+    | 'category'
+  > {
+    isSaved?: boolean
+  }
 
 export interface IPostsPaginatedResponse {
   meta: {
-    total: number
-    page?: number
-    limit?: number
-    totalPages?: number
+    limit: number,
+    hasNextPage: boolean,
+    nextCursor: string | null
   }
   data: IPostList[]
 }

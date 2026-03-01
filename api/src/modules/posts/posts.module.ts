@@ -6,5 +6,6 @@ import { SavedPostsService } from '@modules/saved-posts/saved-posts.service'
 @Module({
   controllers: [PostsController],
   providers: [PostsService, SavedPostsService],
+  exports: [PostsService],
 })
 export class PostsModule {}

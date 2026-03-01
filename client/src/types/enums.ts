@@ -24,6 +24,11 @@ export enum PostStatus {
   HIDDEN = 'HIDDEN',
 }
 
+export enum SortOrder {
+  DESC = 'desc',
+  ASC = 'asc',
+}
+
 export enum CategoryStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
@@ -33,4 +38,10 @@ export enum MessageType {
   TEXT = 'text',
   IMAGE = 'image',
   EMOJI = 'emoji',
+}
+
+export enum ContactRequestStatus {
+  PENDING = 'PENDING',
+  ACCEPTED = 'ACCEPTED',
+  REJECTED = 'REJECTED',
 }
