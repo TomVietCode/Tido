@@ -3,7 +3,7 @@ import { auth } from "@/auth"
 import { ErrUnauthorized } from "@/lib/errors"
 import { sendRequest } from "@/lib/helpers/api"
 import { getErrPayload } from "@/lib/helpers/handle-errors"
-import { Post, PostListResponse } from "@/types"
+import { Post, PostDetail, PostListResponse } from "@/types"
 
 export const getPosts = async (params?: Record<string, string | undefined> | URLSearchParams) => {
   try {
@@ -19,6 +19,22 @@ export const getPosts = async (params?: Record<string, string | undefined> | URL
         : undefined,
     })
 
+    return res
+  } catch (error) {
+    return getErrPayload(error)
+  }
+}
+
+export const getPost = async (id: string) => {
+  try {
+    const session = await auth()
+    const res = await sendRequest<IBackendRes<PostDetail>>({
+      url: `/posts/${id}`,
+      method: "GET",
+      headers: session
+        ? { Authorization: `Bearer ${session.user.access_token}` }
+        : undefined,
+    })
     return res
   } catch (error) {
     return getErrPayload(error)

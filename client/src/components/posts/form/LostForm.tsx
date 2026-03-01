@@ -68,7 +68,6 @@ export default function LostForm({ categories }: { categories: Category[] }) {
 
   const onSubmit = async (data: LostFormValues) => {
     const { files, ...props } = data
-  
     const uploadResults = await Promise.all(
       files.map(async (file: File) => {
         try {

@@ -139,8 +139,6 @@ export class ChatService {
 
     if (!conversation.participants.includes(userId)) return false
 
-    if ((conversation.deletedBy || []).includes(userId)) return false
-
     return true
   }
 
