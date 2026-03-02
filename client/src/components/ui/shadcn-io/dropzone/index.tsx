@@ -170,10 +170,6 @@ export const DropzoneEmptyState = ({
 
   let caption = '';
 
-  if (accept) {
-    caption += 'Định dạng PNG, JPG, JPEG, HEIC';
-  }
-
   if (minSize && maxSize) {
     caption += ` từ ${renderBytes(minSize)} đến ${renderBytes(maxSize)}`;
   } else if (minSize) {
@@ -183,7 +179,7 @@ export const DropzoneEmptyState = ({
   }
 
   if(maxFiles) {
-    caption += ` và tối đa ${maxFiles} ảnh`;
+    caption += ` Tối đa ${maxFiles} ảnh`;
   }
 
   return (

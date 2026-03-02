@@ -1,6 +1,6 @@
 import * as z from "zod"
 
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/heic"]
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/heic", "image/webp"]
 
 export const lostFormSchema = z.object({
   title: z.string().min(1, "Tiêu đề không được để trống").max(100, "Tiêu đề không được quá 100 ký tự"),
@@ -12,7 +12,7 @@ export const lostFormSchema = z.object({
     .max(5, "Chỉ được phép tải lên tối đa 5 ảnh")
     .refine(
       (files) => files.every((file) => ACCEPTED_IMAGE_TYPES.includes(file.type)),
-      "Chỉ chấp nhận định dạng .jpg, .jpeg, .png và .heic"
+      "Chỉ chấp nhận định dạng .jpg, .jpeg, .png, .heic và .webp"
     ),
   happenedAt: z.string().optional(),
   location: z.string().optional(),
