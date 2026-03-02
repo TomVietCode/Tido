@@ -160,7 +160,7 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
 
             {/* Security Question */}
             <div className="grid gap-1">
-              <Label htmlFor="tabs-lost-title">Câu hỏi bảo mật</Label>
+              <Label htmlFor="tabs-lost-title">Câu hỏi xác minh</Label>
               <Input
                 {...register("securityQuestion")}
                 id="tabs-found-security-question"
@@ -173,7 +173,7 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
               <Label htmlFor="tabs-demo-description">Hình ảnh</Label>
               <Dropzone
                 maxFiles={5}
-                accept={{ "image/*": [".png", ".jpg", ".jpeg", ".heic"] }}
+                accept={{ "image/*": [".png", ".jpg", ".jpeg", ".heic", ".webp"] }}
                 onDrop={handleDrop}
                 src={files.length > 0 ? files : undefined}
                 className="border-dashed border-2"
@@ -203,6 +203,7 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
                   </div>
                 </DropzoneContent>
               </Dropzone>
+              <FormErrorMessage error={formState.errors.files} />
             </div>
 
             {/* Time and Location */}
@@ -219,7 +220,7 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
 
             {/* Contact */}
             <div className="flex items-center space-x-2">
-              <Label htmlFor="contact-mode">Hiển thị số điện thoại công khai?</Label>
+              <Label htmlFor="contact-mode">Công khai thông tin liên lạc?</Label>
               <Switch
                 id="contact-mode"
                 className="data-[state=checked]:bg-chart-2"

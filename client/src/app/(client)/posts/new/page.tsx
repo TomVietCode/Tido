@@ -7,24 +7,26 @@ export default async function NewPostPage() {
   let categories = await getCategoryAction()
   const data = categories.data || []
   return (
-    <div className="flex flex-col justify-center items-center gap-4 mt-5">
-      <h1 className="text-3xl font-bold">Đăng Tin Tìm Kiếm</h1>
-      <p>Điền các thông tin dưới đây để đăng tin của bạn lên hệ thống</p>
+    <div className="mx-auto my-4 flex w-full max-w-3xl flex-col items-center gap-4 px-4 sm:my-6 sm:px-6">
+      <h1 className="text-center text-2xl font-bold sm:text-3xl">Đăng Tin Tìm Kiếm</h1>
+      <p className="text-center text-sm text-muted-foreground sm:text-base">
+        Điền các thông tin dưới đây để đăng tin của bạn lên hệ thống
+      </p>
 
-      <div className="flex w-2xl flex-col gap-6">
-        <Tabs defaultValue="lost">
-          <TabsList className="w-full h-11">
+      <div className="mb-4 w-full">
+        <Tabs defaultValue="lost" className="w-full">
+          <TabsList className="grid h-auto w-full grid-cols-2 gap-1 p-1">
             <TabsTrigger
               value="lost"
-              className="data-[state=active]:bg-orange-400 data-[state=active]:text-white hover:bg-orange-300 hover:text-white transition-all duration-400"
+              className="whitespace-normal px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-orange-400 data-[state=active]:text-white hover:bg-orange-300 hover:text-white"
             >
               Tôi làm mất / Thất lạc
             </TabsTrigger>
             <TabsTrigger
               value="found"
-              className="data-[state=active]:bg-chart-2 data-[state=active]:text-white hover:bg-chart-1 hover:text-white transition-all duration-400"
+              className="whitespace-normal px-2 py-2 text-xs sm:text-sm data-[state=active]:bg-chart-2 data-[state=active]:text-white hover:bg-chart-1 hover:text-white"
             >
-             Tôi nhặt được / Tìm thấy
+              Tôi nhặt được / Tìm thấy
             </TabsTrigger>
           </TabsList>
           <LostForm categories={data} />
