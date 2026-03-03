@@ -1,21 +1,28 @@
-// middleware.ts
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { UserRole } from "@/types/enums"
 
-export default async function proxy (req: NextRequest) {
-  const session = await auth()
-
+export default async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname
+
+  if (path === "/admin/login") {
+    return NextResponse.next()
+  }
+
+  const session = await auth()
   const userRole = session?.user?.role
 
-  if (path.startsWith("/admin") && userRole !== UserRole.ADMIN) {
-    return NextResponse.redirect(new URL("/not-found", req.url))
+  if (!session) {
+    return NextResponse.redirect(new URL("/admin/login", req.url))
+  }
+
+  if (userRole !== UserRole.ADMIN) {
+    return NextResponse.redirect(new URL("/admin/login", req.url))
   }
 
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|auth|verify|$).*)"],
+  matcher: ["/admin/:path*"],
 }

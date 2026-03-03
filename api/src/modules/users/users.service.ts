@@ -9,6 +9,7 @@ import * as bcrypt from 'bcrypt'
 import { Prisma } from 'prisma/generated/prisma/browser'
 import { User, UserResponse } from '@common/interfaces/user'
 import slugify from 'slugify'
+import { Role } from '@src/common/enums'
 
 @Injectable()
 export class UsersService {
@@ -66,6 +67,22 @@ export class UsersService {
       data: { email, fullName, googleId, provider, avatarUrl },
     })
     return user as User
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    })
+
+    return user as User | null
+  }
+
+  async findAdminByEmail(email: string): Promise<User | null> {
+    const user = await this.prisma.user.findFirst({
+      where: { email, role: Role.ADMIN },
+    })
+
+    return user as User | null
   }
 
   async findOne(props: Prisma.UserWhereUniqueInput): Promise<User> {

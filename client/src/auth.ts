@@ -1,6 +1,6 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
-import { sendRequest } from "@/lib/helpers/api"
+import { HttpError, sendRequest } from "@/lib/helpers/api"
 import { IUser } from "@/types/next-auth"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -37,7 +37,38 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const user = JSON.parse(userStr) as IUser
         return { ...user, access_token: token } as IUser
       }
-    })
+    }),
+    Credentials({
+      id: "admin-credentials",
+      credentials: {
+        email: {},
+        password: {},
+      },
+      authorize: async (credentials): Promise<IUser | null> => {
+        const { email, password } = credentials
+
+        try {
+          const res = await sendRequest<IBackendRes<IAuth>>({
+            url: "/auth/admin/login",
+            method: "POST",
+            body: { email, password },
+          })
+
+          if (res.statusCode === 200 && res.data) {
+            const user = { ...res.data.user, access_token: res.data.access_token }
+            return user as IUser
+          }
+
+          throw new Error("INVALID_CREDENTIALS")
+        } catch (error) {
+          if (error instanceof HttpError && error.status === 403) {
+            throw new Error("FORBIDDEN")
+          }
+
+          throw new Error("INVALID_CREDENTIALS")
+        }
+      },
+    }),
   ],
   callbacks: {
     jwt({ token, user }) {
