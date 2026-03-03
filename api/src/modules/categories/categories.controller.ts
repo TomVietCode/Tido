@@ -7,10 +7,12 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common'
 import { CategoriesService } from '@modules/categories/categories.service'
 import {
   CreateCategoryDto,
+  GetCategoriesQueryDto,
   UpdateCategoryDto,
 } from '@modules/categories/categories.dto'
 import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard'
@@ -37,12 +39,11 @@ export class CategoriesController {
     return category as Category
   }
 
-  @ApiOperation({ summary: 'Get all categories' })
+  @ApiOperation({ summary: 'Get all categories (paginated)' })
   @Public()
   @Get()
-  async findAll(): Promise<Category[]> {
-    const categories = await this.categoriesService.findAll()
-    return categories
+  async findAll(@Query() query: GetCategoriesQueryDto) {
+    return this.categoriesService.findAll(query)
   }
 
   @ApiOperation({ summary: 'Get a category by id' })

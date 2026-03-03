@@ -6,6 +6,7 @@ export interface Category {
   slug: string,
   iconCode?: string,
   status: CategoryStatus,
+  postCount?: number,
   createdAt: Date,
   updatedAt: Date,
 }
