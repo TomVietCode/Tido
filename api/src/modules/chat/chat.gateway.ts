@@ -10,9 +10,12 @@ import {
 } from '@nestjs/websockets'
 import { Server, Socket } from 'socket.io'
 import { ChatService } from '@modules/chat/chat.service'
-import { UseGuards } from '@nestjs/common'
+import { Inject, UseGuards, forwardRef } from '@nestjs/common'
 import { WsJwtGuard } from '@modules/chat/guards/ws-jwt.guard'
-import { MessageType } from '@common/enums'
+import { MessageType, NotificationType } from '@common/enums'
+import { NotificationsService } from '@modules/notifications/notifications.service'
+import { UsersService } from '@modules/users/users.service'
+import { IFirstMessageData } from '@common/interfaces'
 
 @WebSocketGateway({
   cors: {
@@ -20,7 +23,12 @@ import { MessageType } from '@common/enums'
   },
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  constructor(private readonly chatService: ChatService) {}
+  constructor(
+    private readonly chatService: ChatService,
+    @Inject(forwardRef(() => NotificationsService))
+    private readonly notificationsService: NotificationsService,
+    private readonly usersService: UsersService,
+  ) {}
   @WebSocketServer()
   server: Server
 
@@ -117,6 +125,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     )
     if (recipientId) {
       this.server.to(recipientId).emit('conversation_updated', messagePayload)
+    }
+
+    if (result.createdConversation && recipientId) {
+      const sender = await this.usersService.findOne({ id: senderId })
+      const notifData: IFirstMessageData = {
+        senderId,
+        senderName: sender.fullName,
+        senderAvatar: sender.avatarUrl ?? null,
+        conversationId: result.conversationId,
+      }
+      this.notificationsService
+        .create(recipientId, NotificationType.FIRST_MESSAGE, notifData)
+        .catch(() => {})
     }
 
     return { ok: true, conversationId: result.conversationId }

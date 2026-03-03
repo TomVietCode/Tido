@@ -45,3 +45,8 @@ export enum ContactRequestStatus {
   ACCEPTED = 'ACCEPTED',
   REJECTED = 'REJECTED',
 }
+
+export enum NotificationType {
+  FIRST_MESSAGE = 'FIRST_MESSAGE',
+  CONTACT_REQUEST = 'CONTACT_REQUEST',
+}
