@@ -27,7 +27,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 const navMain = [
   {
-    title: "Quản lý tin đăng",
+    title: "Quản lý bài đăng",
     url: "/admin/posts",
     icon: FileText,
   },

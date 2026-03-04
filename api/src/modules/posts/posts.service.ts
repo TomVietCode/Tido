@@ -237,4 +237,105 @@ export class PostsService {
 
     return true
   }
+
+  // ─── Admin Methods ───────────────────────────────────────────
+
+  async adminFindAll(query: any) {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      catId,
+      status,
+      type,
+      sortOrder = SortOrder.DESC,
+    } = query
+    const skip = (page - 1) * limit
+    const where: any = {}
+
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ]
+    }
+    if (catId) where.categoryId = catId
+    if (type) where.type = type
+    if (status) where.status = status
+
+    const [data, total] = await Promise.all([
+      this.prisma.post.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: sortOrder },
+        select: {
+          id: true,
+          title: true,
+          images: true,
+          type: true,
+          status: true,
+          createdAt: true,
+          category: {
+            select: { name: true, slug: true },
+          },
+          user: {
+            select: { fullName: true, avatarUrl: true },
+          },
+        },
+      }),
+      this.prisma.post.count({ where }),
+    ])
+
+    return {
+      meta: {
+        current: page,
+        pageSize: limit,
+        pages: Math.ceil(total / limit),
+        total,
+      },
+      result: data,
+    }
+  }
+
+  async adminFindOne(id: string) {
+    const post = await this.prisma.post.findUnique({
+      where: { id },
+      include: {
+        category: true,
+        user: {
+          select: {
+            fullName: true,
+            avatarUrl: true,
+            email: true,
+            phoneNumber: true,
+          },
+        },
+      },
+    })
+    if (!post) throw new NotFoundException('Bài viết không tồn tại')
+    return post
+  }
+
+  async adminToggleHide(id: string): Promise<any> {
+    const post = await this.prisma.post.findUnique({ where: { id } })
+    if (!post) throw new NotFoundException('Bài viết không tồn tại')
+
+    const newStatus =
+      post.status === PostStatus.HIDDEN ? PostStatus.OPEN : PostStatus.HIDDEN
+
+    const updated = await this.prisma.post.update({
+      where: { id },
+      data: { status: newStatus },
+    })
+    return updated
+  }
+
+  async adminDelete(id: string): Promise<boolean> {
+    const post = await this.prisma.post.findUnique({ where: { id } })
+    if (!post) throw new NotFoundException('Bài viết không tồn tại')
+
+    await this.prisma.post.delete({ where: { id } })
+    return true
+  }
 }

@@ -1,15 +1,6 @@
 "use client"
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog"
 
 interface DeleteCategoryDialogProps {
   open: boolean
@@ -27,27 +18,13 @@ export function DeleteCategoryDialog({
   isDeleting,
 }: DeleteCategoryDialogProps) {
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Xác nhận xoá danh mục</AlertDialogTitle>
-          <AlertDialogDescription>
-            Bạn có chắc chắn muốn xoá danh mục{" "}
-            <span className="font-semibold text-foreground">&ldquo;{categoryName}&rdquo;</span>?
-            Hành động này không thể hoàn tác.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>Huỷ</AlertDialogCancel>
-          <AlertDialogAction
-            variant="destructive"
-            onClick={onConfirm}
-            disabled={isDeleting}
-          >
-            {isDeleting ? "Đang xoá..." : "Xoá"}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <DeleteConfirmDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Xác nhận xoá danh mục"
+      itemName={categoryName}
+      onConfirm={onConfirm}
+      isDeleting={isDeleting}
+    />
   )
 }

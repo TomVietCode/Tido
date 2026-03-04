@@ -18,7 +18,7 @@ import React from "react"
 const segmentLabels: Record<string, string> = {
   admin: "Admin",
   dashboard: "Dashboard",
-  posts: "Tin đăng",
+  posts: "Bài đăng",
   categories: "Danh mục",
   users: "Người dùng",
   report: "Báo cáo",

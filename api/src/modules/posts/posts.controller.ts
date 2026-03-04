@@ -13,6 +13,7 @@ import {
 import { ApiTags } from '@nestjs/swagger'
 import {
   CreatePostDto,
+  GetAdminPostsQueryDto,
   GetMyPostsQueryDto,
   GetPostsQueryDto,
   UpdatePostDto,
@@ -27,6 +28,9 @@ import { IUserPayload } from '@common/interfaces'
 import { ApiAuth, DocsInfo } from '@common/decorators'
 import { PostListResponseDto, PostResponseDto } from '@modules/posts/dtos'
 import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard'
+import { RoleGuard } from '@modules/auth/guards/role.guard'
+import { Roles } from '@modules/auth/decorators/role.decorator'
+import { Role } from '@common/enums'
 
 @Controller('posts')
 @ApiTags('Posts')
@@ -153,5 +157,43 @@ export class PostsController {
   ): Promise<boolean> {
     const result = await this.savedPostsService.toggleSave(postId, user)
     return result
+  }
+
+  // ─── Admin Endpoints ─────────────────────────────────────────
+
+  @Get('admin/list')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles(Role.ADMIN)
+  @DocsInfo({
+    summary: 'Admin: Get all posts (paginated)',
+    type: PostListResponseDto,
+    paginated: true,
+  })
+  async adminFindAll(@Query() query: GetAdminPostsQueryDto) {
+    return this.postsService.adminFindAll(query)
+  }
+
+  @Get('admin/:id')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles(Role.ADMIN)
+  @DocsInfo({ summary: 'Admin: Get post detail', type: PostResponseDto })
+  async adminFindOne(@Param('id') id: string) {
+    return this.postsService.adminFindOne(id)
+  }
+
+  @Patch('admin/:id/toggle-hide')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles(Role.ADMIN)
+  @DocsInfo({ summary: 'Admin: Toggle post visibility', type: PostResponseDto })
+  async adminToggleHide(@Param('id') id: string) {
+    return this.postsService.adminToggleHide(id)
+  }
+
+  @Delete('admin/:id')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Roles(Role.ADMIN)
+  @DocsInfo({ summary: 'Admin: Delete a post', type: Boolean })
+  async adminDelete(@Param('id') id: string): Promise<boolean> {
+    return this.postsService.adminDelete(id)
   }
 }
