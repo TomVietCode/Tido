@@ -20,10 +20,10 @@ export const getCategoriesPaginated = async (params: {
   limit?: number
   search?: string
   status?: string
-}): Promise<IBackendRes<IModelPaginate<Category>>> => {
+}): Promise<IBackendRes<IModelPaginate<Category> | null>> => {
   try {
     const res = await sendRequest<IBackendRes<IModelPaginate<Category>>>({
-      url: "/categories",
+      url: "/categories/paginated",
       method: "GET",
       queryParams: params,
     })
@@ -36,7 +36,7 @@ export const getCategoriesPaginated = async (params: {
 export const createCategory = async (
   data: { name: string; status?: string; iconCode?: string },
   token: string
-): Promise<IBackendRes<Category>> => {
+): Promise<IBackendRes<Category | null>> => {
   try {
     const res = await sendRequest<IBackendRes<Category>>({
       url: "/categories",
@@ -54,7 +54,7 @@ export const updateCategory = async (
   id: number,
   data: { name?: string; status?: string; iconCode?: string },
   token: string
-): Promise<IBackendRes<Category>> => {
+): Promise<IBackendRes<Category | null>> => {
   try {
     const res = await sendRequest<IBackendRes<Category>>({
       url: `/categories/${id}`,
@@ -71,7 +71,7 @@ export const updateCategory = async (
 export const deleteCategory = async (
   id: number,
   token: string
-): Promise<IBackendRes<Category>> => {
+): Promise<IBackendRes<Category | null>> => {
   try {
     const res = await sendRequest<IBackendRes<Category>>({
       url: `/categories/${id}`,

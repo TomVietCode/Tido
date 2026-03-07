@@ -39,11 +39,18 @@ export class CategoriesController {
     return category as Category
   }
 
-  @ApiOperation({ summary: 'Get all categories (paginated)' })
+  @ApiOperation({ summary: 'Get all categories' })
   @Public()
   @Get()
-  async findAll(@Query() query: GetCategoriesQueryDto) {
-    return this.categoriesService.findAll(query)
+  async findAll() {
+    return this.categoriesService.findAll()
+  }
+
+  @ApiOperation({ summary: 'Get all categories (paginated)' })
+  @Public()
+  @Get("paginated")
+  async findAllPaginated(@Query() query: GetCategoriesQueryDto) {
+    return this.categoriesService.findAllPaginated(query)
   }
 
   @ApiOperation({ summary: 'Get a category by id' })

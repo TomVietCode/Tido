@@ -9,7 +9,7 @@ import * as bcrypt from 'bcrypt'
 import { Prisma } from 'prisma/generated/prisma/browser'
 import { User, UserResponse } from '@common/interfaces/user'
 import slugify from 'slugify'
-import { Role } from '@src/common/enums'
+import { Role, UserStatus } from '@src/common/enums'
 
 @Injectable()
 export class UsersService {
@@ -111,5 +111,65 @@ export class UsersService {
   generateAvatarUrl(fullName: string) {
     const name = slugify(fullName, { strict: true })
     return `https://ui-avatars.com/api/?name=${name}&background=random&size=100`
+  }
+
+  // ─── Admin Methods ─────────────────────────────────────────
+
+  async adminGetUsers(params: { page: number; limit: number }) {
+    const { page, limit } = params
+    const skip = (page - 1) * limit
+
+    const [data, total] = await Promise.all([
+      this.prisma.user.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        omit: { password: true },
+      }),
+      this.prisma.user.count(),
+    ])
+
+    return {
+      meta: {
+        current: page,
+        pageSize: limit,
+        pages: Math.ceil(total / limit),
+        total,
+      },
+      result: data,
+    }
+  }
+
+  async adminToggleBan(id: string) {
+    const user = await this.findOne({ id })
+    const newStatus =
+      user.status === UserStatus.BANNED ? UserStatus.ACTIVE : UserStatus.BANNED
+
+    const updated = await this.prisma.user.update({
+      where: { id },
+      data: { status: newStatus },
+      omit: { password: true },
+    })
+
+    return updated
+  }
+
+  async adminToggleRole(id: string) {
+    const user = await this.findOne({ id })
+    const newRole = user.role === Role.ADMIN ? Role.CLIENT : Role.ADMIN
+
+    const updated = await this.prisma.user.update({
+      where: { id },
+      data: { role: newRole },
+      omit: { password: true },
+    })
+
+    return updated
+  }
+
+  async adminDeleteUser(id: string) {
+    await this.findOne({ id })
+    await this.prisma.user.delete({ where: { id } })
+    return { deleted: true }
   }
 }

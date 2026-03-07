@@ -46,8 +46,15 @@ export class CategoriesService {
     })
     return category
   }
+  
+  async findAll() {
+    const categories = await this.prisma.category.findMany({
+      where: { status: CategoryStatus.ACTIVE },
+    })
+    return categories as Category[]
+  }
 
-  async findAll(query: GetCategoriesQueryDto) {
+  async findAllPaginated(query: GetCategoriesQueryDto) {
     const { page = 1, limit = 10, search, status } = query
     const skip = (page - 1) * limit
 
