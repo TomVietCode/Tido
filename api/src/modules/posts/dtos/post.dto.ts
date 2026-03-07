@@ -101,3 +101,41 @@ export class UpdatePostDto extends PartialType(CreatePostDto) {
   @IsEnum(PostStatus, { message: 'Trạng thái không hợp lệ' })
   status?: PostStatus
 }
+
+export class GetAdminPostsQueryDto {
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number = 1
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  limit?: number = 10
+
+  @IsOptional()
+  @IsString()
+  search?: string
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  catId?: number
+
+  @IsOptional()
+  @IsEnum(PostStatus, { message: 'Trạng thái không hợp lệ' })
+  status?: PostStatus
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    return typeof value === 'string' ? value.toUpperCase() : value
+  })
+  @IsEnum(PostType, { message: 'Loại bài đăng không hợp lệ' })
+  type?: PostType
+
+  @IsOptional()
+  @IsEnum(SortOrder, { message: 'Thứ tự sắp xếp không hợp lệ' })
+  sortOrder?: SortOrder = SortOrder.DESC
+}

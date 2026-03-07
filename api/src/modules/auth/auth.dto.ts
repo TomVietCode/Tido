@@ -9,6 +9,8 @@ export class SignInDto {
   password: string
 }
 
+export class AdminSignInDto extends SignInDto {}
+
 export class SignUpDto {
   @IsNotEmpty({ message: 'Full name is required' })
   @IsString({ message: 'Invalid Name' })

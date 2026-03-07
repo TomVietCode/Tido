@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common'
@@ -26,16 +27,47 @@ export class AuthService {
   }
 
   async validateUser(email: string, password: string): Promise<User> {
-    const user = await this.usersService.findOne({ email })
+    const user = await this.usersService.findByEmail(email)
     if (!user) {
       throw new UnauthorizedException('Email hoặc mật khẩu không đúng')
     }
-    const check = await this.comparePassword(password, user!.password!)
+    if (!user.password) {
+      throw new UnauthorizedException('Email hoặc mật khẩu không đúng')
+    }
+
+    const check = await this.comparePassword(password, user.password)
     if (!check) {
       throw new UnauthorizedException('Email hoặc mật khẩu không đúng')
     }
 
     return user
+  }
+
+  async adminSignIn(email: string, password: string): Promise<AuthResponse> {
+    // Query explicitly enforces ADMIN role before token generation.
+    const adminUser = await this.usersService.findAdminByEmail(email)
+
+    if (!adminUser) {
+      const existingUser = await this.usersService.findByEmail(email)
+
+      if (existingUser) {
+        throw new ForbiddenException('Không có quyền truy cập')
+      }
+
+      throw new UnauthorizedException('Email hoặc mật khẩu không đúng')
+    }
+
+    if (!adminUser.password) {
+      throw new UnauthorizedException('Email hoặc mật khẩu không đúng')
+    }
+
+    const isValidPassword = await this.comparePassword(password, adminUser.password)
+
+    if (!isValidPassword) {
+      throw new UnauthorizedException('Email hoặc mật khẩu không đúng')
+    }
+
+    return this.signIn(adminUser)
   }
 
   async signIn(user: User): Promise<AuthResponse> {

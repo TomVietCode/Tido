@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { AuthService } from '@modules/auth/auth.service'
-import { SignInDto, SignUpDto } from '@modules/auth/auth.dto'
+import { AdminSignInDto, SignInDto, SignUpDto } from '@modules/auth/auth.dto'
 import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { AuthResponse } from '@common/interfaces'
 import { LocalAuthGuard } from '@modules/auth/guards/local-auth.guard'
@@ -35,6 +35,16 @@ export class AuthController {
   @ApiBody({ type: SignInDto })
   async signIn(@Request() req): Promise<AuthResponse> {
     const data = await this.authService.signIn(req.user)
+    return data
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Public()
+  @Post('admin/login')
+  @ApiOperation({ summary: 'Admin Sign In' })
+  @ApiBody({ type: AdminSignInDto })
+  async adminSignIn(@Body() dto: AdminSignInDto): Promise<AuthResponse> {
+    const data = await this.authService.adminSignIn(dto.email, dto.password)
     return data
   }
 
