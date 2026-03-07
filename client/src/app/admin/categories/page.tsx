@@ -107,9 +107,6 @@ export default function CategoriesManagementPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Quản lý danh mục</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Quản lý các danh mục bài đăng trên hệ thống
-          </p>
         </div>
         <Button onClick={handleCreate}>
           <PlusIcon />
