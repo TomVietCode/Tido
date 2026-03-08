@@ -19,14 +19,14 @@ interface HeaderClientProps {
 export default function HeaderClient({ session }: HeaderClientProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const totalUnread = useUnreadCount()
-  
+
   return (
     <header className="fixed top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container flex h-14 max-w-screen-2xl items-center p-4">
         {/* Logo */}
         <div className="mr-4 flex">
-          <Link href="/" className="mr-6 flex items-center space-x-2 font-bold">
-            <Image src="/logo.png" alt="Logo" width="140" height="60" />
+          <Link href="/" className="flex items-center space-x-2 font-bold">
+            <Image src="/logo.png" alt="Logo" width="85" height="60" />
           </Link>
         </div>
 
@@ -61,7 +61,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
                 >
                   <div className="relative">
                     <MessageCircleMore className="h-5 w-5" />
-                    {typeof totalUnread === 'number' && totalUnread > 0 && (
+                    {typeof totalUnread === "number" && totalUnread > 0 && (
                       <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white leading-none">
                         {totalUnread > 99 ? "99+" : totalUnread}
                       </span>
@@ -148,7 +148,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
                 >
                   <div className="relative">
                     <MessageCircleMore className="h-5 w-5" />
-                    {typeof totalUnread === 'number' && totalUnread > 0 && (
+                    {typeof totalUnread === "number" && totalUnread > 0 && (
                       <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white leading-none">
                         {totalUnread > 99 ? "99+" : totalUnread}
                       </span>
