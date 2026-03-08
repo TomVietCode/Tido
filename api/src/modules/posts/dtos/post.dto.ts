@@ -47,11 +47,17 @@ export class CreatePostDto {
   })
   happenedAt?: Date
 
-  location?: string | undefined
+  @IsOptional()
+  securityQuestion?: string
 
-  contactVisible?: boolean | undefined
+  @IsOptional()
+  location?: string 
 
-  hasReward?: boolean | undefined
+  @IsOptional()
+  contactVisible?: boolean 
+
+  @IsOptional()
+  hasReward?: boolean 
 }
 
 export class GetPostsQueryDto {

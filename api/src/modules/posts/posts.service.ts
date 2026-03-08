@@ -24,7 +24,6 @@ export class PostsService {
   ) {}
 
   async create(dto: CreatePostDto, user: any) {
-    const { location, ...rest } = dto
     if (user.status === UserStatus.BANNED) {
       throw new ForbiddenException('Tài khoản của bạn đã bị khóa')
     }
@@ -41,9 +40,10 @@ export class PostsService {
     try {
       const result = await this.prisma.post.create({
         data: {
-          ...rest,
+          ...dto,
           userId: user.id,
           status: PostStatus.OPEN,
+          hasReward: dto.type === PostType.LOST ? true : false,
         },
       })
       return result
