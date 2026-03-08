@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common'
 import {
   CreateCategoryDto,
+  GetCategoriesQueryDto,
   UpdateCategoryDto,
 } from '@modules/categories/categories.dto'
 import slugify from 'slugify'
@@ -45,12 +46,49 @@ export class CategoriesService {
     })
     return category
   }
-
+  
   async findAll() {
     const categories = await this.prisma.category.findMany({
       where: { status: CategoryStatus.ACTIVE },
     })
     return categories as Category[]
+  }
+
+  async findAllPaginated(query: GetCategoriesQueryDto) {
+    const { page = 1, limit = 10, search, status } = query
+    const skip = (page - 1) * limit
+
+    const where: Prisma.CategoryWhereInput = {}
+    if (status) where.status = status
+    if (search) {
+      where.name = { contains: search, mode: 'insensitive' }
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.category.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: { _count: { select: { posts: true } } },
+      }),
+      this.prisma.category.count({ where }),
+    ])
+
+    const result = data.map(({ _count, ...rest }) => ({
+      ...rest,
+      postCount: _count.posts,
+    }))
+
+    return {
+      meta: {
+        current: page,
+        pageSize: limit,
+        pages: Math.ceil(total / limit),
+        total,
+      },
+      result,
+    }
   }
 
   async findOne(id: number) {

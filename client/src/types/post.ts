@@ -58,3 +58,20 @@ export interface PostListResponse {
   }
   data: PostListItem[]
 }
+
+export interface AdminPostListItem {
+  id: string
+  title: string
+  images: string[]
+  type: PostType
+  status: PostStatus
+  createdAt: Date | string
+  category?: {
+    name: string
+    slug: string
+  }
+  user?: {
+    fullName: string
+    avatarUrl: string
+  }
+}
