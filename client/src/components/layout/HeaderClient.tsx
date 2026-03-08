@@ -11,6 +11,7 @@ import { Search, MessageCircleMore, FileText, Home, FolderUp, Menu, X } from "lu
 import NotificationBell from "@/components/notifications/NotificationBell"
 import { Session } from "next-auth"
 import { useUnreadCount } from "@/lib/hooks/useUnreadCount"
+import { useSession } from "next-auth/react"
 
 interface HeaderClientProps {
   session: Session | null
@@ -19,6 +20,8 @@ interface HeaderClientProps {
 export default function HeaderClient({ session }: HeaderClientProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const totalUnread = useUnreadCount()
+  const { data: clientSession } = useSession()
+  const currentSession = clientSession ?? session
 
   return (
     <header className="fixed top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
@@ -52,7 +55,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
             </Link>
           </nav>
 
-          {session ? (
+          {currentSession ? (
             <>
               <nav className="hidden md:flex items-center gap-6 text-xs font-medium">
                 <Link
@@ -84,7 +87,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
                 <FolderUp />
                 <Link href="/posts/new">Đăng Tin</Link>
               </Button>
-              <UserDropDown user={session.user} />
+              <UserDropDown user={currentSession.user} />
             </>
           ) : (
             <>
@@ -139,7 +142,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
               <span>Trang chủ</span>
             </Link>
 
-            {session ? (
+            {currentSession ? (
               <>
                 <Link
                   href="/chats"
@@ -178,7 +181,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
                 </Link>
 
                 <div className="pt-4 border-t">
-                  <UserDropDown user={session.user} />
+                  <UserDropDown user={currentSession.user} />
                 </div>
               </>
             ) : (

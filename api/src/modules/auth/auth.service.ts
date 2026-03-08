@@ -111,7 +111,7 @@ export class AuthService {
   }
 
   async oAuthSignIn(user) {
-    let existingUser = await this.usersService.findOne({ email: user.email })
+    let existingUser = await this.usersService.findByEmail(user.email)
     if (!existingUser) {
       existingUser = await this.usersService.createUserFromGoogle(user)
     }

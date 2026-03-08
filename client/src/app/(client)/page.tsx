@@ -39,7 +39,7 @@ export default function Home() {
                   asChild
                   className="w-45 md:w-48 h-12 px-5 font-bold gap-2 shadow-[0_0_20px_rgba(59,130,246,0.6)] hover:shadow-[0_0_30px_rgba(59,130,246,0.9)] transition-shadow"
                 >
-                  <Link href="/posts?type=post">
+                  <Link href="/posts?type=lost">
                     <HandHeart className="h-5 w-5" />
                     Tôi tìm được / Tìm thấy
                   </Link>

@@ -5,6 +5,7 @@ export interface User {
   email: string
   fullName: string
   avatarUrl?: string
+  facebookUrl?: string
   password: string | null
   googleId: string | null
   phoneNumber: string | null
