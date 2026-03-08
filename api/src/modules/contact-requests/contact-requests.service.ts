@@ -1,8 +1,10 @@
-import { ContactRequestStatus, PostType } from '@common/enums';
-import { IUserPayload } from '@common/interfaces';
+import { ContactRequestStatus, NotificationType, PostType } from '@common/enums';
+import { IContactRequestData, IUserPayload } from '@common/interfaces';
 import { IContactRequest, IContactRequestRes } from '@common/interfaces/contact-request';
 import { CreateContactRequestDto, UpdateContactRequestStatusDto } from '@modules/contact-requests/contact-requests.dto';
 import { PostsService } from '@modules/posts/posts.service';
+import { NotificationsService } from '@modules/notifications/notifications.service';
+import { ChatService } from '@modules/chat/chat.service';
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@src/database/prisma/prisma.service';
 
@@ -10,7 +12,9 @@ import { PrismaService } from '@src/database/prisma/prisma.service';
 export class ContactRequestsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly postsService: PostsService
+    private readonly postsService: PostsService,
+    private readonly notificationsService: NotificationsService,
+    private readonly chatService: ChatService,
   ) {}
 
   async create(postId: string, dto: CreateContactRequestDto, user: IUserPayload): Promise<IContactRequest> {
@@ -42,10 +46,26 @@ export class ContactRequestsService {
         requesterId: user.id,
         ownerId: post.userId,
         answer: dto.answer,
-      }
+      },
+      include: {
+        requester: { select: { id: true, fullName: true, avatarUrl: true } },
+      },
     })
 
-    return contactRequest as IContactRequest;
+    const notifData: IContactRequestData = {
+      requesterId: user.id,
+      requesterName: contactRequest.requester.fullName,
+      requesterAvatar: contactRequest.requester.avatarUrl,
+      contactRequestId: contactRequest.id,
+      postId,
+      postTitle: post.title,
+      answerPreview: dto.answer.slice(0, 100),
+    }
+    this.notificationsService
+      .create(post.userId, NotificationType.CONTACT_REQUEST, notifData)
+      .catch(() => {})
+
+    return contactRequest as unknown as IContactRequest;
   }
 
   async findAll(user: IUserPayload, status: ContactRequestStatus = ContactRequestStatus.PENDING): Promise<IContactRequestRes[]> {
@@ -75,9 +95,19 @@ export class ContactRequestsService {
     if (request.status !== ContactRequestStatus.PENDING) 
       throw new BadRequestException("Yêu cầu này đã được xử lý")
 
-    return this.prisma.contactRequest.update({
+    const updated = await this.prisma.contactRequest.update({
       where: { id: requestId },
       data: { status: dto.status }
     })
+
+    if (dto.status === ContactRequestStatus.ACCEPTED) {
+      const conversation = await this.chatService.createConversation({
+        participants: [request.ownerId, request.requesterId],
+        postId: request.postId,
+      })
+      return { ...updated, conversationId: conversation.id }
+    }
+
+    return updated
   }
 }

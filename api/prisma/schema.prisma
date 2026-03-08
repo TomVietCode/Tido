@@ -51,6 +51,11 @@ enum ContactRequestStatus {
   REJECTED
 }
 
+enum NotificationType {
+  FIRST_MESSAGE
+  CONTACT_REQUEST
+}
+
 model User {
   id          String      @id @default(uuid(7)) @db.Uuid
   email       String      @unique
@@ -71,6 +76,7 @@ model User {
   // Relations
   contactRequestsSent     ContactRequest[] @relation("ContactRequestsAsRequester")
   contactRequestsReceived ContactRequest[] @relation("ContactRequestsAsOwner")
+  notifications           Notification[]
 
   @@map("users")
 }
@@ -145,4 +151,17 @@ model ContactRequest {
 
   @@unique([postId, requesterId])
   @@map("contact_requests")
+}
+
+model Notification {
+  id        String           @id @default(uuid(7)) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  type      NotificationType
+  data      Json
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
 }

@@ -7,7 +7,8 @@ import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import UserDropDown from "@/components/auth/UserDropDown"
 import AuthDialog from "@/components/auth/AuthDialog"
-import { Search, MessageCircleMore, Bell, FileText, Home, FolderUp, Menu, X } from "lucide-react"
+import { Search, MessageCircleMore, FileText, Home, FolderUp, Menu, X } from "lucide-react"
+import NotificationBell from "@/components/notifications/NotificationBell"
 import { Session } from "next-auth"
 import { useUnreadCount } from "@/lib/hooks/useUnreadCount"
 
@@ -77,13 +78,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
                   <span>Bài đăng</span>
                 </Link>
 
-                <Link
-                  href="/notifications"
-                  className="flex flex-col items-center gap-1 text-foreground/60 transition-colors hover:text-foreground/80"
-                >
-                  <Bell className="h-5 w-5" />
-                  <span>Thông báo</span>
-                </Link>
+                <NotificationBell />
               </nav>
               <Button className="ml-4 mr-6">
                 <FolderUp />
@@ -171,14 +166,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
                   <span>Bài đăng</span>
                 </Link>
 
-                <Link
-                  href="/notifications"
-                  className="flex items-center gap-3 text-foreground/60 transition-colors hover:text-foreground/80 p-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Bell className="h-5 w-5" />
-                  <span>Thông báo</span>
-                </Link>
+                <NotificationBell />
 
                 <Link
                   href="/posts/new"
