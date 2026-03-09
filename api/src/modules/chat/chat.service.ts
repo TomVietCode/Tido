@@ -260,9 +260,22 @@ export class ChatService {
   }
 
   async searchUser(userId: string, query: string) {
+    const conversations = await this.conversationModel
+      .find({
+        participants: { $in: [userId] },
+        deletedBy: { $nin: [userId] },
+      })
+      .lean()
+
+    const contactIds = conversations
+      .map((conv) => conv.participants.find((pId) => pId !== userId))
+      .filter(Boolean) as string[]
+
+    if (contactIds.length === 0) return []
+
     const findUserOptions = {
       where: {
-        id: { not: userId },
+        id: { in: contactIds },
         fullName: { contains: query, mode: 'insensitive' },
       },
       select: { id: true, fullName: true, avatarUrl: true },
