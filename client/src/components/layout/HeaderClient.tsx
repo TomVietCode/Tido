@@ -11,6 +11,7 @@ import { Search, MessageCircleMore, FileText, Home, FolderUp, Menu, X } from "lu
 import NotificationBell from "@/components/notifications/NotificationBell"
 import { Session } from "next-auth"
 import { useUnreadCount } from "@/lib/hooks/useUnreadCount"
+import { useSession } from "next-auth/react"
 
 interface HeaderClientProps {
   session: Session | null
@@ -19,14 +20,16 @@ interface HeaderClientProps {
 export default function HeaderClient({ session }: HeaderClientProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const totalUnread = useUnreadCount()
-  
+  const { data: clientSession } = useSession()
+  const currentSession = clientSession ?? session
+
   return (
     <header className="fixed top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container flex h-14 max-w-screen-2xl items-center p-4">
         {/* Logo */}
         <div className="mr-4 flex">
-          <Link href="/" className="mr-6 flex items-center space-x-2 font-bold">
-            <Image src="/logo.png" alt="Logo" width="140" height="60" />
+          <Link href="/" className="flex items-center space-x-2 font-bold">
+            <Image src="/logo.png" alt="Logo" width="85" height="60" />
           </Link>
         </div>
 
@@ -35,7 +38,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
           <Search className="absolute left-3 h-5 w-5 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Tìm kiếm vật thất lạc..."
+            placeholder="Tìm kiếm bài đăng..."
             className="pl-10 text-base bg-slate-50 border-border/50 focus-visible:ring-2 focus-visible:ring-primary"
           />
         </div>
@@ -52,7 +55,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
             </Link>
           </nav>
 
-          {session ? (
+          {currentSession ? (
             <>
               <nav className="hidden md:flex items-center gap-6 text-xs font-medium">
                 <Link
@@ -61,7 +64,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
                 >
                   <div className="relative">
                     <MessageCircleMore className="h-5 w-5" />
-                    {typeof totalUnread === 'number' && totalUnread > 0 && (
+                    {typeof totalUnread === "number" && totalUnread > 0 && (
                       <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white leading-none">
                         {totalUnread > 99 ? "99+" : totalUnread}
                       </span>
@@ -84,7 +87,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
                 <FolderUp />
                 <Link href="/posts/new">Đăng Tin</Link>
               </Button>
-              <UserDropDown user={session.user} />
+              <UserDropDown user={currentSession.user} />
             </>
           ) : (
             <>
@@ -122,7 +125,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
               <Search className="absolute left-3 h-5 w-5 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Tìm kiếm vật thất lạc..."
+                placeholder="Tìm kiếm bài đăng..."
                 className="pl-10 text-base bg-slate-50 border-border/50 focus-visible:ring-2 focus-visible:ring-primary"
               />
             </div>
@@ -139,7 +142,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
               <span>Trang chủ</span>
             </Link>
 
-            {session ? (
+            {currentSession ? (
               <>
                 <Link
                   href="/chats"
@@ -148,7 +151,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
                 >
                   <div className="relative">
                     <MessageCircleMore className="h-5 w-5" />
-                    {typeof totalUnread === 'number' && totalUnread > 0 && (
+                    {typeof totalUnread === "number" && totalUnread > 0 && (
                       <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white leading-none">
                         {totalUnread > 99 ? "99+" : totalUnread}
                       </span>
@@ -178,7 +181,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
                 </Link>
 
                 <div className="pt-4 border-t">
-                  <UserDropDown user={session.user} />
+                  <UserDropDown user={currentSession.user} />
                 </div>
               </>
             ) : (

@@ -163,7 +163,7 @@ export default function PostDetailContent({ post }: PostDetailContentProps) {
             <div className="flex flex-col gap-4">
               {post.user ? (
                 <Link
-                  href={`/user/${post.userId}`}
+                  href={`/users/${post.userId}`}
                   className="flex items-center gap-3 rounded-lg p-2 -m-2 transition-colors hover:bg-muted/60"
                 >
                   <Avatar className="h-10 w-10">

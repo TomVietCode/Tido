@@ -75,3 +75,33 @@ export interface AdminPostListItem {
     avatarUrl: string
   }
 }
+
+export interface MyPostListItem {
+  id: string
+  userId: string
+  title: string
+  images: string[]
+  type: PostType
+  status: PostStatus
+  hasReward?: boolean
+  location?: string
+  happenedAt?: Date | string
+  createdAt: Date | string
+  category?: {
+    name: string
+    slug: string
+  }
+}
+
+export interface MyPostsResponse {
+  meta: {
+    limit: number
+    hasNextPage: boolean
+    nextCursor: string | null
+  }
+  summary: {
+    totalPosts: number
+    totalResolved: number
+  }
+  data: MyPostListItem[]
+}

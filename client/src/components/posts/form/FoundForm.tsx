@@ -96,13 +96,7 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
     }
 
     toast.success("Đăng tin thành công")
-    reset({
-      title: "",
-      description: "",
-      files: [],
-      location: "",
-      contactVisible: false,
-    })
+    reset()
   }
 
   return (

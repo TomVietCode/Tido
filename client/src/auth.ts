@@ -36,7 +36,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!token || !userStr) return null
         const user = JSON.parse(userStr) as IUser
         return { ...user, access_token: token } as IUser
-      }
+      },
     }),
     Credentials({
       id: "admin-credentials",
@@ -71,19 +71,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
+    jwt({ token, user, trigger, session }) {
       if (user) {
-        token.user = (user as IUser)
+        token.user = user as IUser
+      }
+      if (trigger === "update" && session?.user) {
+        token.user = { ...token.user, ...session.user }
       }
       return token
     },
     session({ session, token }) {
-      (session.user as IUser) = token.user
+      ;(session.user as IUser) = token.user
       return session
     },
   },
   session: {
-    strategy: 'jwt'
+    strategy: "jwt",
   },
-  secret: process.env.AUTH_SECRET
+  secret: process.env.AUTH_SECRET,
 })

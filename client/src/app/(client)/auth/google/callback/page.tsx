@@ -1,12 +1,11 @@
 "use client"
 
-import { useEffect, Suspense } from "react" // 1. Import Suspense
+import { useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
 import { toast } from "sonner"
 import { Spinner } from "@/components/ui/spinner"
 
-// Tách logic chính ra một component riêng
 function GoogleCallbackHandler() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -27,7 +26,7 @@ function GoogleCallbackHandler() {
         const user = JSON.parse(Buffer.from(userB64, "base64").toString("utf-8"))
         await signIn("google-oauth", {
           redirect: true,
-          callbackUrl: "/",
+          callbackUrl: "/me",
           token,
           user: JSON.stringify(user),
         })
@@ -48,7 +47,6 @@ function GoogleCallbackHandler() {
   )
 }
 
-// Export chính phải được bọc trong Suspense
 export default function GoogleCallbackPage() {
   return (
     <Suspense fallback={
