@@ -81,7 +81,7 @@ export default function AuthDialog({ open, onOpenChange, trigger }: AuthDialogPr
       signUpForm.reset()
       closeDialog()
       await update()
-      router.push("/profile")
+      router.push("/me")
       router.refresh()
     } catch (error: any) {
       toast.error(error.message ?? "Có lỗi xảy ra, vui lòng thử lại sau.")

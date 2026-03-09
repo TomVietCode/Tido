@@ -24,7 +24,7 @@ export default function UserDropDown({ user }: { user: IUser }) {
     </DropdownMenuTrigger>
     <DropdownMenuContent className="w-56" align="start">
       <DropdownMenuGroup>
-          <Link href="/profile" className="flex items-center gap-2">
+          <Link href="/me" className="flex items-center gap-2">
           <DropdownMenuItem className="cursor-pointer w-full">
             <UserIcon className="w-4 h-4"/>
             Thông tin tài khoản
