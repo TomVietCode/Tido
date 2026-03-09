@@ -125,45 +125,65 @@ export class PostsService {
     }
   }
 
-  // async findMyPosts(query: GetMyPostsQueryDto, user: IUserPayload) {
-  //   const {
-  //     page = 1,
-  //     limit = 10,
-  //     catSlug,
-  //     catId,
-  //     status,
-  //     type,
-  //     sortBy = 'createdAt',
-  //     sortOrder = SortOrder.DESC,
-  //   } = query
-  //   const skip = (page - 1) * limit
-  //   const where: any = { userId: user.id }
+  async findMyPosts(query: GetMyPostsQueryDto, user: IUserPayload) {
+    const {
+      limit = 20,
+      cursor,
+      status,
+      type,
+      sortOrder = SortOrder.DESC,
+    } = query
+    const safeLimit = Math.min(limit, 30)
+    const where: any = { userId: user.id }
 
-  //   if (catId) where.categoryId = catId
-  //   if (catSlug) where.category = { slug: catSlug }
-  //   if (type) where.type = type
-  //   if (status) where.status = status
+    if (type) where.type = type
+    if (status) where.status = status
 
-  //   const [data, total] = await Promise.all([
-  //     this.prisma.post.findMany({
-  //       where,
-  //       skip,
-  //       take: limit,
-  //       orderBy: { [sortBy]: sortOrder },
-  //     }),
-  //     this.prisma.post.count({ where }),
-  //   ])
+    const [rows, totalPosts, totalResolved] = await Promise.all([
+      this.prisma.post.findMany({
+        where,
+        take: safeLimit + 1,
+        ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+        orderBy: { createdAt: sortOrder },
+        select: {
+          id: true,
+          userId: true,
+          title: true,
+          images: true,
+          type: true,
+          status: true,
+          hasReward: true,
+          location: true,
+          happenedAt: true,
+          createdAt: true,
+          category: {
+            select: { name: true, slug: true },
+          },
+        },
+      }),
+      this.prisma.post.count({ where: { userId: user.id } }),
+      this.prisma.post.count({
+        where: { userId: user.id, status: PostStatus.CLOSED },
+      }),
+    ])
 
-  //   return {
-  //     meta: {
-  //       total,
-  //       page,
-  //       limit,
-  //       totalPages: Math.ceil(total / limit),
-  //     },
-  //     data,
-  //   }
-  // }
+    const hasNextPage = rows.length > safeLimit
+    const data = hasNextPage ? rows.slice(0, safeLimit) : rows
+    const nextCursor = hasNextPage ? data[data.length - 1].id : null
+
+    return {
+      meta: {
+        limit: safeLimit,
+        hasNextPage,
+        nextCursor,
+      },
+      summary: {
+        totalPosts,
+        totalResolved,
+      },
+      data,
+    }
+  }
 
   async findOne(id: string, requesterId: string) {
     const post = await this.prisma.post.findUnique({

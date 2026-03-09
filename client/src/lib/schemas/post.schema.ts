@@ -40,3 +40,16 @@ export const foundFormSchema = z.object({
 
 export type LostFormValues = z.infer<typeof lostFormSchema>
 export type FoundFormValues = z.infer<typeof foundFormSchema>
+
+export const editPostSchema = z.object({
+  title: z.string().min(1, "Tiêu đề không được để trống").max(100, "Tiêu đề không được quá 100 ký tự"),
+  categoryId: z.number("Vui lòng chọn danh mục"),
+  description: z.string().max(1000, "Mô tả không được quá 1000 ký tự").optional(),
+  securityQuestion: z.string().optional(),
+  happenedAt: z.string().optional(),
+  location: z.string().optional(),
+  contactVisible: z.boolean().default(false).optional(),
+  hasReward: z.boolean().default(false).optional(),
+})
+
+export type EditPostValues = z.infer<typeof editPostSchema>
