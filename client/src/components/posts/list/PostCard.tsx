@@ -22,9 +22,10 @@ import { usePostContact } from "@/lib/hooks/usePostContact"
 
 interface PostCardProps {
   post: PostListItem
+  onToggleSave?: (postId: string, isSaved: boolean) => void
 }
 
-export default function PostCard({ post }: PostCardProps) {
+export default function PostCard({ post, onToggleSave }: PostCardProps) {
   const {
     session,
     handleContact,
@@ -48,14 +49,18 @@ export default function PostCard({ post }: PostCardProps) {
       return
     }
 
-    setIsSaved((prev) => !prev)
+    const newSaved = !isSaved
+    setIsSaved(newSaved)
 
     const res = await toggleSavePost(post.id)
 
     if (!res.success) {
-      setIsSaved((prev) => !prev)
+      setIsSaved(!newSaved)
       showErrorToast(res.message)
+      return
     }
+
+    onToggleSave?.(post.id, newSaved)
   }
 
   const isLost = post.type === PostType.LOST

@@ -72,20 +72,20 @@ export class PostsController {
     return data as IPostsPaginatedResponse
   }
 
-  // @Get('me')
-  // @ApiAuth()
-  // @DocsInfo({
-  //   summary: 'Get all my posts',
-  //   type: PostListResponseDto,
-  //   paginated: true,
-  // })
-  // async findMyPosts(
-  //   @Query() query: GetMyPostsQueryDto,
-  //   @CurrentUser() user: IUserPayload,
-  // ): Promise<any> {
-  //   const result = await this.postsService.findMyPosts(query, user)
-  //   return result
-  // }
+  @Get('me')
+  @ApiAuth()
+  @DocsInfo({
+    summary: 'Get all my posts',
+    type: PostListResponseDto,
+    paginated: true,
+  })
+  async findMyPosts(
+    @Query() query: GetMyPostsQueryDto,
+    @CurrentUser() user: IUserPayload,
+  ): Promise<any> {
+    const result = await this.postsService.findMyPosts(query, user)
+    return result
+  }
 
   @Get('saved')
   @ApiAuth()

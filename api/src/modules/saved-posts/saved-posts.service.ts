@@ -32,15 +32,38 @@ export class SavedPostsService {
   }
 
   async findAll(user: IUserPayload) {
-    const where = {
-      userId: user.id,
-      post: {
-        status: { not: PostStatus.HIDDEN },
-      },
-    }
     const savedPosts = await this.prisma.savedPost.findMany({
-      where,
+      where: {
+        userId: user.id,
+        post: {
+          status: PostStatus.OPEN,
+        },
+      },
+      orderBy: { savedAt: 'desc' },
+      select: {
+        post: {
+          select: {
+            id: true,
+            userId: true,
+            title: true,
+            images: true,
+            type: true,
+            hasReward: true,
+            location: true,
+            securityQuestion: true,
+            happenedAt: true,
+            createdAt: true,
+            category: {
+              select: { name: true, slug: true },
+            },
+          },
+        },
+      },
     })
-    return savedPosts
+
+    return savedPosts.map(({ post }) => ({
+      ...post,
+      isSaved: true,
+    }))
   }
 }

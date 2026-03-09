@@ -3,7 +3,7 @@ import { auth } from "@/auth"
 import { ErrUnauthorized } from "@/lib/errors"
 import { sendRequest } from "@/lib/helpers/api"
 import { getErrPayload } from "@/lib/helpers/handle-errors"
-import { ImageSearchResponse, Post, PostDetail, PostListResponse } from "@/types"
+import { MyPostsResponse, ImageSearchResponse, Post, PostDetail, PostListItem, PostListResponse } from "@/types"
 
 export const getPosts = async (params?: Record<string, string | undefined> | URLSearchParams) => {
   try {
@@ -79,6 +79,104 @@ export const toggleSavePost = async (postId: string) => {
       headers: {
         Authorization: `Bearer ${session.user.access_token}`,
       },
+    })
+
+    return res
+  } catch (error) {
+    return getErrPayload(error)
+  }
+}
+
+export const getSavedPosts = async () => {
+  try {
+    const session = await auth()
+    if (!session) throw ErrUnauthorized
+
+    const res = await sendRequest<IBackendRes<PostListItem[]>>({
+      url: "/posts/saved",
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${session.user.access_token}`,
+      },
+    })
+
+    return res
+  } catch (error) {
+    return getErrPayload(error)
+  }
+}
+
+export const getMyPosts = async (params?: Record<string, string | undefined>) => {
+  try {
+    const session = await auth()
+    if (!session) throw ErrUnauthorized
+
+    const res = await sendRequest<IBackendRes<MyPostsResponse>>({
+      url: "/posts/me",
+      method: "GET",
+      queryParams: params,
+      headers: {
+        Authorization: `Bearer ${session.user.access_token}`,
+      },
+    })
+
+    return res
+  } catch (error) {
+    return getErrPayload(error)
+  }
+}
+
+export const updatePostStatus = async (postId: string, status: string) => {
+  try {
+    const session = await auth()
+    if (!session) throw ErrUnauthorized
+
+    const res = await sendRequest<IBackendRes<Post>>({
+      url: `/posts/${postId}/status`,
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${session.user.access_token}`,
+      },
+      body: { status },
+    })
+
+    return res
+  } catch (error) {
+    return getErrPayload(error)
+  }
+}
+
+export const deletePost = async (postId: string) => {
+  try {
+    const session = await auth()
+    if (!session) throw ErrUnauthorized
+
+    const res = await sendRequest<IBackendRes<boolean>>({
+      url: `/posts/${postId}`,
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${session.user.access_token}`,
+      },
+    })
+
+    return res
+  } catch (error) {
+    return getErrPayload(error)
+  }
+}
+
+export const updatePost = async (postId: string, data: Record<string, unknown>) => {
+  try {
+    const session = await auth()
+    if (!session) throw ErrUnauthorized
+
+    const res = await sendRequest<IBackendRes<Post>>({
+      url: `/posts/${postId}`,
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${session.user.access_token}`,
+      },
+      body: data,
     })
 
     return res

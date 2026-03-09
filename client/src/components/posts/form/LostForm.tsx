@@ -103,7 +103,7 @@ export default function LostForm({ categories }: { categories: Category[] }) {
     }
   
     toast.success("Đăng tin thành công")
-    router.push(`/profile/posts`)
+    router.push(`/me/my-posts`)
   }
 
   return (

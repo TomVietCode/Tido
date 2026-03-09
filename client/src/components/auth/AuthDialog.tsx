@@ -77,11 +77,12 @@ export default function AuthDialog({ open, onOpenChange, trigger }: AuthDialogPr
   const onSignUpSubmit = async (data: SignUpValues) => {
     try {
       await signUpAction(data)
-      toast.success("Đăng ký tài khoản thành công!")
+      toast.success("Đăng ký tài khoản thành công, vui lòng cập nhật thông tin cá nhân!")
       signUpForm.reset()
       closeDialog()
       await update()
-      router.push("/profile")
+      router.push("/me")
+      router.refresh()
     } catch (error: any) {
       toast.error(error.message ?? "Có lỗi xảy ra, vui lòng thử lại sau.")
     }
@@ -129,7 +130,7 @@ export default function AuthDialog({ open, onOpenChange, trigger }: AuthDialogPr
             </DialogHeader>
 
             <Form {...signUpForm}>
-              <form onSubmit={signUpForm.handleSubmit(onSignUpSubmit)} className="space-y-1">
+              <form key="sign-up-form" onSubmit={signUpForm.handleSubmit(onSignUpSubmit)} className="space-y-1">
                 {/* FullName */}
                 <FormField
                   control={signUpForm.control}
@@ -138,7 +139,12 @@ export default function AuthDialog({ open, onOpenChange, trigger }: AuthDialogPr
                     <FormItem>
                       <FormLabel>Họ và Tên</FormLabel>
                       <FormControl>
-                        <Input placeholder="Nguyễn Văn A" {...field} disabled={signUpForm.formState.isSubmitting} />
+                        <Input
+                          placeholder="Nguyễn Văn A"
+                          {...field}
+                          value={field.value ?? ""}
+                          disabled={signUpForm.formState.isSubmitting}
+                        />
                       </FormControl>
                       <div className="h-5 flex items-center">
                         <FormMessage className="text-xs" />
@@ -159,6 +165,7 @@ export default function AuthDialog({ open, onOpenChange, trigger }: AuthDialogPr
                           placeholder="email@example.com"
                           {...field}
                           disabled={signUpForm.formState.isSubmitting}
+                          value={field.value ?? ""}
                         />
                       </FormControl>
                       <div className="h-5 flex items-center">
@@ -181,6 +188,7 @@ export default function AuthDialog({ open, onOpenChange, trigger }: AuthDialogPr
                           placeholder="******"
                           {...field}
                           disabled={signUpForm.formState.isSubmitting}
+                          value={field.value ?? ""}
                         />
                       </FormControl>
                       <div className="h-5 flex items-center">
@@ -203,6 +211,7 @@ export default function AuthDialog({ open, onOpenChange, trigger }: AuthDialogPr
                           placeholder="******"
                           {...field}
                           disabled={signUpForm.formState.isSubmitting}
+                          value={field.value ?? ""}
                         />
                       </FormControl>
                       <div className="h-5 flex items-center">
@@ -230,9 +239,9 @@ export default function AuthDialog({ open, onOpenChange, trigger }: AuthDialogPr
 
                   <p className="text-center text-sm text-muted-foreground">
                     Đã có tài khoản?{" "}
-                    <a onClick={OpenSignIn} className="text-primary hover:underline font-medium">
+                    <button onClick={OpenSignIn} className="text-primary hover:underline font-medium">
                       Đăng nhập
-                    </a>
+                    </button>
                   </p>
                 </div>
               </form>
@@ -245,7 +254,7 @@ export default function AuthDialog({ open, onOpenChange, trigger }: AuthDialogPr
             </DialogHeader>
 
             <Form {...signInForm}>
-              <form onSubmit={signInForm.handleSubmit(onSignInSubmit)} className="space-y-1">
+              <form key="sign-in-form" onSubmit={signInForm.handleSubmit(onSignInSubmit)} className="space-y-1">
                 {/* Email */}
                 <FormField
                   control={signInForm.control}
@@ -257,6 +266,7 @@ export default function AuthDialog({ open, onOpenChange, trigger }: AuthDialogPr
                         <Input
                           placeholder="email@example.com"
                           {...field}
+                          value={field.value ?? ""}
                           disabled={signInForm.formState.isSubmitting}
                         />
                       </FormControl>
@@ -279,6 +289,7 @@ export default function AuthDialog({ open, onOpenChange, trigger }: AuthDialogPr
                           type="password"
                           placeholder="******"
                           {...field}
+                          value={field.value ?? ""}
                           disabled={signInForm.formState.isSubmitting}
                         />
                       </FormControl>
@@ -307,9 +318,9 @@ export default function AuthDialog({ open, onOpenChange, trigger }: AuthDialogPr
 
                   <p className="text-center text-sm text-muted-foreground">
                     Chưa có tài khoản?{" "}
-                    <a onClick={OpenSignUp} className="text-primary hover:underline font-medium">
+                    <button onClick={OpenSignUp} className="text-primary hover:underline font-medium">
                       Đăng ký
-                    </a>
+                    </button>
                   </p>
                 </div>
               </form>

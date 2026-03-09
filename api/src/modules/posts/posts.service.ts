@@ -31,7 +31,6 @@ export class PostsService {
   ) {}
 
   async create(dto: CreatePostDto, user: any) {
-    const { location, ...rest } = dto
     if (user.status === UserStatus.BANNED) {
       throw new ForbiddenException('Tài khoản của bạn đã bị khóa')
     }
@@ -48,9 +47,10 @@ export class PostsService {
     try {
       const result = await this.prisma.post.create({
         data: {
-          ...rest,
+          ...dto,
           userId: user.id,
           status: PostStatus.OPEN,
+          hasReward: dto.type === PostType.LOST ? true : false,
         },
       })
 
@@ -219,46 +219,63 @@ export class PostsService {
   //   const skip = (page - 1) * limit
   //   const where: any = { userId: user.id }
 
-  //   if (catId) where.categoryId = catId
-  //   if (catSlug) where.category = { slug: catSlug }
-  //   if (type) where.type = type
-  //   if (status) where.status = status
+  async findMyPosts(query: GetMyPostsQueryDto, user: IUserPayload) {
+    const {
+      limit = 20,
+      cursor,
+      status,
+      type,
+      sortOrder = SortOrder.DESC,
+    } = query
+    const safeLimit = Math.min(limit, 30)
+    const where: any = { userId: user.id }
 
-  //   const [data, total] = await Promise.all([
-  //     this.prisma.post.findMany({
-  //       where,
-  //       skip,
-  //       take: limit,
-  //       orderBy: { [sortBy]: sortOrder },
-  //     }),
-  //     this.prisma.post.count({ where }),
-  //   ])
+    if (type) where.type = type
+    if (status) where.status = status
 
-  //   return {
-  //     meta: {
-  //       total,
-  //       page,
-  //       limit,
-  //       totalPages: Math.ceil(total / limit),
-  //     },
-  //     data,
-  //   }
-  // }
-
-  async findSavedPosts(user: IUserPayload) {
-    const savedPosts = await this.savedPost.findAll(user)
-    const savedPostIds = savedPosts.map((savedPost) => savedPost.postId)
-    const where = {
-      id: { in: savedPostIds },
-      status: { not: PostStatus.HIDDEN },
-    }
-    const [result, total] = await Promise.all([
-      this.prisma.post.findMany({ where }),
-      this.prisma.post.count({ where }),
+    const [rows, totalPosts, totalResolved] = await Promise.all([
+      this.prisma.post.findMany({
+        where,
+        take: safeLimit + 1,
+        ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+        orderBy: { createdAt: sortOrder },
+        select: {
+          id: true,
+          userId: true,
+          title: true,
+          images: true,
+          type: true,
+          status: true,
+          hasReward: true,
+          location: true,
+          happenedAt: true,
+          createdAt: true,
+          category: {
+            select: { name: true, slug: true },
+          },
+        },
+      }),
+      this.prisma.post.count({ where: { userId: user.id } }),
+      this.prisma.post.count({
+        where: { userId: user.id, status: PostStatus.CLOSED },
+      }),
     ])
+
+    const hasNextPage = rows.length > safeLimit
+    const data = hasNextPage ? rows.slice(0, safeLimit) : rows
+    const nextCursor = hasNextPage ? data[data.length - 1].id : null
+
     return {
-      meta: { total },
-      data: result,
+      meta: {
+        limit: safeLimit,
+        hasNextPage,
+        nextCursor,
+      },
+      summary: {
+        totalPosts,
+        totalResolved,
+      },
+      data,
     }
   }
 
