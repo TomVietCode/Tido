@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common'
 import { PrismaService } from '@src/database/prisma/prisma.service'
@@ -15,12 +16,18 @@ import {
 import { PostStatus, PostType, SortOrder, UserStatus } from '@common/enums'
 import { IUserPayload } from '@common/interfaces'
 import { SavedPostsService } from '@modules/saved-posts/saved-posts.service'
+import { ImageEmbeddingService } from '@modules/posts/image-embedding.service'
+import { ImageSearchQueryDto } from '@modules/posts/dtos'
+import { AzureVisionService } from '@modules/azure-vision/azure-vision.service'
 
 @Injectable()
 export class PostsService {
+  private readonly logger = new Logger(PostsService.name)
   constructor(
     private readonly prisma: PrismaService,
     private readonly savedPost: SavedPostsService,
+    private readonly imageEmbedding: ImageEmbeddingService,
+    private readonly azureVision: AzureVisionService,
   ) {}
 
   async create(dto: CreatePostDto, user: any) {
@@ -46,6 +53,19 @@ export class PostsService {
           status: PostStatus.OPEN,
         },
       })
+
+      // Create embeddings for images (non-blocking)
+      if (dto.images?.length > 0) {
+        // Run asynchronously, without blocking the response to the user
+        this.imageEmbedding
+          .createEmbeddingsForPost(result.id, dto.images)
+          .catch((err) => {
+            this.logger.error(
+              `Failed to create embeddings for post ${result.id}`,
+              err,
+            )
+          })
+      }
       return result
     } catch (error) {
       throw new InternalServerErrorException('Có lỗi xảy ra khi tạo bài viết')
@@ -95,15 +115,17 @@ export class PostsService {
         happenedAt: true,
         createdAt: true,
         category: {
-          select: { name: true, slug: true, },
+          select: { name: true, slug: true },
         },
-        ...(userId ? {
-          savedPosts: {
-            where: { userId },
-            select: { userId: true },
-            take: 1,
-          }
-        } : {})
+        ...(userId
+          ? {
+              savedPosts: {
+                where: { userId },
+                select: { userId: true },
+                take: 1,
+              },
+            }
+          : {}),
       },
     })
 
@@ -111,7 +133,7 @@ export class PostsService {
     const sliced = hasNextPage ? rows.slice(0, safeLimit) : rows
     const data = sliced.map(({ savedPosts, ...rest }) => ({
       ...rest,
-      isSaved: Array.isArray(savedPosts) && savedPosts.length > 0
+      isSaved: Array.isArray(savedPosts) && savedPosts.length > 0,
     }))
     const nextCursor = hasNextPage ? data[data.length - 1].id : null
 
@@ -125,6 +147,64 @@ export class PostsService {
     }
   }
 
+  async findByIds(ids: string[]) {
+    return this.prisma.post.findMany({
+      where: {
+        id: { in: ids },
+        status: PostStatus.OPEN,
+      },
+      include: {
+        category: { select: { id: true, name: true, slug: true } },
+        user: { select: { id: true, fullName: true, avatarUrl: true } },
+      },
+    })
+  }
+
+  async searchByImage(file: any, query: ImageSearchQueryDto) {
+    if (!file) {
+      throw new BadRequestException('Vui lòng upload ảnh để tìm kiếm')
+    }
+
+    // Step 1: Convert uploaded image to vector
+    const queryVector = await this.azureVision.getImageEmbeddingFromBuffer(
+      file.buffer,
+    )
+
+    // Step 2: Search for similar posts
+    const matches = await this.imageEmbedding.searchSimilarPosts(
+      queryVector,
+      query.limit,
+      query.threshold,
+    )
+
+    if (matches.length === 0) {
+      return { data: [], total: 0 }
+    }
+
+    // Step 3: Get full information of the posts
+    const postIds = matches.map((m) => m.postId)
+    const posts = await this.findByIds(postIds)
+
+    // Sort by distance
+    const postMap = new Map(posts.map((p) => [p.id, p]))
+    const sortedPosts = matches
+      .map((m) => {
+        const post = postMap.get(m.postId)
+        if (!post) return null
+        return {
+          ...post,
+          similarity: Number((1 - m.distance).toFixed(4)),
+          matchedImage: m.imageUrl,
+        }
+      })
+      .filter(Boolean)
+
+    return {
+      data: sortedPosts,
+      total: sortedPosts.length,
+    }
+  }
+  
   // async findMyPosts(query: GetMyPostsQueryDto, user: IUserPayload) {
   //   const {
   //     page = 1,

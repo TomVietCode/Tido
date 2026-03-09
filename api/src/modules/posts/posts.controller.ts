@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -8,7 +9,9 @@ import {
   Post,
   Query,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import {
@@ -26,11 +29,12 @@ import { IPost, IPostsPaginatedResponse } from '@modules/posts/post.interface'
 import { CurrentUser } from '@modules/auth/decorators/user.decorator'
 import { IUserPayload } from '@common/interfaces'
 import { ApiAuth, DocsInfo } from '@common/decorators'
-import { PostListResponseDto, PostResponseDto } from '@modules/posts/dtos'
+import { ImageSearchQueryDto, PostListResponseDto, PostResponseDto } from '@modules/posts/dtos'
 import { JwtAuthGuard } from '@modules/auth/guards/jwt-auth.guard'
 import { RoleGuard } from '@modules/auth/guards/role.guard'
 import { Roles } from '@modules/auth/decorators/role.decorator'
 import { Role } from '@common/enums'
+import { FileInterceptor } from '@nestjs/platform-express'
 
 @Controller('posts')
 @ApiTags('Posts')
@@ -146,6 +150,17 @@ export class PostsController {
   ): Promise<boolean> {
     const result = await this.postsService.delete(id, user)
     return result
+  }
+
+  @Post('search/image')
+  @ApiAuth()
+  @UseInterceptors(FileInterceptor('image'))
+  async searchByImage(
+    @UploadedFile() file: any,
+    @Query() query: ImageSearchQueryDto,
+  ) {
+    const { data, total } = await this.postsService.searchByImage(file, query)
+    return { data, total }
   }
 
   @Post(':id/save')

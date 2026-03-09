@@ -14,12 +14,11 @@ import { RoleGuard } from '@modules/auth/guards/role.guard'
 import { UploadModule } from '@modules/uploads/upload.module'
 import { SavedPostsModule } from '@modules/saved-posts/saved-posts.module'
 import { MongooseModule } from '@nestjs/mongoose'
-import { ChatModule } from '@modules/chat/chat.module';
-import { ContactRequestsModule } from '@modules/contact-requests/contact-requests.module';
-import { NotificationsModule } from '@modules/notifications/notifications.module';
+import { NotificationsModule } from '@modules/notifications/notifications.module'
 import { ChatModule } from '@modules/chat/chat.module'
 import { ContactRequestsModule } from '@modules/contact-requests/contact-requests.module'
 import { DashboardModule } from '@modules/dashboard/dashboard.module'
+import { AzureVisionModule } from './modules/azure-vision/azure-vision.module'
 
 @Module({
   imports: [
@@ -45,6 +44,7 @@ import { DashboardModule } from '@modules/dashboard/dashboard.module'
     ContactRequestsModule,
     NotificationsModule,
     DashboardModule,
+    AzureVisionModule,
   ],
   controllers: [AppController],
   providers: [

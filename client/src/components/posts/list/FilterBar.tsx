@@ -2,13 +2,15 @@
 
 import { useCallback, useEffect, useState, useTransition } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Loader2, SearchIcon, XIcon } from "lucide-react"
+import { Loader2, SearchIcon, X, XIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { PostType, SortOrder } from "@/types/enums"
 import { Category } from "@/types/category"
 import { useDebounce } from "@/lib/hooks/useDebounce"
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group"
+import { ImageSearchResponse } from "@/types/post"
+import ImageSearchDialog from "@/components/posts/list/ImageSearchDialog"
 
 const TYPE_OPTIONS = [
   { label: "Tất cả", value: "all" },
@@ -20,9 +22,17 @@ const ALL_CATEGORIES_VALUE = "all"
 
 interface FilterBarProps {
   categories?: Category[]
+  //Call back when image search results are available
+  onImageSearchResults?: (results: ImageSearchResponse, previewUrl: string) => void
+  isImageSearchActive?: boolean
+  onClearImageSearch?: () => void
 }
-
-export default function FilterBar({ categories = [] }: FilterBarProps) {
+export default function FilterBar({
+  categories = [],
+  onImageSearchResults,
+  isImageSearchActive,
+  onClearImageSearch,
+}: FilterBarProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -97,14 +107,31 @@ export default function FilterBar({ categories = [] }: FilterBarProps) {
               />
               <InputGroupAddon>{isSearching ? <Loader2 className="animate-spin" /> : <SearchIcon />}</InputGroupAddon>
               <InputGroupAddon align="inline-end">
-                <InputGroupButton
-                  title="Xóa"
-                  size="icon-xs"
-                  onClick={() => setSearchValue("")}
-                  className={`rounded-full ${!searchValue ? "hidden" : ""} cursor-pointer`}
-                >
-                  <XIcon />
-                </InputGroupButton>
+                {searchValue.length > 0 ? (
+                  <InputGroupButton
+                    title="Xóa"
+                    size="icon-xs"
+                    onClick={() => setSearchValue("")}
+                    className={`rounded-full ${!searchValue ? "hidden" : ""} cursor-pointer`}
+                  >
+                    <XIcon />
+                  </InputGroupButton>
+                ) : (
+                  <div className="flex items-center">
+                    {isImageSearchActive ? (
+                      <Button
+                        variant="destructive"
+                        size="icon-sm"
+                        onClick={onClearImageSearch}
+                        className="rounded-full cursor-pointer h-8 w-8"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      onImageSearchResults && <ImageSearchDialog onSearchResults={onImageSearchResults} />
+                    )}
+                  </div>
+                )}
               </InputGroupAddon>
             </InputGroup>
           </div>

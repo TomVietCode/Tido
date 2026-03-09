@@ -75,3 +75,13 @@ export interface AdminPostListItem {
     avatarUrl: string
   }
 }
+
+export interface ImageSearchPostItem extends PostListItem {
+  similarity: number
+  matchedImage: string
+}
+
+export interface ImageSearchResponse {
+  data: ImageSearchPostItem[]
+  total: number
+}

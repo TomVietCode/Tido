@@ -3,7 +3,7 @@ import { auth } from "@/auth"
 import { ErrUnauthorized } from "@/lib/errors"
 import { sendRequest } from "@/lib/helpers/api"
 import { getErrPayload } from "@/lib/helpers/handle-errors"
-import { Post, PostDetail, PostListResponse } from "@/types"
+import { ImageSearchResponse, Post, PostDetail, PostListResponse } from "@/types"
 
 export const getPosts = async (params?: Record<string, string | undefined> | URLSearchParams) => {
   try {
@@ -82,6 +82,40 @@ export const toggleSavePost = async (postId: string) => {
     })
 
     return res
+  } catch (error) {
+    return getErrPayload(error)
+  }
+}
+
+export const searchPostsByImage = async (formData: FormData) => {
+  try {
+    const session = await auth()
+    if (!session) throw ErrUnauthorized
+
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL
+
+    const res = await fetch(`${baseUrl}/posts/search/image`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.user.access_token}`,
+      },
+      body: formData,
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      return {
+        success: false,
+        message: data.message || "Có lỗi khi tìm kiếm bằng ảnh",
+        data: null,
+      }
+    }
+
+    return {
+      success: true,
+      data: data.data as ImageSearchResponse,
+    }
   } catch (error) {
     return getErrPayload(error)
   }

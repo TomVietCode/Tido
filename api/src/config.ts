@@ -33,5 +33,10 @@
       doSpaceSecretKey: process.env.DO_SPACE_SECRET_KEY,
       doSpaceBucket: process.env.DO_SPACE_BUCKET,
       doSpaceRegion: process.env.DO_SPACE_REGION,
-    }
+    },
+    azureVision: {
+      endpoint: process.env.AZURE_VISION_ENDPOINT,
+      apiKey: process.env.AZURE_VISION_API_KEY,
+      apiVersion: process.env.AZURE_VISION_API_VERSION || '2024-02-01',
+    },
   })
