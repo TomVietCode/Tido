@@ -38,7 +38,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
           <Search className="absolute left-3 h-5 w-5 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Tìm kiếm vật thất lạc..."
+            placeholder="Tìm kiếm bài đăng..."
             className="pl-10 text-base bg-slate-50 border-border/50 focus-visible:ring-2 focus-visible:ring-primary"
           />
         </div>
@@ -125,7 +125,7 @@ export default function HeaderClient({ session }: HeaderClientProps) {
               <Search className="absolute left-3 h-5 w-5 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Tìm kiếm vật thất lạc..."
+                placeholder="Tìm kiếm bài đăng..."
                 className="pl-10 text-base bg-slate-50 border-border/50 focus-visible:ring-2 focus-visible:ring-primary"
               />
             </div>

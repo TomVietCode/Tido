@@ -164,7 +164,7 @@ export default function ProfileContent({ profile }: ProfileContentProps) {
             {/* Họ và tên */}
             <div className="flex flex-col">
               <Label htmlFor="fullName" className="mb-2">
-                Họ và tên <span className="text-destructive">*</span>
+                Họ và tên {isEditing ? <span className="text-destructive">*</span> : ""}
               </Label>
               {isEditing ? (
                 <Input

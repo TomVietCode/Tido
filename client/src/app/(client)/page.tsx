@@ -20,13 +20,13 @@ export default function Home() {
                 Nền tảng hỗ trợ tìm kiếm vật thất lạc
               </h1>
               <h2 className="mx-auto mt-4 max-w-2xl text-lg text-slate-600 dark:text-slate-300">
-                Nhanh chóng - An toàn - Tin cậy
+                By VQT Team - Phenikaa University
               </h2>
               <div className="mx-auto mt-10 flex max-w-sm flex-col items-center justify-center gap-4 sm:flex-row">
                 <Button
                   variant="destructive"
                   asChild
-                  className="w-45 md:w-48 h-12 px-5 font-bold gap-2 shadow-[0_0_20px_rgba(239,68,68,0.6)] hover:shadow-[0_0_30px_rgba(239,68,68,0.9)] transition-shadow"
+                  className="w-51 h-12 px-5 font-bold gap-2 shadow-[0_0_20px_rgba(239,68,68,0.6)] hover:shadow-[0_0_30px_rgba(239,68,68,0.9)] transition-shadow"
                 >
                   <Link href="/posts?type=found">
                     <AlertTriangle className="h-5 w-5" />
@@ -37,11 +37,11 @@ export default function Home() {
                 <Button
                   variant="default"
                   asChild
-                  className="w-45 md:w-48 h-12 px-5 font-bold gap-2 shadow-[0_0_20px_rgba(59,130,246,0.6)] hover:shadow-[0_0_30px_rgba(59,130,246,0.9)] transition-shadow"
+                  className="w-51 h-12 px-5 font-bold gap-2 shadow-[0_0_20px_rgba(59,130,246,0.6)] hover:shadow-[0_0_30px_rgba(59,130,246,0.9)] transition-shadow"
                 >
                   <Link href="/posts?type=lost">
                     <HandHeart className="h-5 w-5" />
-                    Tôi tìm được / Tìm thấy
+                    Tôi nhặt được / Tìm thấy
                   </Link>
                 </Button>
               </div>
