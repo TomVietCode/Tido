@@ -3,7 +3,7 @@ import { auth } from "@/auth"
 import { ErrUnauthorized } from "@/lib/errors"
 import { sendRequest } from "@/lib/helpers/api"
 import { getErrPayload } from "@/lib/helpers/handle-errors"
-import { Post, PostDetail, PostListResponse } from "@/types"
+import { Post, PostDetail, PostListItem, PostListResponse } from "@/types"
 
 export const getPosts = async (params?: Record<string, string | undefined> | URLSearchParams) => {
   try {
@@ -76,6 +76,25 @@ export const toggleSavePost = async (postId: string) => {
     const res = await sendRequest<IBackendRes<boolean>>({
       url: `/posts/${postId}/save`,
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.user.access_token}`,
+      },
+    })
+
+    return res
+  } catch (error) {
+    return getErrPayload(error)
+  }
+}
+
+export const getSavedPosts = async () => {
+  try {
+    const session = await auth()
+    if (!session) throw ErrUnauthorized
+
+    const res = await sendRequest<IBackendRes<PostListItem[]>>({
+      url: "/posts/saved",
+      method: "GET",
       headers: {
         Authorization: `Bearer ${session.user.access_token}`,
       },

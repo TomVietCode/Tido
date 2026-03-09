@@ -26,7 +26,7 @@ function GoogleCallbackHandler() {
         const user = JSON.parse(Buffer.from(userB64, "base64").toString("utf-8"))
         await signIn("google-oauth", {
           redirect: true,
-          callbackUrl: "/profile",
+          callbackUrl: "/me",
           token,
           user: JSON.stringify(user),
         })

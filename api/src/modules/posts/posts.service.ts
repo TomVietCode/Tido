@@ -165,23 +165,6 @@ export class PostsService {
   //   }
   // }
 
-  async findSavedPosts(user: IUserPayload) {
-    const savedPosts = await this.savedPost.findAll(user)
-    const savedPostIds = savedPosts.map((savedPost) => savedPost.postId)
-    const where = {
-      id: { in: savedPostIds },
-      status: { not: PostStatus.HIDDEN },
-    }
-    const [result, total] = await Promise.all([
-      this.prisma.post.findMany({ where }),
-      this.prisma.post.count({ where }),
-    ])
-    return {
-      meta: { total },
-      data: result,
-    }
-  }
-
   async findOne(id: string, requesterId: string) {
     const post = await this.prisma.post.findUnique({
       where: { id },
