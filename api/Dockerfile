@@ -1,30 +1,35 @@
-# Sử dụng Node.js image nhẹ (Alpine)
-FROM node:22-alpine
+# ---- Stage 1: Build ----
+FROM node:22-alpine AS builder
 
-# Thiết lập thư mục làm việc trong container
-WORKDIR /usr/src/app
+WORKDIR /app
 
-# Cài đặt các thư viện cần thiết cho native modules (nếu cần, ví dụ bcrypt đôi khi cần python/make)
-# Với bcrypt js thuần thì không cần, nhưng an toàn thì cứ để
 RUN apk add --no-cache python3 make g++
 
-# Copy package.json và package-lock.json trước để tận dụng Docker cache
 COPY package*.json ./
-
-# Copy thư mục prisma để chạy prisma generate
 COPY prisma ./prisma/
 
-# Cài đặt dependencies
-RUN npm install
+RUN npm ci
 
-# Copy toàn bộ source code vào container
 COPY . .
 
-# Generate Prisma Client (Bắt buộc để NestJS hiểu schema)
 RUN npx prisma generate
+RUN npm run build
 
-# Expose port mà NestJS chạy (mặc định 3000)
+# ---- Stage 2: Production ----
+FROM node:22-alpine AS runner
+
+WORKDIR /app
+
+RUN apk add --no-cache python3 make g++
+
+COPY package*.json ./
+COPY prisma ./prisma/
+
+RUN npm ci --omit=dev
+
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma/generated ./prisma/generated
+
 EXPOSE 8000
 
-# Lệnh mặc định (sẽ bị ghi đè bởi docker-compose nếu có)
-CMD [ "npm", "run", "dev" ]
+CMD ["node", "dist/main"]
