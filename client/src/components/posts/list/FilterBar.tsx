@@ -118,18 +118,7 @@ export default function FilterBar({
                   </InputGroupButton>
                 ) : (
                   <div className="flex items-center">
-                    {isImageSearchActive ? (
-                      <Button
-                        variant="destructive"
-                        size="icon-sm"
-                        onClick={onClearImageSearch}
-                        className="rounded-full cursor-pointer h-8 w-8"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    ) : (
-                      onImageSearchResults && <ImageSearchDialog onSearchResults={onImageSearchResults} />
-                    )}
+                    {onImageSearchResults && <ImageSearchDialog onSearchResults={onImageSearchResults} />}
                   </div>
                 )}
               </InputGroupAddon>

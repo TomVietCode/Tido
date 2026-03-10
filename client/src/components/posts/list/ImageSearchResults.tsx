@@ -84,7 +84,7 @@ export default function ImageSearchResults({
             <PostCard post={post} />
             {/* Badge display similarity percentage */}
             <Badge
-              className="absolute top-2 left-2 z-10 bg-primary/90 text-white
+              className="absolute top-35 left-1/2 -translate-y-1/2 -translate-x-1/2 z-10 bg-primary/90 text-white
                          text-xs font-medium px-2 py-0.5 pointer-events-none"
             >
               {Math.round(post.similarity * 100)}% tương đồng

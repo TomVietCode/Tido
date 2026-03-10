@@ -110,7 +110,7 @@ export const getMyPosts = async (params?: Record<string, string | undefined>) =>
   try {
     const session = await auth()
     if (!session) throw ErrUnauthorized
-
+    
     const res = await sendRequest<IBackendRes<MyPostsResponse>>({
       url: "/posts/me",
       method: "GET",

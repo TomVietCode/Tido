@@ -64,7 +64,8 @@ export function getPostTimeAgo(dateInput: string | Date) {
     if (diffInMinutes < 60) {
       return `${diffInMinutes} phút trước`;
     }
-    return date.format("HH [giờ trước]");
+    const diffInHours = now.diff(date, "hour");
+    return `${diffInHours} giờ trước`
   }
 
   // in the last 7 days

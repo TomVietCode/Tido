@@ -36,7 +36,7 @@ export default function PostPageClient({ categories, initialData, searchParams }
         onClearImageSearch={handleClearImageSearch}
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="flex flex-1 flex-col max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {imageSearchResults && queryImageUrl ? (
           <ImageSearchResults
             results={imageSearchResults}
