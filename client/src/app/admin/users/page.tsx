@@ -209,7 +209,7 @@ export default function UsersManagementPage() {
 
                   {/* Role */}
                   <TableCell className="text-sm">
-                    <Badge variant={roleMap[user.role]?.variant ?? "default"}>
+                    <Badge variant={roleMap[user.role]?.variant as "default" | "secondary" | "destructive" | "outline" | null | undefined}>
                       {roleMap[user.role]?.label ?? user.role}
                     </Badge>
                   </TableCell>
