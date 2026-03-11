@@ -1,8 +1,44 @@
 services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: tido-api
+    ports:
+      - "8000:8000" 
+    env_file:
+      - ./api/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+    networks:
+      - tido_net
+    restart: unless-stopped
+
+  # Client Service (Next.js)
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: tido-client
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./client/.env
+    depends_on:
+      - api
+    networks:
+      - tido_net
+    restart: unless-stopped
+
   mongodb:
     image: mongo:7.0
     container_name: tido_mongodb
     restart: always
+    env_file:
+      - ./api/.env    
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
@@ -12,29 +48,13 @@ services:
       - ./docker_data/mongodb:/data/db
     networks: 
       - tido_net
-  mongo-express:
-    image: mongo-express
-    container_name: tido_mongo_express
-    restart: always
-    ports:
-      - "8081:8081"
-    environment:
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_USER}
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_PASSWORD}
-      - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/
-    depends_on:
-      - mongodb
-    networks:
-      - tido_net
       
   postgres:
     image: postgres:16-alpine
     container_name: tido_postgres
     restart: always
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+    env_file:
+      - ./api/.env
     ports:
       - "5432:5432"
     volumes:
