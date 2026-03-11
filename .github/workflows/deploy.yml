@@ -38,6 +38,8 @@ jobs:
           tags: |
             ${{ env.API_IMAGE }}:latest
             ${{ env.API_IMAGE }}:${{ github.sha }}
+          build-args: |
+            POSTGRES_URL=${{ secrets.POSTGRES_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
