@@ -11,15 +11,15 @@ export default function Footer() {
               rel="noreferrer"
               className="font-medium underline underline-offset-4"
             >
-              Aetd. {"   "}
+              VQT
             </a>
-            All rights reserved.
+            . All rights reserved.
           </p>
         </div>
 
         {/* Link phụ ở footer */}
-        <div className="pl-8 mt-3 flex gap-2 text-sm">
-          Hỗ trợ: <a href="mailto:hanflorist.shop@gmail.com">hanflorist.shop@gmail.com</a>
+        <div className="pl-8 flex gap-2 text-sm">
+          Hỗ trợ: <a href="mailto:hanflorist.shop@gmail.com">support@tido.com</a>
         </div>
       </div>
     </footer>

@@ -14,7 +14,7 @@ export class HttpError extends Error {
 
 export const sendRequest = async <T>(props: IRequest) => {
   let { url, method, body, queryParams, headers, nextOption } = props
-  const baseUrl = 'https://api.tido.page/'
+  const baseUrl = 'https://api.tido.page'
 
   if (url.startsWith("/")) {
     url = `${baseUrl}${url}`
