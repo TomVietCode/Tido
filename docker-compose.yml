@@ -50,7 +50,7 @@ services:
       - tido_net
       
   postgres:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     container_name: tido_postgres
     restart: always
     env_file:

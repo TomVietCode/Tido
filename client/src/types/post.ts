@@ -105,3 +105,13 @@ export interface MyPostsResponse {
   }
   data: MyPostListItem[]
 }
+
+export interface ImageSearchPostItem extends PostListItem {
+  similarity: number
+  matchedImage: string
+}
+
+export interface ImageSearchResponse {
+  data: ImageSearchPostItem[]
+  total: number
+}

@@ -26,20 +26,14 @@ interface PostCardProps {
 }
 
 export default function PostCard({ post, onToggleSave }: PostCardProps) {
-  const {
-    session,
-    handleContact,
-    showAuthDialog,
-    setShowAuthDialog,
-    showQuestionDialog,
-    setShowQuestionDialog,
-  } = usePostContact({
-    postId: post.id,
-    postUserId: post.userId,
-    postType: post.type,
-    securityQuestion: post.securityQuestion,
-  })
-
+  const { session, handleContact, showAuthDialog, setShowAuthDialog, showQuestionDialog, setShowQuestionDialog } =
+    usePostContact({
+      postId: post.id,
+      postUserId: post.userId,
+      postType: post.type,
+      securityQuestion: post.securityQuestion,
+    })
+  console.log(post)
   const [isSaved, setIsSaved] = useState(post.isSaved ?? false)
 
   const handleToggleSave = async () => {

@@ -113,10 +113,11 @@ model Post {
   updatedAt        DateTime   @updatedAt @map("updated_at")
 
   // Relations
-  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category        Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  contactRequests ContactRequest[]
-  savedPosts      SavedPost[]
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category            Category             @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  contactRequests     ContactRequest[]
+  savedPosts          SavedPost[]
+  postImageEmbeddings PostImageEmbedding[]
 
   @@map("posts")
 }
@@ -133,6 +134,18 @@ model SavedPost {
 
   @@id([userId, postId])
   @@map("saved_posts")
+}
+
+model PostImageEmbedding {
+  id        String                       @id @default(uuid(7)) @db.Uuid
+  postId    String                       @map("post_id") @db.Uuid
+  imageUrl  String                       @map("image_url")
+  embedding Unsupported("vector(1024)")?
+  createdAt DateTime                     @default(now()) @map("created_at")
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("post_image_embeddings")
 }
 
 model ContactRequest {
