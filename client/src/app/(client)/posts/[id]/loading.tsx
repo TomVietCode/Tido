@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 export default function PostDetailLoading() {
   return (
     <div className="min-h-[calc(100svh-7rem)] bg-background">
-      <div className="mx-auto lg:w-6xl max-w-6xl px-4 py-6">
+      <div className="mx-auto lg:w-7xl max-w-7xl px-4 py-6">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           {/* Image Gallery Skeleton */}
           <div className="space-y-3">

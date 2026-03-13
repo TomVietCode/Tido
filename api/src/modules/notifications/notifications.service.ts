@@ -56,4 +56,26 @@ export class NotificationsService {
       data: { isRead: true },
     })
   }
+
+  async updateContactRequestResolvedStatus(
+    contactRequestId: string,
+    resolvedStatus: string,
+  ) {
+    const notification = await this.prisma.notification.findFirst({
+      where: {
+        type: NotificationType.CONTACT_REQUEST,
+        data: { path: ['contactRequestId'], equals: contactRequestId },
+      },
+    })
+    if (!notification) return
+
+    const currentData = notification.data as Record<string, any>
+    await this.prisma.notification.update({
+      where: { id: notification.id },
+      data: {
+        data: { ...currentData, resolvedStatus },
+        isRead: true,
+      },
+    })
+  }
 }

@@ -76,17 +76,21 @@ export const ConversationItem = memo(function ConversationItem({
 
           <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
             <h4 className="mb-1 truncate text-sm font-medium">{conversation.recipient.fullName}</h4>
-            <p className="truncate text-xs">
+            <p className="text-xs flex items-center gap-1">
               {lastMessage ? (
-                <span
-                  className={
-                    !lastMessage.isRead && lastMessage.senderId !== currentUserId
-                      ? "text-[0.8rem] font-extrabold"
-                      : "text-slate-500"
-                  }
-                >
-                  {lastPreview} · {getChatTimeAgo(lastMessage.createdAt)}
-                </span>
+                <>
+                  <span
+                    className={
+                      !lastMessage.isRead && lastMessage.senderId !== currentUserId
+                        ? "text-[0.8rem] font-extrabold truncate max-w-28"
+                        : "text-slate-500 truncate max-w-28"
+                    }
+                    style={{ display: "inline-block" }}
+                  >
+                    {lastPreview}
+                  </span>
+                  <span className="text-slate-400 shrink-0">&nbsp;· {getChatTimeAgo(lastMessage.createdAt)}</span>
+                </>
               ) : (
                 <span className="italic text-slate-400">Chưa có tin nhắn nào</span>
               )}

@@ -24,6 +24,7 @@ export interface PostDetail extends Post {
     avatarUrl: string
     email?: string
     phoneNumber?: string
+    facebookUrl?: string
   }
   category?: {
     name: string

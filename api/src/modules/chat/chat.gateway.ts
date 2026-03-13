@@ -127,7 +127,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.to(recipientId).emit('conversation_updated', messagePayload)
     }
 
-    if (result.createdConversation && recipientId) {
+    if (result.isFirstMessage && recipientId) {
       const sender = await this.usersService.findOne({ id: senderId })
       const notifData: IFirstMessageData = {
         senderId,

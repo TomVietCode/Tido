@@ -22,9 +22,7 @@ import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 interface IChatWindowProps {
-  conversationId?: string
-  draftRecipientId?: string
-  draftRecipient?: { id: string; fullName: string; avatarUrl: string }
+  conversationId: string
   initialMessages: IMessage[]
   initialCursor: string | null
   initialHasMore: boolean
@@ -32,8 +30,6 @@ interface IChatWindowProps {
 }
 export default function ChatWindow({
   conversationId,
-  draftRecipientId,
-  draftRecipient,
   initialMessages,
   initialCursor,
   initialHasMore,
@@ -42,7 +38,7 @@ export default function ChatWindow({
   const router =  useRouter()
   const currentUserId = session?.user?.id
   const { socket } = useSocket()
-  const { mutate: mutateConversations, currentConversation } = useConversations(conversationId)
+  const { currentConversation } = useConversations(conversationId)
   const { post, canUpdateStatus, statusButtonLabel, isUpdating, markResolved } =
     useConversationPost(currentConversation?.postId)
 
@@ -107,7 +103,7 @@ export default function ChatWindow({
 
   const createOptimisticMessage = (content: string, type: MessageType, imageUrls: string[] = []): IMessage => ({
     id: `temp_${Date.now()}`,
-    conversationId: conversationId || "",
+    conversationId,
     senderId: currentUserId!,
     content,
     type,
@@ -115,13 +111,6 @@ export default function ChatWindow({
     isRead: false,
     createdAt: new Date().toISOString(),
   })
-
-  const handleDraftAck = (ack: { ok: boolean; conversationId: string }) => {
-    if (ack?.ok && !conversationId) {
-      router.replace(`/chats/${ack.conversationId}`)
-      mutateConversations()
-    }
-  }
 
   const sendMessage = async () => {
     if (!socket) return
@@ -141,11 +130,10 @@ export default function ChatWindow({
 
         socket.emit("send_message", {
           conversationId,
-          recipientId: draftRecipientId,
           content,
           type: MessageType.IMAGE,
           imageUrls,
-        }, handleDraftAck)
+        })
         clearPreviewImages()
       } catch (error) {
         console.error("Upload failed", error)
@@ -170,10 +158,9 @@ export default function ChatWindow({
 
     socket.emit("send_message", {
       conversationId,
-      recipientId: draftRecipientId,
       content,
       type,
-    }, handleDraftAck)
+    })
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -292,29 +279,22 @@ export default function ChatWindow({
           <ChevronLeft className="size-5" />
         </Button>
 
-        {(() => {
-          const recipient = currentConversation?.recipient ?? draftRecipient
-          return recipient ? (
-            <Link
-              href={`/users/${recipient.id}`}
-              className="flex min-w-0 items-center gap-2 rounded-md p-1 hover:bg-gray-100"
-            >
-              <Avatar className="size-9">
-                <AvatarImage src={recipient.avatarUrl} />
-                <AvatarFallback>
-                  {recipient.fullName.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <span className="truncate text-sm font-semibold">
-                {recipient.fullName}
-              </span>
-            </Link>
-          ) : (
-            <span className="truncate text-sm font-semibold text-gray-700">
-              Tin nhắn mới
+        {currentConversation?.recipient && (
+          <Link
+            href={`/users/${currentConversation.recipient.id}`}
+            className="flex min-w-0 items-center gap-2 rounded-md p-1 hover:bg-gray-100"
+          >
+            <Avatar className="size-9">
+              <AvatarImage src={currentConversation.recipient.avatarUrl} />
+              <AvatarFallback>
+                {currentConversation.recipient.fullName.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            <span className="truncate text-sm font-semibold">
+              {currentConversation.recipient.fullName}
             </span>
-          )
-        })()}
+          </Link>
+        )}
 
         <div className="flex items-center gap-1.5 ml-auto shrink-0">
           {post && (
@@ -350,7 +330,7 @@ export default function ChatWindow({
 
       {/* Desktop Header */}
       <div className="hidden md:block">
-        <ChatHeader conversation={currentConversation} draftRecipient={draftRecipient} />
+        <ChatHeader conversation={currentConversation} />
       </div>
 
       {/* Message area */}

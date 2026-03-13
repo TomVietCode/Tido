@@ -20,10 +20,11 @@ interface NotificationItemProps {
   notification: INotification
   onRemove: (id: string) => void
   onRead: (id: string) => void
+  onResolve: (id: string, status: "ACCEPTED" | "REJECTED") => void
   onClose: () => void
 }
 
-export default function NotificationItem({ notification, onRemove, onRead, onClose }: NotificationItemProps) {
+export default function NotificationItem({ notification, onRemove, onRead, onResolve, onClose }: NotificationItemProps) {
   switch (notification.type) {
     case NotificationType.FIRST_MESSAGE:
       return (
@@ -39,6 +40,7 @@ export default function NotificationItem({ notification, onRemove, onRead, onClo
           notification={notification}
           onRemove={onRemove}
           onRead={onRead}
+          onResolve={onResolve}
           onClose={onClose}
         />
       )
@@ -97,26 +99,26 @@ function FirstMessageItem({
 
 function ContactRequestItem({
   notification,
-  onRemove,
-  onRead,
+  onResolve,
   onClose,
 }: {
   notification: ContactRequestNotification
   onRemove: (id: string) => void
   onRead: (id: string) => void
+  onResolve: (id: string, status: "ACCEPTED" | "REJECTED") => void
   onClose: () => void
 }) {
   const router = useRouter()
   const [loading, setLoading] = useState<"accept" | "reject" | null>(null)
   const { requesterName, requesterAvatar, contactRequestId, postTitle, answerPreview } = notification.data
 
+  const resolved = notification.data.resolvedStatus
+
   const handleAccept = async () => {
     setLoading("accept")
     try {
-      if (!notification.isRead) {
-        onRead(notification.id)
-        markNotificationAsRead(notification.id).catch(() => {})
-      }
+      onResolve(notification.id, "ACCEPTED")
+      markNotificationAsRead(notification.id).catch(() => {})
       const res = await updateContactRequestStatus(contactRequestId, "ACCEPTED")
       if (res.success && res.data?.conversationId) {
         onClose()
@@ -129,11 +131,9 @@ function ContactRequestItem({
 
   const handleReject = async () => {
     setLoading("reject")
-    onRemove(notification.id)
-    if (!notification.isRead) {
-      markNotificationAsRead(notification.id).catch(() => {})
-    }
     try {
+      onResolve(notification.id, "REJECTED")
+      markNotificationAsRead(notification.id).catch(() => {})
       await updateContactRequestStatus(contactRequestId, "REJECTED")
     } finally {
       setLoading(null)
@@ -144,7 +144,7 @@ function ContactRequestItem({
     <div
       className={cn(
         "flex w-full items-start gap-3 rounded-lg p-3 transition-colors",
-        !notification.isRead && "bg-accent/50"
+        !notification.isRead && !resolved && "bg-accent/50"
       )}
     >
       <Avatar className="mt-0.5 size-10 shrink-0">
@@ -161,25 +161,44 @@ function ContactRequestItem({
           Câu trả lời: &quot;{answerPreview}&quot;
         </p>
         <div className="mt-2 flex items-center gap-2">
-          <Button
-            size="sm"
-            className="h-7 px-3 text-xs"
-            onClick={handleAccept}
-            disabled={loading !== null}
-          >
-            <Check className="mr-1 h-3 w-3" />
-            Chấp nhận
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-7 px-3 text-xs"
-            onClick={handleReject}
-            disabled={loading !== null}
-          >
-            <X className="mr-1 h-3 w-3" />
-            Từ chối
-          </Button>
+          {resolved ? (
+            <span
+              className={cn(
+                "inline-flex items-center gap-1 rounded-md px-3 py-1 text-xs font-medium",
+                resolved === "ACCEPTED"
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
+              )}
+            >
+              {resolved === "ACCEPTED" ? (
+                <><Check className="h-3 w-3" /> Đã chấp nhận</>
+              ) : (
+                <><X className="h-3 w-3" /> Đã từ chối</>
+              )}
+            </span>
+          ) : (
+            <>
+              <Button
+                size="sm"
+                className="h-7 px-3 text-xs"
+                onClick={handleAccept}
+                disabled={loading !== null}
+              >
+                <Check className="mr-1 h-3 w-3" />
+                Chấp nhận
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 px-3 text-xs"
+                onClick={handleReject}
+                disabled={loading !== null}
+              >
+                <X className="mr-1 h-3 w-3" />
+                Từ chối
+              </Button>
+            </>
+          )}
         </div>
         <span className="mt-1.5 block text-xs text-muted-foreground">
           {getChatTimeAgo(notification.createdAt)}

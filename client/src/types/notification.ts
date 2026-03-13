@@ -31,6 +31,7 @@ export interface ContactRequestNotification extends BaseNotification {
     postId: string
     postTitle: string
     answerPreview: string
+    resolvedStatus?: 'ACCEPTED' | 'REJECTED'
   }
 }
 

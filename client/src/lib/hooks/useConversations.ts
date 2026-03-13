@@ -26,9 +26,14 @@ export function useConversations(currentConversationId?: string) {
     if (!socket) return
 
     const handleNewMessage = (data: IMessage) => {
-      // Update conversations list when new message arrives
       mutate((current: any) => {
         if (!current) return current
+
+        const exists = current.some((conv: IConversation) => conv.id === data.conversationId)
+        if (!exists) {
+          mutate()
+          return current
+        }
 
         return current
           .map((conv: IConversation) => {
@@ -52,7 +57,7 @@ export function useConversations(currentConversationId?: string) {
             const bTime = b.lastMessage?.createdAt || b.updatedAt
             return new Date(bTime).getTime() - new Date(aTime).getTime()
           })
-      }, false) //false = dont revalidate, just update cache
+      }, false)
     }
 
     const handleMessagesRead = (data: { conversationId: string }) => {

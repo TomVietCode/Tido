@@ -3,7 +3,7 @@ import { ConversationItem } from "@/components/chats/ConversationItem"
 import { UserSearchItem } from "@/components/chats/UserSearchItem"
 import { Button } from "@/components/ui/button"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
-import { deleteConversationForMe, searchUsers } from "@/lib/actions/chat.action"
+import { createConversation, deleteConversationForMe, searchUsers } from "@/lib/actions/chat.action"
 import { useConversations, useDebounce } from "@/lib/hooks"
 import { IConversation, SearchUserResponse } from "@/types"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -25,6 +25,7 @@ export default function ChatSidebar({ currentUserId }: IChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<SearchUserResponse[]>([])
   const [isSearching, setIsSearching] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
 
   // Debounce search query
   const debouncedQuery = useDebounce(searchQuery)
@@ -59,15 +60,28 @@ export default function ChatSidebar({ currentUserId }: IChatSidebarProps) {
     }
   }, [debouncedQuery])
 
-  const handleSelectUser = useCallback((user: SearchUserResponse) => {
+  const handleSelectUser = useCallback(async (user: SearchUserResponse) => {
     const existingConv = conversations.find((conv: IConversation) => conv.recipient.id === user.id)
     if (existingConv) {
       router.push(`/chats/${existingConv.id}`)
     } else {
-      router.push(`/chats/draft_${user.id}`)
+      setIsCreating(true)
+      try {
+        const res = await createConversation(user.id)
+        if (res.success && res.data) {
+          mutate()
+          router.push(`/chats/${res.data.id}`)
+        } else {
+          toast.error(res.message || "Có lỗi xảy ra khi tạo cuộc trò chuyện")
+        }
+      } catch {
+        toast.error("Có lỗi xảy ra khi tạo cuộc trò chuyện")
+      } finally {
+        setIsCreating(false)
+      }
     }
     setSearchQuery("")
-  }, [conversations, router])
+  }, [conversations, router, mutate])
 
   const handleDeleteConv = useCallback(async (conv: IConversation) => {
     const snapshot = conversations
@@ -159,7 +173,7 @@ export default function ChatSidebar({ currentUserId }: IChatSidebarProps) {
               <>
                 <p className="px-4 py-2 text-xs text-gray-500 uppercase">Kết quả tìm kiếm cho: {debouncedQuery}</p>
                 {searchResults.map((user) => (
-                  <UserSearchItem key={user.id} user={user} onClick={() => handleSelectUser(user)} />
+                  <UserSearchItem key={user.id} user={user} onClick={() => !isCreating && handleSelectUser(user)} />
                 ))}
               </>
             )}

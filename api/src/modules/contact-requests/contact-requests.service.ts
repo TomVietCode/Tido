@@ -100,6 +100,10 @@ export class ContactRequestsService {
       data: { status: dto.status }
     })
 
+    this.notificationsService
+      .updateContactRequestResolvedStatus(requestId, dto.status)
+      .catch(() => {})
+
     if (dto.status === ContactRequestStatus.ACCEPTED) {
       const conversation = await this.chatService.createConversation({
         participants: [request.ownerId, request.requesterId],

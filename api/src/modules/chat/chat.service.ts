@@ -164,7 +164,7 @@ export class ChatService {
       conversation = await this.conversationModel.findById(conversationId)
     } else {
       if (!recipientId)
-        throw new Error('recipientId is required for draft send')
+        throw new Error('recipientId is required when conversationId is not provided')
 
       const participantKey = this.buildParticipantKey(senderId, recipientId)
       conversation = await this.conversationModel.findOneAndUpdate(
@@ -178,6 +178,8 @@ export class ChatService {
         { upsert: true, returnDocument: 'after' },
       )
     }
+
+    const isFirstMessage = !conversation.lastMessage
 
     const message = await this.messageModel.create({
       conversationId: conversation._id.toString(),
@@ -207,7 +209,7 @@ export class ChatService {
       conversationId: conversation._id.toString(),
       participants: conversation.participants,
       message,
-      createdConversation: !conversationId,
+      isFirstMessage,
     }
   }
 

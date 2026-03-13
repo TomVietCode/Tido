@@ -1,7 +1,7 @@
 import NotFound from "@/app/(client)/not-found"
 import { auth } from "@/auth"
 import ChatWindow from "@/components/chats/ChatWindow"
-import { getMessages, getUserById } from "@/lib/actions/chat.action"
+import { getMessages } from "@/lib/actions/chat.action"
 import { redirect } from "next/navigation"
 
 export default async function ChatPage({ params }: { params: Promise<{ id: string }> }) {
@@ -18,43 +18,27 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
     )
   }
   const convId = id[0]
-  const isDraft = convId.startsWith("draft_")
-  const draftRecipientId = isDraft ? convId.replace("draft_", "") : undefined
 
   let initialMessages: any[] = []
   let initialCursor: string | null = null
   let initialHasMore: boolean = true
-  let draftRecipient: { id: string; fullName: string; avatarUrl: string } | undefined
 
-  if (isDraft && draftRecipientId) {
-    const userRes = await getUserById(draftRecipientId)
-    if (userRes.success && userRes.data) {
-      draftRecipient = {
-        id: userRes.data.id,
-        fullName: userRes.data.fullName,
-        avatarUrl: userRes.data.avatarUrl || "",
-      }
+  const res = await getMessages(convId, 50)
+  if (!res.success) {
+    if (res.statusCode === 403 || res.statusCode === 404) {
+      redirect("/chats")
     }
-  } else {
-    const res = await getMessages(convId, 50)
-    if (!res.success) {
-      if (res.statusCode === 403 || res.statusCode === 404) {
-        redirect("/chats")
-      }
-    }
+  }
 
-    if (res.success && res.data) {
-      initialMessages = res.data.messages
-      initialCursor = res.data.nextCursor
-      initialHasMore = res.data.hasMore
-    }
+  if (res.success && res.data) {
+    initialMessages = res.data.messages
+    initialCursor = res.data.nextCursor
+    initialHasMore = res.data.hasMore
   }
 
   return (
     <ChatWindow
-      conversationId={isDraft ? undefined : convId}
-      draftRecipientId={draftRecipientId}
-      draftRecipient={draftRecipient}
+      conversationId={convId}
       initialMessages={initialMessages}
       initialCursor={initialCursor}
       initialHasMore={initialHasMore}

@@ -18,6 +18,7 @@ import {
   Search,
   CheckCircle,
   EyeOff,
+  Facebook,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -69,7 +70,7 @@ export default function PostDetailContent({ post }: PostDetailContentProps) {
 
   return (
     <div className="min-h-[calc(100svh-7rem)] bg-background">
-      <div className="mx-auto lg:w-6xl max-w-6xl px-4 py-6">
+      <div className="mx-auto lg:w-7xl max-w-7xl px-4 py-6">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           {/* Left Column: Image Gallery */}
           <div className="space-y-3">
@@ -223,7 +224,7 @@ export default function PostDetailContent({ post }: PostDetailContentProps) {
               <>
                 <Separator />
                 <h2 className="text-lg font-semibold">Thông tin liên hệ</h2>
-                <div className="flex flex-row justify-between">
+                <div className="flex flex-col md:flex-row justify-between">
                   {post.user.email ? (
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
@@ -232,6 +233,19 @@ export default function PostDetailContent({ post }: PostDetailContentProps) {
                       <div>
                         <p className="text-xs text-muted-foreground">Email</p>
                         <a href={`mailto:${post.user.email}`} className="font-medium text-primary hover:underline">
+                          {post.user.email}
+                        </a>
+                      </div>
+                    </div>
+                  ) : null}
+                  {post.user.facebookUrl ? (
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
+                        <Facebook className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Facebook</p>
+                        <a href={post.user.facebookUrl} className="font-medium text-primary hover:underline">
                           {post.user.email}
                         </a>
                       </div>

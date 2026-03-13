@@ -15,20 +15,45 @@ export default function NotificationBell() {
   const { notifications, mutate: mutateNotifications, isLoading } = useNotifications()
 
   const handleRemove = (id: string) => {
+    const wasUnread = notifications.find((n) => n.id === id && !n.isRead)
     mutateNotifications(
       (current) => current?.filter((n) => n.id !== id),
       false,
     )
-    mutateCount()
+    if (wasUnread) {
+      mutateCount((c) => Math.max(0, (c ?? 1) - 1), false)
+    }
   }
 
   const handleRead = (id: string) => {
+    const wasUnread = notifications.find((n) => n.id === id && !n.isRead)
     mutateNotifications(
       (current) =>
         current?.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
       false,
     )
-    mutateCount()
+    if (wasUnread) {
+      mutateCount((c) => Math.max(0, (c ?? 1) - 1), false)
+    }
+  }
+
+  const handleResolve = (id: string, resolvedStatus: "ACCEPTED" | "REJECTED") => {
+    const wasUnread = notifications.find((n) => n.id === id && !n.isRead)
+    mutateNotifications(
+      (current) =>
+        current?.map((n) => {
+          if (n.id !== id) return n
+          return {
+            ...n,
+            isRead: true,
+            data: { ...n.data, resolvedStatus },
+          }
+        }),
+      false,
+    )
+    if (wasUnread) {
+      mutateCount((c) => Math.max(0, (c ?? 1) - 1), false)
+    }
   }
 
   const handleMarkAllRead = async () => {
@@ -36,7 +61,7 @@ export default function NotificationBell() {
       (current) => current?.map((n) => ({ ...n, isRead: true })),
       false,
     )
-    mutateCount()
+    mutateCount(0, false)
     await markAllNotificationsAsRead()
   }
 
@@ -92,6 +117,7 @@ export default function NotificationBell() {
                   notification={notification}
                   onRemove={handleRemove}
                   onRead={handleRead}
+                  onResolve={handleResolve}
                   onClose={() => setOpen(false)}
                 />
               ))}

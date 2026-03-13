@@ -10,20 +10,19 @@ import Link from "next/link"
 
 interface ChatHeaderProps {
   conversation?: IConversation
-  draftRecipient?: { id: string; fullName: string; avatarUrl: string }
 }
 
-export default function ChatHeader({ conversation, draftRecipient }: ChatHeaderProps) {
+export default function ChatHeader({ conversation }: ChatHeaderProps) {
   const { post, canUpdateStatus, statusButtonLabel, isUpdating, markResolved } = useConversationPost(
     conversation?.postId
   )
 
-  const recipient = conversation?.recipient ?? draftRecipient
+  const recipient = conversation?.recipient
 
   if (!recipient) {
     return (
       <div className="flex items-center justify-between border-b p-2 shadow-b shadow-md">
-        <span className="text-sm font-semibold text-gray-700 p-1">Tin nhắn mới</span>
+        <span className="text-sm font-semibold text-gray-700 p-1">Đang tải...</span>
       </div>
     )
   }

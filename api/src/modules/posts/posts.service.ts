@@ -276,6 +276,7 @@ export class PostsService {
             avatarUrl: true,
             email: true,
             phoneNumber: true,
+            facebookUrl: true,
           },
         },
       },
