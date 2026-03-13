@@ -22,11 +22,13 @@ import { toast } from "sonner"
 import { PostType } from "@/types/enums"
 import { createPost } from "@/lib/actions/post.action"
 import { showErrorToast } from "@/lib/helpers/handle-errors"
+import { useRouter } from "next/navigation"
 
 export default function FoundForm({ categories }: { categories: Category[] }) {
+  const router = useRouter()
   const [filePreviews, setFilePreviews] = useState<string[]>([])
 
-  const { register, watch, getValues, setValue, formState, handleSubmit, reset } = useForm<FoundFormValues>({
+  const { register, watch, getValues, setValue, formState, handleSubmit } = useForm<FoundFormValues>({
     resolver: zodResolver(foundFormSchema),
     defaultValues: {
       title: "",
@@ -96,7 +98,7 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
     }
 
     toast.success("Đăng tin thành công")
-    reset()
+    router.push(`/me/my-posts`)
   }
 
   return (

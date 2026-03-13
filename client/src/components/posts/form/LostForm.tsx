@@ -27,7 +27,7 @@ import { useRouter } from "next/navigation"
 export default function LostForm({ categories }: { categories: Category[] }) {
   const router = useRouter()
   const [filePreviews, setFilePreviews] = useState<string[]>([])
-  const { register, watch, getValues, setValue, formState, handleSubmit, reset } = useForm<LostFormValues>({
+  const { register, watch, getValues, setValue, formState, handleSubmit } = useForm<LostFormValues>({
     resolver: zodResolver(lostFormSchema),
     defaultValues: {
       title: "",

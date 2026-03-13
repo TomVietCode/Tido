@@ -33,7 +33,6 @@ export default function PostCard({ post, onToggleSave }: PostCardProps) {
       postType: post.type,
       securityQuestion: post.securityQuestion,
     })
-  console.log(post)
   const [isSaved, setIsSaved] = useState(post.isSaved ?? false)
 
   const handleToggleSave = async () => {
