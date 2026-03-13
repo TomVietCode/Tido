@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useNotificationCount } from "@/lib/hooks/useNotificationCount"
 import { useNotifications } from "@/lib/hooks/useNotifications"
 import { markAllNotificationsAsRead } from "@/lib/actions/notification.action"
+import { NotificationType } from "@/types"
 import NotificationItem from "./NotificationItem"
 import { Separator } from "@/components/ui/separator"
 
@@ -43,6 +44,7 @@ export default function NotificationBell() {
       (current) =>
         current?.map((n) => {
           if (n.id !== id) return n
+          if (n.type !== NotificationType.CONTACT_REQUEST) return n
           return {
             ...n,
             isRead: true,
