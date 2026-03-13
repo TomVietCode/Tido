@@ -61,7 +61,7 @@ export default function PostCard({ post, onToggleSave }: PostCardProps) {
   const detailHref = `/posts/${post.id}`
 
   return (
-    <Card className="group w-full overflow-hidden rounded-2xl py-0 flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg gap-2">
+    <Card className="group w-full h-full overflow-hidden rounded-2xl py-0 flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg gap-2">
       <div className="relative aspect-video w-full shrink-0 overflow-hidden">
         {hasImage ? (
           <Image

@@ -158,9 +158,10 @@ export class PostsController {
   @UseInterceptors(FileInterceptor('image'))
   async searchByImage(
     @UploadedFile() file: any,
-    @Query() query: ImageSearchQueryDto,
+    @Body() body: ImageSearchQueryDto,
+    @CurrentUser() user: IUserPayload,
   ) {
-    const { data, total } = await this.postsService.searchByImage(file, query)
+    const { data, total } = await this.postsService.searchByImage(file, body, user)
     return { data, total }
   }
 
