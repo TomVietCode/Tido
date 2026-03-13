@@ -9,12 +9,12 @@ import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { useSocket } from "@/lib/contexts/SocketContext"
 import { uploadChatImage } from "@/lib/helpers/client-upload"
-import { useChatScroll, useConversations, useInfiniteMessages } from "@/lib/hooks"
+import { useChatScroll, useConversationPost, useConversations, useInfiniteMessages } from "@/lib/hooks"
 import { useChatSocket } from "@/lib/hooks/useChatSocket"
 import { isOnlyEmoji } from "@/lib/utils"
 import { IMessage } from "@/types"
 import { MessageType } from "@/types/enums"
-import { ArrowDownIcon, ChevronLeft, ImageIcon, SendHorizontal, SmileIcon, X } from "lucide-react"
+import { ArrowDownIcon, CheckCircle2, ChevronLeft, ImageIcon, SendHorizontal, SmileIcon, X } from "lucide-react"
 import { Session } from "next-auth"
 import Image from "next/image"
 import Link from "next/link"
@@ -43,6 +43,8 @@ export default function ChatWindow({
   const currentUserId = session?.user?.id
   const { socket } = useSocket()
   const { mutate: mutateConversations, currentConversation } = useConversations(conversationId)
+  const { post, canUpdateStatus, statusButtonLabel, isUpdating, markResolved } =
+    useConversationPost(currentConversation?.postId)
 
   // States
   const [input, setInput] = useState("")
@@ -313,6 +315,37 @@ export default function ChatWindow({
             </span>
           )
         })()}
+
+        <div className="flex items-center gap-1.5 ml-auto shrink-0">
+          {post && (
+            <Link
+              href={`/posts/${post.id}`}
+              className="flex items-center gap-1.5 hover:bg-gray-100 px-1.5 py-1 rounded-md transition-colors"
+            >
+              {post.images?.[0] && (
+                <Image
+                  src={post.images[0]}
+                  alt={post.title}
+                  width={28}
+                  height={28}
+                  className="size-7 rounded object-cover shrink-0"
+                />
+              )}
+              <span className="text-xs text-gray-600 truncate max-w-[100px]">{post.title}</span>
+            </Link>
+          )}
+          {canUpdateStatus && (
+            <Button
+              size="sm"
+              className="bg-green-600 hover:bg-green-700 text-white text-xs shrink-0 h-7 px-2"
+              onClick={markResolved}
+              disabled={isUpdating}
+            >
+              <CheckCircle2 className="size-3.5" />
+              {statusButtonLabel}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Desktop Header */}

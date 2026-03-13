@@ -1,4 +1,5 @@
 export * from "./useConversations"
+export * from "./useConversationPost"
 export * from "./useInfiniteMessages"
 export * from "./useChatScroll"
 export * from "./useDebounce"

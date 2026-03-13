@@ -35,7 +35,7 @@ interface MyPostsClientProps {
 const filterTabs = [
   { key: "all", label: "Tất cả" },
   { key: "active", label: "Đang hiển thị" },
-  { key: "closed", label: "Đã ẩn/Đã xong" },
+  { key: "closed", label: "Đã tìm thấy / trao trả" },
 ]
 
 export function MyPostsClient({
@@ -132,7 +132,7 @@ export function MyPostsClient({
         </Card>
         <Card>
           <CardContent>
-            <p className="text-sm text-muted-foreground">Đã đóng</p>
+            <p className="text-sm text-muted-foreground">Đã tìm thấy / trao trả</p>
             <p className="text-3xl font-bold mt-1">{summary.totalResolved}</p>
           </CardContent>
         </Card>
