@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '@src/database/prisma/prisma.service'
-import { PostType } from '@common/enums'
+import { PostStatus, PostType } from '@common/enums'
 
 @Injectable()
 export class DashboardService {
@@ -44,11 +44,11 @@ export class DashboardService {
         where: { createdAt: { gte: startOfYesterday, lt: startOfToday } },
       }),
       this.prisma.post.count({
-        where: { type: PostType.FOUND, createdAt: { gte: startOfMonth } },
+        where: { status: PostStatus.CLOSED, createdAt: { gte: startOfMonth } },
       }),
       this.prisma.post.count({
         where: {
-          type: PostType.FOUND,
+          status: PostStatus.CLOSED,
           createdAt: { gte: startOfLastMonth, lt: startOfMonth },
         },
       }),

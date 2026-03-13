@@ -19,34 +19,46 @@ export class CategoriesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createCategoryDto: CreateCategoryDto) {
-    let slug = slugify(createCategoryDto.name, {
-      lower: true,
-      locale: 'vi',
-      trim: true,
-    })
-    let existingCategory = await this.prisma.category.findUnique({
-      where: { slug },
-    })
-
-    let count = 1
-    while (existingCategory) {
-      const newSlug = `${slug}-${count}`
-      existingCategory = await this.prisma.category.findUnique({
-        where: { slug: newSlug },
+    try {
+      let slug = slugify(createCategoryDto.name, {
+        lower: true,
+        locale: 'vi',
+        trim: true,
       })
-      if (!existingCategory) {
-        slug = newSlug
-        break
-      }
-      count++
-    }
+      let existingCategory = await this.prisma.category.findUnique({
+        where: { slug },
+      })
 
-    const category = await this.prisma.category.create({
-      data: { ...createCategoryDto, slug },
-    })
-    return category
+      let count = 1
+      while (existingCategory) {
+        const newSlug = `${slug}-${count}`
+        existingCategory = await this.prisma.category.findUnique({
+          where: { slug: newSlug },
+        })
+        if (!existingCategory) {
+          slug = newSlug
+          break
+        }
+        count++
+      }
+
+      const category = await this.prisma.category.create({
+        data: { ...createCategoryDto, slug },
+      })
+      return category
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new BadRequestException('Tên danh mục đã tồn tại')
+        }
+        if (error.code === 'P2025') {
+          throw new NotFoundException('Không tìm thấy danh mục')
+        }
+      }
+      throw error
+    }
   }
-  
+
   async findAll() {
     const categories = await this.prisma.category.findMany({
       where: { status: CategoryStatus.ACTIVE },

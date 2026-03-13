@@ -14,7 +14,7 @@ export class HttpError extends Error {
 
 export const sendRequest = async <T>(props: IRequest) => {
   let { url, method, body, queryParams, headers, nextOption } = props
-  const baseUrl = 'https://api.tido.page'
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL
 
   if (url.startsWith("/")) {
     url = `${baseUrl}${url}`
@@ -47,23 +47,34 @@ export const sendRequest = async <T>(props: IRequest) => {
     next: nextOption,
   }
 
-  const res = await fetch(url, options)
-
-  let payload: any = null
   try {
-    payload = await res.json()
-  } catch (error) {
-    payload = null
-  }
+    const res = await fetch(url, options)
 
-  if (!res.ok) {
+    let payload: any = null
+    try {
+      payload = await res.json()
+    } catch (error) {
+      payload = null
+    }
+  
+    if (!res.ok) {
+      throw new HttpError(
+        payload?.message || "Có lỗi xảy ra, vui lòng thử lại sau!",
+        res.status || 500,
+        payload?.error,
+        payload
+      )
+    }
+  
+    return payload as T
+  } catch (error) {
+    if (error instanceof HttpError) {
+      throw error
+    }
+    
     throw new HttpError(
-      payload?.message || "Lỗi không xác định!",
-      res.status || 500,
-      payload?.error,
-      payload
+      "Không thể kết nối đến máy chủ, vui lòng thử lại sau!",
+      500,
     )
   }
-
-  return payload as T
 }

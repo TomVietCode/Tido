@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { FileText, Folder, LogOut, ChevronsUpDown, ShieldCheck, Users } from "lucide-react"
+import { FileText, Folder, LogOut, ChevronsUpDown, ShieldCheck, Users, ChartBar } from "lucide-react"
 import { signOut, useSession } from "next-auth/react"
 import {
   Sidebar,
@@ -10,7 +10,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -26,6 +25,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 const navMain = [
+  {
+    title: "Thống kê",
+    url: "/admin/dashboard",
+    icon: ChartBar,
+  },
   {
     title: "Quản lý bài đăng",
     url: "/admin/posts",

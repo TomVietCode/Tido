@@ -103,7 +103,7 @@ export default function AuthDialog({ open, onOpenChange, trigger }: AuthDialogPr
 
   const handleOauth = async (event: any) => {
     event.preventDefault()
-    window.location.href = `https://api.tido.page/auth/google`
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`
   }
 
   return (

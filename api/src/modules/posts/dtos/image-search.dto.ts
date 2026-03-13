@@ -1,6 +1,7 @@
-import { IsOptional, IsNumber, Min, Max } from 'class-validator'
+import { IsOptional, IsNumber, Min, Max, IsEnum } from 'class-validator'
 import { Type } from 'class-transformer'
 import { ApiPropertyOptional } from '@nestjs/swagger'
+import { PostType } from '@common/enums'
 
 export class ImageSearchQueryDto {
   @ApiPropertyOptional({ description: 'Số kết quả tối đa', default: 10 })
@@ -13,12 +14,17 @@ export class ImageSearchQueryDto {
 
   @ApiPropertyOptional({
     description: 'Ngưỡng cosine distance (0-1, càng nhỏ càng giống)',
-    default: 0.8,
+    default: 0.2,
   })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(0)
   @Max(1)
-  threshold?: number = 0.8
+  threshold?: number = 0.2
+
+  @ApiPropertyOptional({ description: 'Loại bài đăng', default: PostType.LOST })
+  @IsOptional()
+  @IsEnum(PostType)
+  postType?: PostType = PostType.LOST
 }

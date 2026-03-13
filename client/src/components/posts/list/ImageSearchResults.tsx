@@ -80,7 +80,7 @@ export default function ImageSearchResults({
       {/* Results */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
         {results.data.map((post: ImageSearchPostItem) => (
-          <div key={post.id} className="relative">
+          <div key={post.id} className="relative h-full">
             <PostCard post={post} />
             {/* Badge display similarity percentage */}
             <Badge

@@ -15,7 +15,6 @@ import {
 } from '@src/modules/posts/dtos/post.dto'
 import { PostStatus, PostType, SortOrder, UserStatus } from '@common/enums'
 import { IUserPayload } from '@common/interfaces'
-import { SavedPostsService } from '@modules/saved-posts/saved-posts.service'
 import { ImageEmbeddingService } from '@modules/posts/image-embedding.service'
 import { ImageSearchQueryDto } from '@modules/posts/dtos'
 import { AzureVisionService } from '@modules/azure-vision/azure-vision.service'
@@ -25,7 +24,6 @@ export class PostsService {
   private readonly logger = new Logger(PostsService.name)
   constructor(
     private readonly prisma: PrismaService,
-    private readonly savedPost: SavedPostsService,
     private readonly imageEmbedding: ImageEmbeddingService,
     private readonly azureVision: AzureVisionService,
   ) {}
@@ -54,7 +52,7 @@ export class PostsService {
         },
       })
 
-      // Create embeddings for images (non-blocking)
+      // Create embeddings for images
       if (dto.images?.length > 0) {
         // Run asynchronously, without blocking the response to the user
         this.imageEmbedding
@@ -82,7 +80,7 @@ export class PostsService {
       sortOrder = SortOrder.DESC,
       cursor,
     } = query
-    const safeLimit = Math.min(limit, 30)
+    const safeLimit = Math.min(limit, 20)
 
     const where: any = { status: PostStatus.OPEN }
     if (userId) where.userId = { not: userId }
@@ -160,7 +158,7 @@ export class PostsService {
     })
   }
 
-  async searchByImage(file: any, query: ImageSearchQueryDto) {
+  async searchByImage(file: any, dto: ImageSearchQueryDto, user: IUserPayload) {
     if (!file) {
       throw new BadRequestException('Vui lòng upload ảnh để tìm kiếm')
     }
@@ -173,8 +171,10 @@ export class PostsService {
     // Step 2: Search for similar posts
     const matches = await this.imageEmbedding.searchSimilarPosts(
       queryVector,
-      query.limit,
-      query.threshold,
+      dto.limit,
+      dto.threshold,
+      dto.postType,
+      user?.id,
     )
 
     if (matches.length === 0) {
@@ -204,20 +204,6 @@ export class PostsService {
       total: sortedPosts.length,
     }
   }
-  
-  // async findMyPosts(query: GetMyPostsQueryDto, user: IUserPayload) {
-  //   const {
-  //     page = 1,
-  //     limit = 10,
-  //     catSlug,
-  //     catId,
-  //     status,
-  //     type,
-  //     sortBy = 'createdAt',
-  //     sortOrder = SortOrder.DESC,
-  //   } = query
-  //   const skip = (page - 1) * limit
-  //   const where: any = { userId: user.id }
 
   async findMyPosts(query: GetMyPostsQueryDto, user: IUserPayload) {
     const {
@@ -321,6 +307,18 @@ export class PostsService {
       data: dto,
     })
 
+    // Create embeddings for images
+    if (dto.images && dto.images.length > 0) {
+      // Run asynchronously, without blocking the response to the user
+      this.imageEmbedding
+        .createEmbeddingsForPost(updatedPost.id, dto.images)
+        .catch((err) => {
+          this.logger.error(
+            `Failed to create embeddings for post ${updatedPost.id}`,
+            err,
+          )
+        })
+    }
     return updatedPost
   }
 

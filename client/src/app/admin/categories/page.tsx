@@ -152,9 +152,9 @@ export default function CategoriesManagementPage() {
                   <TableCell>{category.postCount ?? 0}</TableCell>
                   <TableCell>
                     <Badge
-                      variant={category.status === CategoryStatus.ACTIVE ? "default" : "secondary"}
+                      className={category.status === CategoryStatus.ACTIVE ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}
                     >
-                      {category.status === CategoryStatus.ACTIVE ? "Hoạt động" : "Không hoạt động"}
+                      {category.status === CategoryStatus.ACTIVE ? "Đang hoạt động" : "Đã ẩn"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">

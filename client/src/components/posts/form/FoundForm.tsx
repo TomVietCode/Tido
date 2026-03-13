@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dropzone, DropzoneContent, DropzoneEmptyState } from "@/components/ui/shadcn-io/dropzone"
 import { useEffect, useState } from "react"
-import { X } from "lucide-react"
+import { Loader2, X } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { useForm } from "react-hook-form"
 import { foundFormSchema, FoundFormValues } from "@/lib/schemas/post.schema"
@@ -22,11 +22,14 @@ import { toast } from "sonner"
 import { PostType } from "@/types/enums"
 import { createPost } from "@/lib/actions/post.action"
 import { showErrorToast } from "@/lib/helpers/handle-errors"
+import { useRouter } from "next/navigation"
+import { processImageFile } from "@/lib/helpers/image-helpers"
 
 export default function FoundForm({ categories }: { categories: Category[] }) {
+  const router = useRouter()
   const [filePreviews, setFilePreviews] = useState<string[]>([])
 
-  const { register, watch, getValues, setValue, formState, handleSubmit, reset } = useForm<FoundFormValues>({
+  const { register, watch, getValues, setValue, formState, handleSubmit } = useForm<FoundFormValues>({
     resolver: zodResolver(foundFormSchema),
     defaultValues: {
       title: "",
@@ -38,10 +41,22 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
   })
   const files = watch("files")
 
-  const handleDrop = (newFiles: File[]) => {
-    const currentFiles = getValues("files") || []
-    const updatedFiles = [...currentFiles, ...newFiles].slice(0, 5)
-    setValue("files", updatedFiles, { shouldValidate: true })
+  const handleDrop = async (newFiles: File[]) => {
+    const toastId = toast.loading("Đang xử lý hình ảnh của bạn...", {
+      position: "bottom-left",
+    })
+
+    try {
+      const currentFiles = getValues("files") || []
+      const updatedFiles = [...currentFiles, ...newFiles].slice(0, 5)
+
+      const processedFiles = await Promise.all(updatedFiles.map(processImageFile))
+
+      setValue("files", processedFiles, { shouldValidate: true })
+      toast.success("Xử lý hình ảnh hoàn tất", { id: toastId })
+    } catch (error) {
+      toast.error("Xảy ra lỗi khi xử lý hình ảnh của bạn!", { id: toastId })
+    }
   }
 
   useEffect(() => {
@@ -96,7 +111,7 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
     }
 
     toast.success("Đăng tin thành công")
-    reset()
+    router.push(`/me/my-posts`)
   }
 
   return (
@@ -114,6 +129,7 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
                 id="tabs-lost-title"
                 placeholder="VD: Nhặt được ví da màu đen ở thư viện..."
                 className={formState.errors.title && "border-destructive"}
+                disabled={formState.isSubmitting}
               />
               <FormErrorMessage error={formState.errors.title} />
             </div>
@@ -148,6 +164,7 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
                 placeholder="Mô tả đặc điểm, tình trạng của vật..."
                 {...register("description")}
                 className={formState.errors.description && "border-destructive"}
+                disabled={formState.isSubmitting}
               />
               <FormErrorMessage error={formState.errors.description} />
             </div>
@@ -159,6 +176,7 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
                 {...register("securityQuestion")}
                 id="tabs-found-security-question"
                 placeholder="VD: Hình nền điện thoại là gì? / Trong ví có bao nhiêu tiền?..."
+                disabled={formState.isSubmitting}
               />
             </div>
 
@@ -170,6 +188,7 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
                 accept={{ "image/*": [".png", ".jpg", ".jpeg", ".heic", ".webp"] }}
                 onDrop={handleDrop}
                 src={files.length > 0 ? files : undefined}
+                disabled={formState.isSubmitting}
                 className="border-dashed border-2"
               >
                 <DropzoneEmptyState />
@@ -204,11 +223,16 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
             <div className="grid gap-3 grid-cols-2">
               <div className="grid gap-1">
                 <Label htmlFor="tabs-lost-time">Thời gian</Label>
-                <Input type="date" {...register("happenedAt")} />
+                <Input type="date" {...register("happenedAt")} disabled={formState.isSubmitting} />
               </div>
               <div className="grid gap-1">
                 <Label htmlFor="tabs-lost-location">Địa điểm</Label>
-                <Input id="tabs-lost-location" {...register("location")} placeholder="VD: Thư viện..." />
+                <Input
+                  id="tabs-lost-location"
+                  {...register("location")}
+                  placeholder="VD: Thư viện..."
+                  disabled={formState.isSubmitting}
+                />
               </div>
             </div>
 
@@ -216,6 +240,7 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
             <div className="flex items-center space-x-2">
               <Label htmlFor="contact-mode">Công khai thông tin liên lạc?</Label>
               <Switch
+                disabled={formState.isSubmitting}
                 id="contact-mode"
                 className="data-[state=checked]:bg-chart-2"
                 onCheckedChange={(val) => setValue("contactVisible", val)}
@@ -228,7 +253,13 @@ export default function FoundForm({ categories }: { categories: Category[] }) {
               disabled={formState.isSubmitting}
               className="w-full bg-chart-2 text-white hover:bg-chart-3 transition-colors duration-300 cursor-pointer "
             >
-              {formState.isSubmitting ? "Đang đăng..." : "Đăng tin ngay"}
+              {formState.isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Đang đăng...
+                </>
+              ) : (
+                "Đăng tin ngay"
+              )}
             </Button>
           </CardFooter>
         </form>

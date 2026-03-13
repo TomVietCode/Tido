@@ -33,15 +33,6 @@ export default function HeaderClient({ session }: HeaderClientProps) {
           </Link>
         </div>
 
-        {/* Search - Hidden on mobile */}
-        <div className="relative hidden md:flex flex-1 items-center">
-          <Search className="absolute left-3 h-5 w-5 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Tìm kiếm bài đăng..."
-            className="pl-10 text-base bg-slate-50 border-border/50 focus-visible:ring-2 focus-visible:ring-primary"
-          />
-        </div>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex flex-1 items-center justify-end space-x-2">
@@ -119,17 +110,6 @@ export default function HeaderClient({ session }: HeaderClientProps) {
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className=" md:hidden fixed inset-x-0 top-14 z-40 border-t border-border/40 bg-background max-h-[calc(100vh-56px)] overflow-y-auto">
-          {/* Mobile Search */}
-          <div className="p-4">
-            <div className="relative flex items-center">
-              <Search className="absolute left-3 h-5 w-5 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Tìm kiếm bài đăng..."
-                className="pl-10 text-base bg-slate-50 border-border/50 focus-visible:ring-2 focus-visible:ring-primary"
-              />
-            </div>
-          </div>
 
           {/* Mobile Navigation */}
           <nav className="flex flex-col p-4 pt-0 space-y-4">

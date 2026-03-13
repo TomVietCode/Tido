@@ -23,7 +23,7 @@ import { EditPostDialog } from "@/components/me/EditPostDialog"
 
 import { deletePost, updatePostStatus } from "@/lib/actions/post.action"
 import { MyPostListItem } from "@/types"
-import { PostStatus } from "@/types/enums"
+import { PostStatus, PostType } from "@/types/enums"
 import { cn } from "@/lib/utils"
 
 interface MyPostsClientProps {
@@ -184,7 +184,7 @@ export function MyPostsClient({
                   <TableCell>
                     <div className="flex items-center gap-3">
                       {post.images && post.images.length > 0 ? (
-                        <div className="relative w-12 h-12 rounded-md overflow-hidden border bg-muted flex-shrink-0">
+                        <div className="relative w-12 h-12 rounded-md overflow-hidden border bg-muted shrink-0">
                           <Image
                             src={post.images[0]}
                             alt={post.title}
@@ -213,11 +213,11 @@ export function MyPostsClient({
                   <TableCell>
                     {post.status === PostStatus.OPEN ? (
                       <Badge className="bg-yellow-100 text-yellow-700 border-transparent">
-                        Đang mở
+                        {post.type === PostType.LOST ? "Đang tìm" : "Đang tìm chủ nhân"}
                       </Badge>
                     ) : (
                       <Badge className="bg-green-100 text-green-700 border-transparent">
-                        Đã đóng
+                        {post.type === PostType.LOST ? "Đã tìm thấy" : "Đã trao trả"}
                       </Badge>
                     )}
                   </TableCell>
@@ -249,7 +249,7 @@ export function MyPostsClient({
                           className="bg-green-600 hover:bg-green-700 text-white"
                           onClick={() => handleMarkResolved(post)}
                         >
-                          Đóng bài đăng
+                          {post.type === PostType.LOST ? "Đã tìm thấy" : "Đã trao trả"}
                         </Button>
                       )}
                     </div>

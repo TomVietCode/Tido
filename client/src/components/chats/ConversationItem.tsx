@@ -101,7 +101,7 @@ export const ConversationItem = memo(function ConversationItem({
               variant="ghost"
               className="
               absolute right-2 top-1/2 z-20 -translate-y-1/2 rounded-full border border-border/70 
-              bg-background/90 shadow-sm transition-opacity duration-150 group-hover:opacity-100
+              bg-background/90 opacity-0 shadow-sm transition-opacity duration-150 group-hover:opacity-100
               "
               onClick={(e) => {
                 e.preventDefault()

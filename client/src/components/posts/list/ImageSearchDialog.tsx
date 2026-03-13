@@ -15,7 +15,10 @@ import { Button } from "@/components/ui/button"
 import { Dropzone, DropzoneContent, DropzoneEmptyState } from "@/components/ui/shadcn-io/dropzone"
 import { toast } from "sonner"
 import { ImageSearchResponse } from "@/types/post"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,  } from "@/components/ui/tooltip"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { processImageFile } from "@/lib/helpers/image-helpers"
+import { PostType } from "@/types/enums"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface ImageSearchDialogProps {
   onSearchResults: (results: ImageSearchResponse, previewUrl: string) => void
@@ -24,6 +27,7 @@ interface ImageSearchDialogProps {
 export default function ImageSearchDialog({ onSearchResults }: ImageSearchDialogProps) {
   const [open, setOpen] = useState(false)
   const [file, setFile] = useState<File | null>(null)
+  const [postType, setPostType] = useState<PostType>(PostType.LOST)
   const [preview, setPreview] = useState<string | null>(null)
   const [isSearching, setIsSearching] = useState(false)
 
@@ -38,9 +42,18 @@ export default function ImageSearchDialog({ onSearchResults }: ImageSearchDialog
     return () => URL.revokeObjectURL(objectUrl)
   }, [file])
 
-  const handleDrop = useCallback((acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      setFile(acceptedFiles[0])
+  const handleDrop = useCallback(async (acceptedFiles: File[]) => {
+    const toastId = toast.loading("Đang xử lý hình ảnh của bạn...", {
+      position: "top-center",
+    })
+    try {
+      if (acceptedFiles.length > 0) {
+        const processedFile = await processImageFile(acceptedFiles[0])
+        setFile(processedFile)
+        toast.success("Xử lý hình ảnh hoàn tất", { id: toastId })
+      }
+    } catch (error) {
+      toast.error("Xảy ra lỗi khi xử lý hình ảnh của bạn!", { id: toastId })
     }
   }, [])
 
@@ -49,6 +62,10 @@ export default function ImageSearchDialog({ onSearchResults }: ImageSearchDialog
   }
 
   const handleSearch = async () => {
+    if (!postType) {
+      toast.error("Vui lòng chọn loại bài đăng")
+      return
+    }
     if (!file) {
       toast.error("Vui lòng chọn ảnh để tìm kiếm")
       return
@@ -59,6 +76,7 @@ export default function ImageSearchDialog({ onSearchResults }: ImageSearchDialog
     try {
       const formData = new FormData()
       formData.append("image", file)
+      formData.append("postType", postType)
 
       const res = await fetch("/api/posts/search/image", {
         method: "POST",
@@ -77,7 +95,7 @@ export default function ImageSearchDialog({ onSearchResults }: ImageSearchDialog
       onSearchResults(results, preview!)
       setOpen(false)
     } catch {
-      toast.error("Có lỗi xảy ra, vui lòng thử lại")
+      toast.error("Có lỗi xảy ra, vui lòng thử lại sau")
     } finally {
       setIsSearching(false)
     }
@@ -88,7 +106,9 @@ export default function ImageSearchDialog({ onSearchResults }: ImageSearchDialog
     setOpen(isOpen)
     if (!isOpen) {
       setFile(null)
+      setPreview(null)
       setIsSearching(false)
+      setPostType(PostType.LOST)
     }
   }
 
@@ -114,7 +134,18 @@ export default function ImageSearchDialog({ onSearchResults }: ImageSearchDialog
           <DialogTitle>Tìm kiếm bằng hình ảnh</DialogTitle>
           <DialogDescription>Chọn hoặc kéo thả ảnh để tìm bài đăng có hình ảnh tương tự</DialogDescription>
         </DialogHeader>
-
+        <div className="space-x-2 flex items-center">
+          <p className="text-sm font-medium">Bạn cần tìm kiếm theo loại bài đăng nào?</p>
+          <Select value={postType} onValueChange={(v) => setPostType(v as PostType)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Chọn loại bài đăng" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={PostType.LOST}>Thất lạc</SelectItem>
+              <SelectItem value={PostType.FOUND}>Nhặt được</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <div className="space-y-4">
           {/* Dropzone or Preview */}
           {!file ? (
@@ -145,7 +176,7 @@ export default function ImageSearchDialog({ onSearchResults }: ImageSearchDialog
         </div>
 
         <DialogFooter>
-          <Button onClick={handleSearch} disabled={!file || isSearching} className="w-full cursor-pointer">
+          <Button onClick={handleSearch} disabled={!file || !postType || isSearching} className="w-full cursor-pointer">
             {isSearching ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />

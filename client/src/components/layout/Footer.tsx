@@ -19,7 +19,7 @@ export default function Footer() {
 
         {/* Link phụ ở footer */}
         <div className="pl-8 flex gap-2 text-sm">
-          Hỗ trợ: <a href="mailto:hanflorist.shop@gmail.com">support@tido.com</a>
+          Hỗ trợ: <a href="mailto:mcuong04.work@gmail.com">mcuong04.work@gmail.com</a>
         </div>
       </div>
     </footer>

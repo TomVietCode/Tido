@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from '@src/database/prisma/prisma.service'
 import { AzureVisionService } from '@modules/azure-vision/azure-vision.service'
 import { toSql } from 'pgvector'
+import { PostType } from '@common/enums'
 
 @Injectable()
 export class ImageEmbeddingService {
@@ -56,49 +57,60 @@ export class ImageEmbeddingService {
     )
   }
 
-    /**
+  /**
    * Search similar posts by image.
    *
    * @param queryVector - vector embedding of the query image (1024 dimensions)
    * @param limit - maximum number of results (default 10)
-   * @param threshold - maximum cosine distance threshold (default 0.8, the smaller the more similar)
+   * @param threshold - maximum cosine distance threshold (default 0.2, the smaller the more similar)
    * @returns list of post_id + distance, sorted by similarity
    */
-    async searchSimilarPosts(
-      queryVector: number[],
-      limit: number = 10,
-      threshold: number = 0.8,
-    ): Promise<{ postId: string; distance: number; imageUrl: string }[]> {
-      const vectorSql = toSql(queryVector)
-  
-      // Cosine distance: <=> returns a value in [0, 2]
-      //   0 = completely similar
-      //   1 = not similar
-      //   2 = completely different
-      const results = await this.prisma.$queryRawUnsafe<
-        { post_id: string; distance: number; image_url: string }[]
-      >(
-        `SELECT DISTINCT ON (e.post_id)
+  async searchSimilarPosts(
+    queryVector: number[],
+    limit: number = 10,
+    threshold: number = 0.2,
+    postType: PostType = PostType.LOST,
+    currentUserId?: string,
+  ): Promise<{ postId: string; distance: number; imageUrl: string }[]> {
+    const vectorSql = toSql(queryVector)
+
+    // Cosine distance: <=> returns a value in [0, 2]
+    //   0 = completely similar
+    //   1 = not similar
+    //   2 = completely different
+    const results = await this.prisma.$queryRawUnsafe<
+      { post_id: string; distance: number; image_url: string }[]
+    >(
+      `SELECT x.post_id, x.image_url, x.distance
+       FROM (
+         SELECT DISTINCT ON (e.post_id)
                 e.post_id,
                 e.image_url,
                 e.embedding <=> $1::vector AS distance
          FROM post_image_embeddings e
          INNER JOIN posts p ON p.id = e.post_id
          WHERE p.status = 'OPEN'
-           AND e.embedding <=> $1::vector < $2
-         ORDER BY e.post_id, distance ASC`,
-        vectorSql,
-        threshold,
-      )
-  
-      // Sort by distance (DISTINCT ON has grouped by post_id)
-      results.sort((a, b) => a.distance - b.distance)
-  
-      return results.slice(0, limit).map((r) => ({
-        postId: r.post_id,
-        distance: Number(r.distance),
-        imageUrl: r.image_url,
-      }))
-    }
+           AND p.type = $4
+           AND ($2::uuid IS NULL OR p.user_id <> $2::uuid)
+           AND (e.embedding <=> $1::vector) < $3
+         ORDER BY e.post_id, distance ASC
+       ) x
+       ORDER BY x.distance ASC
+       LIMIT $5`,
+      vectorSql,
+      currentUserId ?? null,
+      threshold,
+      postType,
+      limit,
+    )
 
+    // Sort by distance (DISTINCT ON has grouped by post_id)
+    results.sort((a, b) => a.distance - b.distance)
+
+    return results.slice(0, limit).map((r) => ({
+      postId: r.post_id,
+      distance: Number(r.distance),
+      imageUrl: r.image_url,
+    }))
+  }
 }
