@@ -42,30 +42,33 @@ dayjs.extend(relativeTime)
 dayjs.locale("vi")
 
 const CATEGORY_COLORS = [
-  "hsl(221 83% 53%)",
+  "hsl(263, 70%, 50%)",
   "hsl(160 60% 45%)",
-  "hsl(30 80% 55%)",
+  "hsl(215, 16%, 47%)",
   "hsl(280 65% 60%)",
   "hsl(340 75% 55%)",
+  "hsl(120 60% 45%)",
+  "hsl(217, 91%, 60%)",
+  "hsl(50, 100%, 48%)"
 ]
 
 const activityChartConfig = {
-  lost: { label: "Tin thất lạc", color: "hsl(221 83% 53%)" },
-  found: { label: "Tin tìm thấy", color: "hsl(160 60% 45%)" },
+  lost: { label: "Tin thất lạc", color: "oklch(75% 0.183 55.934)" },
+  found: { label: "Tin tìm thấy", color: "oklch(0.623 0.214 259.815)" },
 } satisfies ChartConfig
 
 const STATUS_MAP: Record<string, { label: string; className: string }> = {
   CLOSED: {
     label: "Hoàn thành",
-    className: "bg-green-100 text-green-700 hover:bg-green-100",
+    className: "bg-gray-100 text-gray-700",
   },
   OPEN: {
     label: "Đang mở",
-    className: "bg-yellow-100 text-yellow-700 hover:bg-yellow-100",
+    className: "bg-green-100 text-green-700",
   },
   HIDDEN: {
-    label: "Ẩn",
-    className: "bg-gray-100 text-gray-600 hover:bg-gray-100",
+    label: "Đã ẩn",
+    className: "bg-red-100 text-red-700",
   },
 }
 
@@ -123,7 +126,7 @@ export default function DashboardPage() {
           icon={Newspaper}
         />
         <StatCard
-          title="Đã tìm được (Tháng này)"
+          title="Đã tìm được / trao trả (Tháng này)"
           value={data?.stats.foundThisMonth.value ?? 0}
           trend={data?.stats.foundThisMonth.trend ?? 0}
           trendLabel="so với tháng trước"
@@ -167,7 +170,7 @@ export default function DashboardPage() {
         {/* Category Donut Chart */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Tỷ lệ danh mục</CardTitle>
+            <CardTitle className="text-base">Tỷ lệ bài đăng theo danh mục</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-8">
@@ -251,9 +254,9 @@ export default function DashboardPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>HÀNH ĐỘNG</TableHead>
-                <TableHead>THỜI GIAN</TableHead>
-                <TableHead>TRẠNG THÁI</TableHead>
+                <TableHead>Bài đăng</TableHead>
+                <TableHead>Thời gian đăng</TableHead>
+                <TableHead>Trạng thái</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

@@ -59,7 +59,7 @@ export const sendRequest = async <T>(props: IRequest) => {
   
     if (!res.ok) {
       throw new HttpError(
-        payload?.message || "Lỗi không xác định!",
+        payload?.message || "Có lỗi xảy ra, vui lòng thử lại sau!",
         res.status || 500,
         payload?.error,
         payload
@@ -68,6 +68,10 @@ export const sendRequest = async <T>(props: IRequest) => {
   
     return payload as T
   } catch (error) {
+    if (error instanceof HttpError) {
+      throw error
+    }
+    
     throw new HttpError(
       "Không thể kết nối đến máy chủ, vui lòng thử lại sau!",
       500,
