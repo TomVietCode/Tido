@@ -186,7 +186,7 @@ export default function PostManagementPage() {
                   {/* Image */}
                   <TableCell>
                     {post.images && post.images.length > 0 ? (
-                      <div className="w-10 h-10 rounded-md overflow-hidden border bg-muted flex-shrink-0">
+                      <div className="w-10 h-10 rounded-md overflow-hidden border bg-muted shrink-0">
                         <img
                           src={post.images[0]}
                           alt=""

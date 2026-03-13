@@ -144,7 +144,7 @@ export default function PostDetailContent({ post }: PostDetailContentProps) {
                 {getPostTimeAgo(post.createdAt)}
                 {post.status === PostStatus.OPEN ? (
                   <div className="flex items-center gap-1">
-                    · <Search className="h-4 w-4" /> Đang tìm
+                    · <Search className="h-4 w-4" /> {isLost ? "Đang tìm" : "Đang tìm chủ nhân"}
                   </div>
                 ) : post.status === PostStatus.CLOSED ? (
                   <div className="flex items-center gap-1">

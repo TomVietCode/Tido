@@ -82,7 +82,7 @@ export class PostsService {
       sortOrder = SortOrder.DESC,
       cursor,
     } = query
-    const safeLimit = Math.min(limit, 30)
+    const safeLimit = Math.min(8, 20)
 
     const where: any = { status: PostStatus.OPEN }
     if (userId) where.userId = { not: userId }

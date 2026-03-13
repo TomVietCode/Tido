@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
+import { Loader2 } from "lucide-react"
 
 const AdminLoginSchema = z.object({
   email: z.email({ message: "Email không hợp lệ" }),
@@ -114,7 +115,13 @@ export default function AdminLoginPage() {
               />
 
               <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
+                {form.formState.isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" /> Đang đăng nhập...
+                  </>
+                ) : (
+                  "Đăng nhập"
+                )}
               </Button>
             </form>
           </Form>

@@ -79,6 +79,7 @@ export class PostsController {
     type: PostListResponseDto,
     paginated: true,
   })
+  
   async findMyPosts(
     @Query() query: GetMyPostsQueryDto,
     @CurrentUser() user: IUserPayload,

@@ -8,7 +8,7 @@ export const SocketProvider = ({ children, token }: { children: React.ReactNode,
   const [socket, setSocket] = useState<Socket | null>(null);
   useEffect(() => {
     if (!token) return
-    const newSocket = io('https://api.tido.page', {
+    const newSocket = io(process.env.NEXT_PUBLIC_SOCKET_URL ?? 'https://api.tido.page', {
       auth: { token },
       transports: ['websocket', 'polling']
     });

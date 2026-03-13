@@ -8,6 +8,7 @@ import { MyPostsResponse, ImageSearchResponse, Post, PostDetail, PostListItem, P
 export const getPosts = async (params?: Record<string, string | undefined> | URLSearchParams) => {
   try {
     const session = await auth()
+    console.log(params)
     const res = await sendRequest<IBackendRes<PostListResponse>>({
       url: "/posts",
       method: "GET",
