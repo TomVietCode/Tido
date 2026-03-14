@@ -7,8 +7,8 @@ export default async function SavedPostsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Tin đã lưu</h1>
+      <div className="mb-4 flex flex-col gap-1 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-xl font-bold sm:text-2xl">Tin đã lưu</h1>
         {posts.length > 0 && (
           <span className="text-sm text-muted-foreground">{posts.length} tin đã lưu</span>
         )}

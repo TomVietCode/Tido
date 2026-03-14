@@ -14,8 +14,8 @@ export default async function MeLayout({
   const profile = await getProfile()
 
   return (
-    <div className="container max-w-screen-xl mx-auto px-4 py-8">
-      <div className="flex gap-8">
+    <div className="container mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6 lg:py-8">
+      <div className="flex flex-col gap-4 lg:flex-row lg:gap-8">
         <ProfileSidebar
           fullName={profile.fullName}
           email={profile.email}

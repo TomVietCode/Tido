@@ -123,13 +123,13 @@ export default function ProfileContent({ profile }: ProfileContentProps) {
 
   return (
     <div className="flex-1 min-w-0">
-      <h1 className="text-2xl font-bold mb-6">Thông tin chung</h1>
+      <h1 className="mb-4 text-xl font-bold sm:mb-6 sm:text-2xl">Thông tin chung</h1>
 
-      <div className="rounded-xl border bg-card p-8 shadow-sm">
+      <div className="rounded-xl border bg-card p-4 shadow-sm sm:p-6 lg:p-8">
         {/* Avatar Section */}
-        <div className="flex flex-col items-center mb-8">
+        <div className="mb-6 flex flex-col items-center sm:mb-8">
           <div className="relative group">
-            <Avatar className="h-28 w-28">
+            <Avatar className="h-24 w-24 sm:h-28 sm:w-28">
               <AvatarImage src={avatarPreview} alt={currentProfile.fullName} />
               <AvatarFallback className="text-3xl">{currentProfile.fullName?.charAt(0)}</AvatarFallback>
             </Avatar>
@@ -160,7 +160,7 @@ export default function ProfileContent({ profile }: ProfileContentProps) {
 
         {/* Profile Form */}
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
+          <div className="grid grid-cols-1 gap-x-6 gap-y-2 md:grid-cols-2">
             {/* Họ và tên */}
             <div className="flex flex-col">
               <Label htmlFor="fullName" className="mb-2">
@@ -258,19 +258,19 @@ export default function ProfileContent({ profile }: ProfileContentProps) {
           </div>
 
           {/* Actions */}
-          <div className="mt-4 flex justify-end gap-3">
+          <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
             {isEditing ? (
               <>
-                <Button type="button" variant="outline" onClick={handleCancel} disabled={isPending}>
+                <Button type="button" variant="outline" onClick={handleCancel} disabled={isPending} className="w-full sm:w-auto">
                   Hủy
                 </Button>
-                <Button type="submit" disabled={isPending}>
+                <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
                   {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                   Lưu thay đổi
                 </Button>
               </>
             ) : (
-              <Button type="button" onClick={handleEdit}>
+              <Button type="button" onClick={handleEdit} className="w-full sm:w-auto">
                 <Pencil className="h-4 w-4" />
                 Cập nhật thông tin
               </Button>

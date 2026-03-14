@@ -22,9 +22,9 @@ export default function SavedPostsClient({ initialPosts }: SavedPostsClientProps
 
   if (posts.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-xl  bg-card py-20 ">
+      <div className="flex flex-col items-center justify-center rounded-xl bg-card px-4 py-16 sm:py-20">
         <Bookmark className="h-16 w-16 text-muted-foreground/30 mb-4" />
-        <p className="text-lg font-medium text-muted-foreground mb-1">Bạn chưa lưu bài đăng nào</p>
+        <p className="mb-1 text-center text-base font-medium text-muted-foreground sm:text-lg">Bạn chưa lưu bài đăng nào</p>
         <Button asChild>
           <Link href="/posts">
             <Search className="h-4 w-4" />
@@ -36,7 +36,7 @@ export default function SavedPostsClient({ initialPosts }: SavedPostsClientProps
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
       {posts.map((post) => (
         <PostCard
           key={post.id}

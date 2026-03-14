@@ -22,7 +22,7 @@ export default async function MyPostsPage({ searchParams }: MyPostsPageProps) {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Tin đã đăng</h1>
+      <h1 className="mb-4 text-xl font-bold sm:mb-6 sm:text-2xl">Tin đã đăng</h1>
       <MyPostsClient
         initialPosts={posts}
         summary={summary}

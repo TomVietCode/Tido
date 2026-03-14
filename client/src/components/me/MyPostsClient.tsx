@@ -123,7 +123,7 @@ export function MyPostsClient({
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
         <Card>
           <CardContent>
             <p className="text-sm text-muted-foreground">Số tin đã đăng</p>
@@ -139,13 +139,13 @@ export function MyPostsClient({
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-2 border-b pb-2">
+      <div className="flex gap-2 overflow-x-auto border-b pb-2">
         {filterTabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => handleFilterChange(tab.key)}
             className={cn(
-              "px-4 py-2 text-sm font-medium rounded-t-md transition-colors",
+              "shrink-0 rounded-t-md px-4 py-2 text-sm font-medium transition-colors",
               currentFilter === tab.key
                 ? "bg-white border border-b-transparent text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
@@ -156,8 +156,8 @@ export function MyPostsClient({
         ))}
       </div>
 
-      {/* Data Table */}
-      <div className="rounded-xl border bg-card shadow-sm">
+      {/* Desktop Table */}
+      <div className="hidden rounded-xl border bg-card shadow-sm md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -259,6 +259,84 @@ export function MyPostsClient({
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Mobile List */}
+      <div className="space-y-3 md:hidden">
+        {posts.length === 0 ? (
+          <div className="rounded-xl border bg-card p-6 text-center text-sm text-muted-foreground">
+            Chưa có tin đăng nào.
+          </div>
+        ) : (
+          posts.map((post) => (
+            <div key={post.id} className="rounded-xl border bg-card p-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                {post.images && post.images.length > 0 ? (
+                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md border bg-muted">
+                    <Image
+                      src={post.images[0]}
+                      alt={post.title}
+                      fill
+                      className="object-cover"
+                      sizes="56px"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md border bg-muted text-muted-foreground">
+                    <ImageIcon className="h-5 w-5" />
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="line-clamp-2 text-sm font-medium">{post.title}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {dayjs(post.createdAt).format("DD/MM/YYYY")}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-3">
+                {post.status === PostStatus.OPEN ? (
+                  <Badge className="bg-yellow-100 text-yellow-700 border-transparent">
+                    {post.type === PostType.LOST ? "Đang tìm" : "Đang tìm chủ nhân"}
+                  </Badge>
+                ) : (
+                  <Badge className="bg-green-100 text-green-700 border-transparent">
+                    {post.type === PostType.LOST ? "Đã tìm thấy" : "Đã trao trả"}
+                  </Badge>
+                )}
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleEditClick(post)}
+                >
+                  <Pencil className="h-4 w-4" />
+                  Chỉnh sửa
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => handleDeleteClick(post)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Xóa
+                </Button>
+                {post.status === PostStatus.OPEN && (
+                  <Button
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                    onClick={() => handleMarkResolved(post)}
+                  >
+                    {post.type === PostType.LOST ? "Đã tìm thấy" : "Đã trao trả"}
+                  </Button>
+                )}
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Delete Confirmation Dialog */}
