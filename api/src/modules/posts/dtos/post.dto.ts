@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common'
 import { PartialType } from '@nestjs/swagger'
 import { PostStatus, PostType, SortOrder } from '@src/common/enums'
 import { Transform, Type } from 'class-transformer'
@@ -40,11 +41,14 @@ export class CreatePostDto {
 
   // Check date not in future
   @IsOptional()
-  @IsDate({ message: 'Thời gian không hợp lệ' })
   @Type(() => Date)
-  @MaxDate(new Date(), {
-    message: 'Thời gian không thể xảy ra trong tương lai',
+  @Transform(({ value }) => {
+    if (value > new Date()) {
+      throw new BadRequestException('Thời gian không thể ở tương lai');
+    }
+    return value;
   })
+  @IsDate({ message: 'Thời gian không hợp lệ' })
   happenedAt?: Date
 
   @IsOptional()
