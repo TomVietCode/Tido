@@ -48,7 +48,7 @@ export class PostsService {
           ...dto,
           userId: user.id,
           status: PostStatus.OPEN,
-          hasReward: dto.type === PostType.LOST ? true : false,
+          hasReward: dto.type === PostType.LOST ? dto.hasReward : undefined,
         },
       })
 
