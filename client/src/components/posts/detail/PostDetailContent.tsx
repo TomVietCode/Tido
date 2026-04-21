@@ -246,7 +246,7 @@ export default function PostDetailContent({ post }: PostDetailContentProps) {
                       <div>
                         <p className="text-xs text-muted-foreground">Facebook</p>
                         <a href={post.user.facebookUrl} className="font-medium text-primary hover:underline">
-                          {post.user.email}
+                          {post.user.facebookUrl}
                         </a>
                       </div>
                     </div>
